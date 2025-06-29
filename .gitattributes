@@ -1,13 +1,12 @@
 * text=auto
 
-./**/*.cpp linguist-documentation
-./**/*.c linguist-documentation
-./**/*.h linguist-documentation
-./**/*.hpp linguist-documentation
-./**/*.cc linguist-documentation
-./**/*.swift linguist-documentation
-./**/*.cmake linguist-documentation
-./**/*.kt linguist-documentation
-./web/**/*.html linguist-documentation
-
-./**/CMakeLists.txt linguist-documentation
+**/*.cpp         linguist-documentation
+**/*.c           linguist-documentation
+**/*.h           linguist-documentation
+**/*.hpp         linguist-documentation
+**/*.cc          linguist-documentation
+**/*.swift       linguist-documentation
+**/*.cmake       linguist-documentation
+**/*.kt          linguist-documentation
+web/**/*.html    linguist-documentation
+**/CMakeLists.txt linguist-documentation
