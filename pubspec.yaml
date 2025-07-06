@@ -1,0 +1,30 @@
+name: Voxta
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  pointycastle: ^3.5.3
+  asn1lib: ^1.6.5
+  flutter_secure_storage: ^9.0.0
+  basic_utils: ^4.0.0
+  http: ^0.13.5
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+
+flutter:
+  uses-material-design: true
