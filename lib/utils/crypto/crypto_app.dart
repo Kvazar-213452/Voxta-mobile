@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:pointycastle/api.dart' as crypto;
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/asymmetric/rsa.dart';
 import 'package:pointycastle/export.dart';
-import 'package:pointycastle/random/fortuna_random.dart';
 import 'package:pointycastle/asn1.dart';
-import 'package:http/http.dart' as http;
 
 RSAPublicKey parsePublicKeyFromPem(String pem) {
   String keyData = pem
@@ -92,32 +89,6 @@ Uint8List rsaDecrypt(RSAPrivateKey privateKey, Uint8List encrypted) {
   return decryptor.process(encrypted);
 }
 
-crypto.SecureRandom _getSecureRandom() {
-  final secureRandom = FortunaRandom();
-  final seedSource = Random.secure();
-  final seeds = <int>[];
-  for (int i = 0; i < 32; i++) {
-    seeds.add(seedSource.nextInt(256));
-  }
-  secureRandom.seed(crypto.KeyParameter(Uint8List.fromList(seeds)));
-  return secureRandom;
-}
-
-Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> generateRSAkeyPair({int bitLength = 4096}) async {
-  final keyGen = RSAKeyGenerator();
-  final secureRandom = _getSecureRandom();
-  
-  final params = RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64);
-  final rngParams = ParametersWithRandom(params, secureRandom);
-  keyGen.init(rngParams);
-  
-  final pair = keyGen.generateKeyPair();
-  return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
-    pair.publicKey as RSAPublicKey,
-    pair.privateKey as RSAPrivateKey,
-  );
-}
-
 Uint8List generateRandomBytes(int length) {
   final random = Random.secure();
   final bytes = Uint8List(length);
@@ -186,11 +157,3 @@ Future<String> decryptServerResponse(
   return utf8.decode(decryptedBytes);
 }
 
-Future<String> getServerPublicKey() async {
-  final response = await http.get(Uri.parse('http://localhost:4002/public_key_mobile'));
-  if (response.statusCode != 200) {
-    throw Exception('Не вдалося отримати публічний ключ з сервера');
-  }
-  final body = jsonDecode(response.body);
-  return body["key"];
-}

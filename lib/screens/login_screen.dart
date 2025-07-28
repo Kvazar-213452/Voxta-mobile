@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../utils/cripto_app.dart';
+import '../utils/crypto/crypto_app.dart';
+import '../utils/crypto/utils.dart';
 import '../module/storage_app.dart';
 import '../screens/main_screen.dart';
 
@@ -264,10 +264,8 @@ void _handleLogin() async {
         'password': password,
       });
 
-      // Отримуємо публічний ключ сервера
       final serverPublicKeyPem = await getServerPublicKey();
-      
-      // Використовуємо нову функцію encryptMessage
+
       final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
       final response = await http.post(
@@ -275,10 +273,10 @@ void _handleLogin() async {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'data': {
-            'data': encrypted['data'], // вже готовий формат nonce.authTag.encrypted_data
-            'key': encrypted['key'],   // зашифрований AES ключ
+            'data': encrypted['data'],
+            'key': encrypted['key'],
           },
-          'key': publicKeyPem, // ваш публічний ключ для відповіді
+          'key': publicKeyPem,
           'type': 'mobile',
         }),
       );

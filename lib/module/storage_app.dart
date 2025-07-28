@@ -1,13 +1,11 @@
-// key_storage.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:pointycastle/asymmetric/rsa.dart';
 import 'package:pointycastle/api.dart' show AsymmetricKeyPair;
-
-import '../utils/cripto_app.dart';
+import '../utils/crypto/crypto_app.dart';
+import '../utils/crypto/generate.dart';
 
 Future<String> _getKeyFilePath(String filename) async {
   final dir = await getApplicationDocumentsDirectory();
