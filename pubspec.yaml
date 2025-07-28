@@ -17,6 +17,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   basic_utils: ^4.0.0
   http: ^0.13.5
+  crypto: ^3.0.3
 
 
 dev_dependencies:

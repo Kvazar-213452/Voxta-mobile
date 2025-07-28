@@ -264,32 +264,22 @@ void _handleLogin() async {
         'password': password,
       });
 
-      final aesKey = generateRandomBytes(32);
-      final iv = generateRandomBytes(16);
-
-      final encryptedMessage = aesEncrypt(
-        aesKey,
-        iv,
-        Uint8List.fromList(utf8.encode(dataToEncrypt)),
-      );
-
+      // Отримуємо публічний ключ сервера
       final serverPublicKeyPem = await getServerPublicKey();
-      final serverPublicKey = parsePublicKeyFromPem(serverPublicKeyPem);
-
-      final encryptedKey = rsaEncrypt(serverPublicKey, aesKey);
-
-      final data = base64Encode(iv) + '.' + base64Encode(encryptedMessage);
-      final key = base64Encode(encryptedKey);
+      
+      // Використовуємо нову функцію encryptMessage
+      final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
       final response = await http.post(
-        Uri.parse('http://192.168.68.105:3000/login'),
+        Uri.parse('http://192.168.68.101:3000/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'data': {
-            'data': data,
-            'key': key,
+            'data': encrypted['data'], // вже готовий формат nonce.authTag.encrypted_data
+            'key': encrypted['key'],   // зашифрований AES ключ
           },
-          'key': publicKeyPem,
+          'key': publicKeyPem, // ваш публічний ключ для відповіді
+          'type': 'mobile',
         }),
       );
 

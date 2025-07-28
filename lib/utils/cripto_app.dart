@@ -1,105 +1,97 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/api.dart' as crypto;
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/asymmetric/rsa.dart';
 import 'package:pointycastle/export.dart';
 import 'package:pointycastle/random/fortuna_random.dart';
+import 'package:pointycastle/asn1.dart';
 import 'package:http/http.dart' as http;
 
-// --- RSA PEM ---
-RSAPublicKey parsePublicKeyFromPem(String pemString) {
-  final lines = pemString
-      .split('\n')
-      .where((line) => !line.startsWith('-----BEGIN') && !line.startsWith('-----END'))
-      .toList();
+RSAPublicKey parsePublicKeyFromPem(String pem) {
+  String keyData = pem
+      .replaceAll('-----BEGIN RSA PUBLIC KEY-----', '')
+      .replaceAll('-----END RSA PUBLIC KEY-----', '')
+      .replaceAll('-----BEGIN PUBLIC KEY-----', '')
+      .replaceAll('-----END PUBLIC KEY-----', '')
+      .replaceAll('\n', '')
+      .replaceAll('\r', '')
+      .replaceAll(' ', '');
 
-  final base64Str = lines.join('');
-  final bytes = base64.decode(base64Str);
-  final asn1Parser = ASN1Parser(bytes);
+  final keyBytes = base64.decode(keyData);
+  final asn1Parser = ASN1Parser(keyBytes);
   final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
+  
+  final modulus = (topLevelSeq.elements![0] as ASN1Integer).integer!;
+  final exponent = (topLevelSeq.elements![1] as ASN1Integer).integer!;
 
-  if (topLevelSeq.elements.length == 2 &&
-      topLevelSeq.elements[0] is ASN1Integer &&
-      topLevelSeq.elements[1] is ASN1Integer) {
-    final modulus = (topLevelSeq.elements[0] as ASN1Integer).valueAsBigInteger;
-    final exponent = (topLevelSeq.elements[1] as ASN1Integer).valueAsBigInteger;
-    return RSAPublicKey(modulus!, exponent!);
+  return RSAPublicKey(modulus, exponent);
+}
+
+BigInt _bytesToBigInt(Uint8List bytes) {
+  BigInt result = BigInt.zero;
+  for (int byte in bytes) {
+    result = (result << 8) + BigInt.from(byte);
   }
+  return result;
+}
 
-  final publicKeyBitString = topLevelSeq.elements[1] as ASN1BitString;
-  final publicKeyAsn = ASN1Parser(publicKeyBitString.valueBytes!());
-  final publicKeySeq = publicKeyAsn.nextObject() as ASN1Sequence;
-
-  final modulus = (publicKeySeq.elements[0] as ASN1Integer).valueAsBigInteger;
-  final exponent = (publicKeySeq.elements[1] as ASN1Integer).valueAsBigInteger;
-  return RSAPublicKey(modulus!, exponent!);
+Uint8List _bigIntToBytes(BigInt bigInt) {
+  if (bigInt == BigInt.zero) return Uint8List.fromList([0]);
+  
+  var bytes = <int>[];
+  while (bigInt > BigInt.zero) {
+    bytes.insert(0, (bigInt & BigInt.from(0xff)).toInt());
+    bigInt = bigInt >> 8;
+  }
+  return Uint8List.fromList(bytes);
 }
 
 String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
-  final algorithmSeq = ASN1Sequence();
-  algorithmSeq.add(ASN1Integer(publicKey.modulus!));
-  algorithmSeq.add(ASN1Integer(publicKey.exponent!));
-  final dataBase64 = base64.encode(algorithmSeq.encodedBytes);
-  return '''-----BEGIN RSA PUBLIC KEY-----\n${_chunked(dataBase64)}\n-----END RSA PUBLIC KEY-----''';
+  final sequence = ASN1Sequence();
+  sequence.add(ASN1Integer(publicKey.modulus!));
+  sequence.add(ASN1Integer(publicKey.exponent!));
+  
+  final publicKeyBytes = sequence.encode();
+  final base64Key = base64.encode(publicKeyBytes);
+  
+  return '-----BEGIN RSA PUBLIC KEY-----\n${_formatBase64(base64Key)}\n-----END RSA PUBLIC KEY-----';
 }
 
-String _chunked(String str) {
-  final chunkSize = 64;
-  final chunks = <String>[];
-  for (var i = 0; i < str.length; i += chunkSize) {
-    chunks.add(str.substring(i, i + chunkSize > str.length ? str.length : i + chunkSize));
-  }
-  return chunks.join('\n');
+String _formatBase64(String base64) {
+  final regex = RegExp(r'.{1,64}');
+  return regex.allMatches(base64).map((m) => m.group(0)).join('\n');
 }
 
-// --- AES ---
-Uint8List aesEncrypt(Uint8List key, Uint8List iv, Uint8List data) {
-  final cipher = CBCBlockCipher(AESFastEngine());
-  final padding = PKCS7Padding();
+Map<String, Uint8List> aesEncrypt(Uint8List key, Uint8List nonce, Uint8List data) {
+  final cipher = GCMBlockCipher(AESEngine());
+  final params = AEADParameters(KeyParameter(key), 128, nonce, Uint8List(0));
+  cipher.init(true, params);
 
-  cipher.init(true, ParametersWithIV(KeyParameter(key), iv));
-  final paddedData = pad(data, padding, cipher.blockSize);
-
-  final out = Uint8List(paddedData.length);
-  var offset = 0;
-  while (offset < paddedData.length) {
-    cipher.processBlock(paddedData, offset, out, offset);
-    offset += cipher.blockSize;
-  }
-  return out;
+  final encryptedBytes = cipher.process(data);
+  
+  final encryptedData = encryptedBytes.sublist(0, encryptedBytes.length - 16);
+  final authTag = encryptedBytes.sublist(encryptedBytes.length - 16);
+  
+  return {
+    'encrypted': encryptedData,
+    'authTag': authTag,
+  };
 }
 
-Uint8List pad(Uint8List data, Padding padding, int blockSize) {
-  final padCount = blockSize - (data.length % blockSize);
-  final padded = Uint8List(data.length + padCount)..setRange(0, data.length, data);
-  padding.addPadding(padded, data.length);
-  return padded;
-}
-
-// --- RSA ---
 Uint8List rsaEncrypt(RSAPublicKey publicKey, Uint8List data) {
   final encryptor = OAEPEncoding(RSAEngine());
   encryptor.init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
-  return _processInBlocks(encryptor, data);
+  return encryptor.process(data);
 }
 
-Uint8List _processInBlocks(AsymmetricBlockCipher engine, Uint8List input) {
-  final numBlocks = (input.length / engine.inputBlockSize).ceil();
-  final output = BytesBuilder();
-  for (var i = 0; i < numBlocks; i++) {
-    final start = i * engine.inputBlockSize;
-    final end = start + engine.inputBlockSize;
-    final chunk = input.sublist(start, end > input.length ? input.length : end);
-    final processed = engine.process(chunk);
-    output.add(processed);
-  }
-  return output.toBytes();
+Uint8List rsaDecrypt(RSAPrivateKey privateKey, Uint8List encrypted) {
+  final decryptor = OAEPEncoding(RSAEngine());
+  decryptor.init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
+  return decryptor.process(encrypted);
 }
 
-// --- Генерація ключів ---
 crypto.SecureRandom _getSecureRandom() {
   final secureRandom = FortunaRandom();
   final seedSource = Random.secure();
@@ -111,12 +103,14 @@ crypto.SecureRandom _getSecureRandom() {
   return secureRandom;
 }
 
-Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> generateRSAkeyPair({int bitLength = 2048}) async {
-  final keyGen = RSAKeyGenerator()
-    ..init(crypto.ParametersWithRandom(
-      RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64),
-      _getSecureRandom(),
-    ));
+Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> generateRSAkeyPair({int bitLength = 4096}) async {
+  final keyGen = RSAKeyGenerator();
+  final secureRandom = _getSecureRandom();
+  
+  final params = RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLength, 64);
+  final rngParams = ParametersWithRandom(params, secureRandom);
+  keyGen.init(rngParams);
+  
   final pair = keyGen.generateKeyPair();
   return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
     pair.publicKey as RSAPublicKey,
@@ -125,22 +119,47 @@ Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> generateRSAkeyPair({int b
 }
 
 Uint8List generateRandomBytes(int length) {
-  final secureRandom = SecureRandom('Fortuna')
-    ..seed(KeyParameter(Uint8List.fromList(
-        List<int>.generate(32, (_) => DateTime.now().millisecondsSinceEpoch % 256))));
-  return secureRandom.nextBytes(length);
+  final random = Random.secure();
+  final bytes = Uint8List(length);
+  for (int i = 0; i < length; i++) {
+    bytes[i] = random.nextInt(256);
+  }
+  return bytes;
 }
 
+Future<Map<String, String>> encryptMessage(String message, String serverPublicKeyPem) async {
+  final serverPublicKey = parsePublicKeyFromPem(serverPublicKeyPem);
+  
+  final aesKey = generateRandomBytes(32);
+  
+  final nonce = generateRandomBytes(12);
+  
+  final messageBytes = utf8.encode(message);
+  final aesResult = aesEncrypt(aesKey, nonce, messageBytes);
+  final encryptedData = aesResult['encrypted']!;
+  final authTag = aesResult['authTag']!;
+  
+  final encryptedKey = rsaEncrypt(serverPublicKey, aesKey);
+  
+  final dataString = base64.encode(nonce) + '.' + 
+                    base64.encode(authTag) + '.' + 
+                    base64.encode(encryptedData);
+  
+  return {
+    'key': base64.encode(encryptedKey),
+    'data': dataString,
+  };
+}
 
+Uint8List aesDecrypt(Uint8List key, Uint8List nonce, Uint8List encryptedData, Uint8List authTag) {
+  final cipher = GCMBlockCipher(AESEngine());
+  final params = AEADParameters(KeyParameter(key), 128, nonce, Uint8List(0));
+  cipher.init(false, params);
 
-
-
-
-
-Uint8List rsaDecrypt(RSAPrivateKey privateKey, Uint8List encrypted) {
-  final decryptor = OAEPEncoding(RSAEngine()); // або PKCS1Encoding(RSAEngine())
-  decryptor.init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
-  return _processInBlocks(decryptor, encrypted);
+  final encryptedWithTag = Uint8List.fromList([...encryptedData, ...authTag]);
+  final decryptedBytes = cipher.process(encryptedWithTag);
+  
+  return decryptedBytes;
 }
 
 Future<String> decryptServerResponse(
@@ -150,60 +169,27 @@ Future<String> decryptServerResponse(
   final encryptedKeyBase64 = responseJson['data']['key'] as String;
   final encryptedDataStr = responseJson['data']['data'] as String;
 
-  // 1. Розшифрувати AES ключ приватним RSA ключем
   final encryptedKey = base64Decode(encryptedKeyBase64);
   final aesKey = rsaDecrypt(privateKey, encryptedKey);
 
-  // 2. Розділити data на IV і зашифровані дані
   final parts = encryptedDataStr.split('.');
-  if (parts.length != 2) {
-    throw Exception('Invalid encrypted data format');
+  if (parts.length != 3) {
+    throw Exception('Неправильний формат зашифрованих даних');
   }
 
-  final iv = base64Decode(parts[0]);
-  final encryptedData = base64Decode(parts[1]);
+  final nonce = base64Decode(parts[0]);
+  final authTag = base64Decode(parts[1]);
+  final encryptedData = base64Decode(parts[2]);
 
-  // 3. Розшифрувати AES дані
-  final decryptedBytes = aesDecrypt(aesKey, iv, encryptedData);
+  final decryptedBytes = aesDecrypt(aesKey, nonce, encryptedData, authTag);
 
-  // 4. Конвертувати у рядок JSON
   return utf8.decode(decryptedBytes);
 }
 
-
-
-Uint8List aesDecrypt(Uint8List key, Uint8List iv, Uint8List data) {
-  final cipher = CBCBlockCipher(AESFastEngine());
-  final padding = PKCS7Padding();
-
-  cipher.init(false, ParametersWithIV(KeyParameter(key), iv));
-
-  final out = Uint8List(data.length);
-  var offset = 0;
-  while (offset < data.length) {
-    cipher.processBlock(data, offset, out, offset);
-    offset += cipher.blockSize;
-  }
-
-  return removePadding(out, padding);
-}
-
-Uint8List removePadding(Uint8List data, Padding padding) {
-  final padCount = padding.padCount(data);
-  return data.sublist(0, data.length - padCount);
-}
-
-
-
-
-
-
-
-
 Future<String> getServerPublicKey() async {
-  final response = await http.get(Uri.parse('http://192.168.68.105:3000/public_key'));
+  final response = await http.get(Uri.parse('http://localhost:4002/public_key_mobile'));
   if (response.statusCode != 200) {
-    throw Exception('Failed to get public key from server');
+    throw Exception('Не вдалося отримати публічний ключ з сервера');
   }
   final body = jsonDecode(response.body);
   return body["key"];
