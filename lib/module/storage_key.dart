@@ -1,35 +1,37 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/api.dart' show AsymmetricKeyPair;
 import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/generate.dart';
 
-Future<String> _getKeyFilePath(String filename) async {
-  final dir = await getApplicationDocumentsDirectory();
-  return '${dir.path}/$filename';
-}
+// Ініціалізація Flutter Secure Storage
+const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
-Future<void> saveKeysToFile(RSAPublicKey publicKey, RSAPrivateKey privateKey) async {
-  final pubPath = await _getKeyFilePath('public.pem');
-  final privPath = await _getKeyFilePath('private.pem');
+// Ключі для зберігання
+const String publicKeyStorageKey = 'public.pem';
+const String privateKeyStorageKey = 'private.pem';
 
-  await File(pubPath).writeAsString(encodePublicKeyToPemPKCS1(publicKey));
-  await File(privPath).writeAsString(encodePrivateKeyToPemPKCS1(privateKey));
+Future<void> saveKeysToStorage(RSAPublicKey publicKey, RSAPrivateKey privateKey) async {
+  await secureStorage.write(key: publicKeyStorageKey, value: encodePublicKeyToPemPKCS1(publicKey));
+  await secureStorage.write(key: privateKeyStorageKey, value: encodePrivateKeyToPemPKCS1(privateKey));
 }
 
 Future<bool> doKeysExist() async {
-  final pubPath = await _getKeyFilePath('public.pem');
-  final privPath = await _getKeyFilePath('private.pem');
-  return File(pubPath).existsSync() && File(privPath).existsSync();
+  final pubKey = await secureStorage.read(key: publicKeyStorageKey);
+  final privKey = await secureStorage.read(key: privateKeyStorageKey);
+  return pubKey != null && privKey != null;
 }
 
 Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> getOrCreateKeyPair() async {
   if (await doKeysExist()) {
-    final pubPem = await File(await _getKeyFilePath('public.pem')).readAsString();
-    final privPem = await File(await _getKeyFilePath('private.pem')).readAsString();
+    final pubPem = await secureStorage.read(key: publicKeyStorageKey);
+    final privPem = await secureStorage.read(key: privateKeyStorageKey);
+
+    if (pubPem == null || privPem == null) {
+      throw Exception("Stored keys are missing or corrupted");
+    }
 
     return AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>(
       parsePublicKeyFromPem(pubPem),
@@ -38,9 +40,11 @@ Future<AsymmetricKeyPair<RSAPublicKey, RSAPrivateKey>> getOrCreateKeyPair() asyn
   }
 
   final newPair = await generateRSAkeyPair();
-  await saveKeysToFile(newPair.publicKey, newPair.privateKey);
+  await saveKeysToStorage(newPair.publicKey, newPair.privateKey);
   return newPair;
 }
+
+// --- PEM encoding / decoding ---
 
 String encodePrivateKeyToPemPKCS1(RSAPrivateKey privateKey) {
   final seq = ASN1Sequence()

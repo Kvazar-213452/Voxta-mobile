@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
+import 'module/storage_user.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+
+  await readFromSecureStorage('example_key');
+
   runApp(const MyApp());
 }
 
