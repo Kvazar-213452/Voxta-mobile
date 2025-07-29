@@ -9,6 +9,96 @@ class MessageWidget extends StatelessWidget {
     required this.message,
   });
 
+  // Перевірка чи є аватар URL
+  bool _isUrl(String? avatar) {
+    if (avatar == null || avatar.isEmpty) return false;
+    return avatar.startsWith('http://') || avatar.startsWith('https://');
+  }
+
+  // Створення віджету аватару
+  Widget _buildAvatar() {
+    if (_isUrl(message.senderAvatar)) {
+      // Якщо аватар - це URL
+      return CircleAvatar(
+        radius: 16,
+        backgroundColor: const Color(0xFF58ff7f),
+        child: ClipOval(
+          child: Image.network(
+            message.senderAvatar!,
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3d3d3d),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                    ),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback на емодзі якщо зображення не завантажилось
+              return Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF58ff7f),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    '👤',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      // Fallback аватар
+      return CircleAvatar(
+        radius: 16,
+        backgroundColor: const Color(0xFF58ff7f),
+        child: Text(
+          _getAvatarFromName(message.senderName ?? ''),
+          style: const TextStyle(fontSize: 12),
+        ),
+      );
+    }
+  }
+
+  // Допоміжна функція для створення емодзі аватару з імені
+  String _getAvatarFromName(String name) {
+    if (name.isEmpty) return '👤';
+    
+    final Map<String, String> avatarMap = {
+      'а': '👨‍💻', 'б': '👩‍🎨', 'в': '👨‍🔧', 'г': '👩‍🏫', 'д': '👨‍⚕️',
+      'е': '👩‍💼', 'ж': '👨‍🎤', 'з': '👩‍🔬', 'и': '👨‍🍳', 'к': '👩‍✈️',
+      'л': '👨‍🌾', 'м': '👩‍💻', 'н': '👨‍🎨', 'о': '👩‍🔧', 'п': '👨‍🏫',
+      'р': '👩‍⚕️', 'с': '👨‍💼', 'т': '👩‍🎤', 'у': '👨‍🔬', 'ф': '👩‍🍳',
+      'х': '👨‍✈️', 'ц': '👩‍🌾', 'ч': '🧑‍💻', 'ш': '🧑‍🎨', 'я': '👤',
+      '2': '😊', '1': '👨‍💻', '3': '👩‍🎨', '4': '🧑‍🔧', '5': '👨‍🏫',
+    };
+    
+    String firstChar = name.toLowerCase().substring(0, 1);
+    return avatarMap[firstChar] ?? '👤';
+  }
+
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder(
@@ -24,15 +114,12 @@ class MessageWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment:
                     message.isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (!message.isOwn) ...[
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFF58ff7f),
-                        child: const Text('👨‍💻', style: TextStyle(fontSize: 12)),
-                      ),
+                      child: _buildAvatar(),
                     ),
                     const SizedBox(width: 8),
                   ],
@@ -42,6 +129,21 @@ class MessageWidget extends StatelessWidget {
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
+                        // Показуємо ім'я відправника для не власних повідомлень
+                        if (!message.isOwn && message.senderName != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, bottom: 4),
+                            child: AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 200),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              child: Text(message.senderName!),
+                            ),
+                          ),
+                        ],
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           padding: const EdgeInsets.symmetric(
@@ -79,11 +181,7 @@ class MessageWidget extends StatelessWidget {
                     const SizedBox(width: 8),
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: const Color(0xFF58ff7f),
-                        child: const Text('😊', style: TextStyle(fontSize: 12)),
-                      ),
+                      child: _buildAvatar(),
                     ),
                   ],
                 ],

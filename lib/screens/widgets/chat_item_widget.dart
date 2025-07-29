@@ -13,6 +13,78 @@ class ChatItemWidget extends StatelessWidget {
     required this.onTap,
   });
 
+  // Перевірка чи є аватар URL
+  bool _isUrl(String avatar) {
+    return avatar.startsWith('http://') || avatar.startsWith('https://');
+  }
+
+  // Створення віджету аватару
+  Widget _buildAvatar() {
+    if (_isUrl(chat.avatar)) {
+      // Якщо аватар - це URL
+      return CircleAvatar(
+        radius: 22,
+        backgroundColor: const Color(0xFF58ff7f),
+        child: ClipOval(
+          child: Image.network(
+            chat.avatar,
+            width: 44,
+            height: 44,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3d3d3d),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                    ),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Fallback на емодзі якщо зображення не завантажилось
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF58ff7f),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    '👤',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      // Якщо аватар - це емодзі
+      return CircleAvatar(
+        radius: 22,
+        backgroundColor: const Color(0xFF58ff7f),
+        child: Text(
+          chat.avatar,
+          style: const TextStyle(fontSize: 18),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder(
@@ -44,14 +116,7 @@ class ChatItemWidget extends StatelessWidget {
                           children: [
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
-                              child: CircleAvatar(
-                                radius: 22,
-                                backgroundColor: const Color(0xFF58ff7f),
-                                child: Text(
-                                  chat.avatar,
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                              ),
+                              child: _buildAvatar(),
                             ),
                             if (chat.isOnline)
                               Positioned(
