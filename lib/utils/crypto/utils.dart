@@ -4,7 +4,7 @@ import '../../config.dart';
 
 Future<String> getServerPublicKey() async {
   final response = await http.get(
-    Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/public_key_mobile'),
+    Uri.parse('${Config.URL_SERVICES_CRYPTO}/public_key_mobile'),
   );
   
   if (response.statusCode != 200) {

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
-import 'module/storage_user.dart';
+import 'models/storage_user.dart';
+import 'models/storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  initSecureStorage();
 
-  await readFromSecureStorage('example_key');
+  // await readFromSecureStorage('example_key');
 
   runApp(const MyApp());
 }

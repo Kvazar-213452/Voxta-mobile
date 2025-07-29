@@ -5,11 +5,10 @@ import 'package:pointycastle/asymmetric/api.dart';
 import 'package:pointycastle/api.dart' show AsymmetricKeyPair;
 import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/generate.dart';
+import 'storage_service.dart';
 
-// Ініціалізація Flutter Secure Storage
-const FlutterSecureStorage secureStorage = FlutterSecureStorage();
+final FlutterSecureStorage secureStorage = getSecureStorage();
 
-// Ключі для зберігання
 const String publicKeyStorageKey = 'public.pem';
 const String privateKeyStorageKey = 'private.pem';
 

@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/utils.dart';
-import '../module/storage_key.dart';
+import '../models/storage_key.dart';
 import '../screens/main_screen.dart';
+import '../config.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -269,7 +270,7 @@ void _handleLogin() async {
       final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
       final response = await http.post(
-        Uri.parse('http://192.168.68.101:3000/login'),
+        Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'data': {
