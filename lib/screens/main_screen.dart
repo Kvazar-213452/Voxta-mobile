@@ -5,11 +5,10 @@ import 'widgets/chat_room_widget.dart';
 import 'dart:convert';
 import '../services/chat/socket_service.dart';
 import '../../models/interface/user.dart';
+import '../../models/storage_user.dart';
 
 class MainScreen extends StatefulWidget {
-  final String responseText;
-
-  const MainScreen({super.key, required this.responseText});
+  const MainScreen({super.key});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -37,18 +36,21 @@ class _MainScreenState extends State<MainScreen> {
     _initializeSocket();
   }
 
-  void _initializeSocket() {
+  void _initializeSocket() async {
     try {
-      final userData = jsonDecode(widget.responseText);
-      final userJsonMap = jsonDecode(userData['user']);
-      final userModel = UserModel.fromJson(userJsonMap);
+      final jwt = await getJWTStorage();
+      final userModel = await getUserStorage();
+
+      if (userModel == null || jwt == null) {
+        print('User or JWT not found!');
+        return;
+      }
       
-      // Зберігаємо ID поточного користувача
       currentUserId = userModel.id;
 
       connectSocket(
         userModel, 
-        userData['token'], 
+        jwt, 
         // Callback для повідомлень
         (data) {
           if (mounted) {

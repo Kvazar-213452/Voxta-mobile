@@ -18,15 +18,14 @@ class ChatItem {
   });
 }
 
-// Додайте ці поля в ваш Message клас в chat_models.dart
 class Message {
   final String id;
   final String text;
   final bool isOwn;
   final String time;
-  final String? senderName;  // Додане поле
-  final String? senderAvatar; // Додане поле
-  final String? senderId;    // Додане поле
+  final String? senderName;
+  final String? senderAvatar;
+  final String? senderId;
 
   Message({
     required this.id,

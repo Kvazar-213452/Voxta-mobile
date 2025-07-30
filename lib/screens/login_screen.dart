@@ -6,6 +6,8 @@ import '../utils/crypto/utils.dart';
 import '../models/storage_key.dart';
 import '../screens/main_screen.dart';
 import '../config.dart';
+import '../models/storage_user.dart';
+import '../models/interface/user.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -285,11 +287,18 @@ void _handleLogin() async {
       final jsonResponse = jsonDecode(response.body);
       final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
 
+      final data = jsonDecode(decrypted);
+      final dataJsonMap = jsonDecode(data['user']);
+      final userModel = UserModel.fromJson(dataJsonMap);
+
+      await saveJWTStorage(data["token"]);
+      await saveUserStorage(userModel);
+
       if (!context.mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => MainScreen(responseText: decrypted),
+          builder: (_) => MainScreen(),
         ),
       );
     } catch (e) {
