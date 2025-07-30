@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/interface/chat_models.dart';
+import '../../../models/interface/chat_models.dart';
 
 class ChatItemWidget extends StatelessWidget {
   final ChatItem chat;
@@ -13,18 +13,15 @@ class ChatItemWidget extends StatelessWidget {
     required this.onTap,
   });
 
-  // Перевірка чи є аватар URL
   bool _isUrl(String avatar) {
     return avatar.startsWith('http://') || avatar.startsWith('https://');
   }
 
-  // Створення віджету аватару
   Widget _buildAvatar() {
     if (_isUrl(chat.avatar)) {
-      // Якщо аватар - це URL
       return CircleAvatar(
         radius: 22,
-        backgroundColor: const Color(0xFF58ff7f),
+        backgroundColor: Colors.transparent,
         child: ClipOval(
           child: Image.network(
             chat.avatar,
@@ -53,19 +50,12 @@ class ChatItemWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              // Fallback на емодзі якщо зображення не завантажилось
-              return Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF58ff7f),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    '👤',
-                    style: TextStyle(fontSize: 18),
-                  ),
+              return ClipOval(
+                child: Image.network(
+                  'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+                  width: 44,
+                  height: 44,
+                  fit: BoxFit.cover,
                 ),
               );
             },
@@ -76,7 +66,7 @@ class ChatItemWidget extends StatelessWidget {
       // Якщо аватар - це емодзі
       return CircleAvatar(
         radius: 22,
-        backgroundColor: const Color(0xFF58ff7f),
+        backgroundColor: Colors.transparent,
         child: Text(
           chat.avatar,
           style: const TextStyle(fontSize: 18),
@@ -118,21 +108,6 @@ class ChatItemWidget extends StatelessWidget {
                               duration: const Duration(milliseconds: 300),
                               child: _buildAvatar(),
                             ),
-                            if (chat.isOnline)
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 400),
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF58ff7f),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.black, width: 2),
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                         const SizedBox(width: 15),

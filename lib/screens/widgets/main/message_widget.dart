@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/interface/chat_models.dart';
+import '../../../models/interface/chat_models.dart';
 
 class MessageWidget extends StatelessWidget {
   final Message message;
@@ -9,19 +9,20 @@ class MessageWidget extends StatelessWidget {
     required this.message,
   });
 
-  // Перевірка чи є аватар URL
   bool _isUrl(String? avatar) {
     if (avatar == null || avatar.isEmpty) return false;
     return avatar.startsWith('http://') || avatar.startsWith('https://');
   }
 
-  // Створення віджету аватару
   Widget _buildAvatar() {
+    if (message.isOwn) {
+      return const SizedBox.shrink();
+    }
+
     if (_isUrl(message.senderAvatar)) {
-      // Якщо аватар - це URL
       return CircleAvatar(
         radius: 16,
-        backgroundColor: const Color(0xFF58ff7f),
+        backgroundColor: Colors.transparent,
         child: ClipOval(
           child: Image.network(
             message.senderAvatar!,
@@ -50,19 +51,12 @@ class MessageWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              // Fallback на емодзі якщо зображення не завантажилось
-              return Container(
-                width: 32,
-                height: 32,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF58ff7f),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Text(
-                    '👤',
-                    style: TextStyle(fontSize: 12),
-                  ),
+              return ClipOval(
+                child: Image.network(
+                  'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
                 ),
               );
             },
@@ -70,22 +64,20 @@ class MessageWidget extends StatelessWidget {
         ),
       );
     } else {
-      // Fallback аватар
+      // Fallback аватар для не-URL випадків
       return CircleAvatar(
         radius: 16,
-        backgroundColor: const Color(0xFF58ff7f),
-        child: Text(
-          _getAvatarFromName(message.senderName ?? ''),
-          style: const TextStyle(fontSize: 12),
+        backgroundColor: Colors.transparent,
+        child: ClipOval(
+          child: Image.network(
+            'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+            width: 32,
+            height: 32,
+            fit: BoxFit.cover,
+          ),
         ),
       );
     }
-  }
-
-  String _getAvatarFromName(String name) {
-    if (name.isEmpty) return '👤';
-
-    return '👤';
   }
 
   @override

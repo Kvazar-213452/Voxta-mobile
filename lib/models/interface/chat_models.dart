@@ -4,7 +4,6 @@ class ChatItem {
   final String lastMessage;
   final String time;
   final String avatar;
-  final bool isOnline;
   final String type;
 
   ChatItem({
@@ -13,7 +12,6 @@ class ChatItem {
     required this.lastMessage,
     required this.time,
     required this.avatar,
-    required this.isOnline,
     required this.type,
   });
 }

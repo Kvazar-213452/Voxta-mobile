@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/interface/chat_models.dart';
+import '../../../models/interface/chat_models.dart';
 import 'message_widget.dart';
 
 class ChatRoomWidget extends StatefulWidget {
@@ -8,6 +8,7 @@ class ChatRoomWidget extends StatefulWidget {
   final TextEditingController messageController;
   final VoidCallback onBackPressed;
   final Function(String) onMessageSent;
+  final String chatAvatar;
 
   const ChatRoomWidget({
     super.key,
@@ -16,6 +17,7 @@ class ChatRoomWidget extends StatefulWidget {
     required this.messageController,
     required this.onBackPressed,
     required this.onMessageSent,
+    required this.chatAvatar,
   });
 
   @override
@@ -24,6 +26,72 @@ class ChatRoomWidget extends StatefulWidget {
 
 class _ChatRoomWidgetState extends State<ChatRoomWidget> {
   double _sendButtonScale = 1.0;
+
+  bool _isUrl(String avatar) {
+    return avatar.startsWith('http://') || avatar.startsWith('https://');
+  }
+
+  Widget _buildChatAvatar() {
+    if (_isUrl(widget.chatAvatar)) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.transparent,
+        child: ClipOval(
+          child: Image.network(
+            widget.chatAvatar,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF3d3d3d),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                    ),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return ClipOval(
+                child: Image.network(
+                  'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      // Fallback для не-URL випадків
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.transparent,
+        child: ClipOval(
+          child: Image.network(
+            'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,14 +143,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                           const SizedBox(width: 12),
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: const Color(0xFF58ff7f),
-                              child: Text(
-                                '👨‍💻',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
+                            child: _buildChatAvatar(),
                           ),
                           const SizedBox(width: 12),
                           Expanded(

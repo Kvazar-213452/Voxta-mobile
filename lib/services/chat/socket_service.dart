@@ -2,6 +2,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../models/storage_user.dart';
 import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
+import '../../config.dart';
 
 IO.Socket? _socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -21,7 +22,7 @@ void connectSocket(
   saveUserStorage(user);
   
   try {
-    _socket = IO.io('http://192.168.68.101:3001', 
+    _socket = IO.io(Config.URL_SERVICES_CHAT, 
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .enableAutoConnect()
@@ -48,12 +49,8 @@ void connectSocket(
 
     _socket!.on('chats_info', (data) {
       if (data["code"] == 1) {
-        print('Отримані чати: ${data["chats"]}');
-        
-        // Парсинг чатів з серверних даних
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
         
-        // Передача чатів в UI
         if (_onChatsReceived != null) {
           _onChatsReceived!(parsedChats);
         }
@@ -61,9 +58,6 @@ void connectSocket(
     });
 
     _socket!.on('load_chat_content_return', (data) {
-      print('Отримано контент чату: $data');
-      
-      // Передача контенту чату в UI
       if (_onChatContentReceived != null) {
         _onChatContentReceived!(data as Map<String, dynamic>);
       }
@@ -79,35 +73,26 @@ void connectSocket(
   }
 }
 
-// Функція для парсингу чатів з серверних даних
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
   List<ChatItem> chatsList = [];
   
   chatsData.forEach((chatId, chatInfo) {
     try {
-      // Парсинг даних чату
       String name = chatInfo['name'] ?? 'Невідомий чат';
       String avatar = chatInfo['avatar'] ?? '';
-      String type = chatInfo['type'] ?? 'offline';
+      String type = chatInfo['type'] ?? '';
       String desc = chatInfo['desc'] ?? '';
       String createdAt = chatInfo['createdAt'] ?? '';
-      List<dynamic> participants = chatInfo['participants'] ?? [];
+
+      String displayAvatar = avatar.isNotEmpty ? avatar : "";
       
-      // Визначення онлайн статусу
-      bool isOnline = type == 'online';
-      
-      // Використання URL аватару або fallback емодзі
-      String displayAvatar = avatar.isNotEmpty ? avatar : _getAvatarFromName(name);
-      
-      // Створення ChatItem
       ChatItem chatItem = ChatItem(
         id: chatId,
         name: name,
         lastMessage: desc.isNotEmpty ? desc : 'Немає повідомлень',
         time: _formatTime(createdAt),
         avatar: displayAvatar,
-        isOnline: isOnline,
-        type: type, // Додане поле
+        type: type, 
       );
       
       chatsList.add(chatItem);
@@ -116,30 +101,11 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
     }
   });
   
-  // Сортування чатів за часом створення (новіші спочатку)
   chatsList.sort((a, b) => b.time.compareTo(a.time));
   
   return chatsList;
 }
 
-// Допоміжна функція для створення аватару з імені (fallback)
-String _getAvatarFromName(String name) {
-  if (name.isEmpty) return '💬';
-  
-  // Створення емодзі на основі першої літери
-  final Map<String, String> avatarMap = {
-    'а': '👨‍💻', 'б': '👩‍🎨', 'в': '👨‍🔧', 'г': '👩‍🏫', 'д': '👨‍⚕️',
-    'е': '👩‍💼', 'ж': '👨‍🎤', 'з': '👩‍🔬', 'и': '👨‍🍳', 'к': '👩‍✈️',
-    'л': '👨‍🌾', 'м': '👩‍💻', 'н': '👨‍🎨', 'о': '👩‍🔧', 'п': '👨‍🏫',
-    'р': '👩‍⚕️', 'с': '👨‍💼', 'т': '👩‍🎤', 'у': '👨‍🔬', 'ф': '👩‍🍳',
-    'х': '👨‍✈️', 'ц': '👩‍🌾', 'ч': '🧑‍💻', 'ш': '🧑‍🎨', 'я': '👤',
-  };
-  
-  String firstLetter = name.toLowerCase().substring(0, 1);
-  return avatarMap[firstLetter] ?? '👤';
-}
-
-// Допоміжна функція для форматування часу
 String _formatTime(String createdAt) {
   try {
     DateTime dateTime = DateTime.parse(createdAt);
@@ -148,10 +114,8 @@ String _formatTime(String createdAt) {
     if (dateTime.day == now.day && 
         dateTime.month == now.month && 
         dateTime.year == now.year) {
-      // Якщо сьогодні - показуємо час
       return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     } else {
-      // Якщо не сьогодні - показуємо дату
       return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}';
     }
   } catch (e) {
@@ -171,7 +135,6 @@ void sendMessage(String text, String userId) {
 
 void loadChatContent(String chatId, String type) {
   if (_socket != null && _socket!.connected) {
-    print('Завантаження контенту чату: $chatId, тип: $type');
     _socket!.emit('load_chat_content', {
       'chatId': chatId,
       'type': type,
@@ -188,6 +151,3 @@ void disconnectSocket() {
 }
 
 bool get isSocketConnected => _socket?.connected ?? false;
-
-
-// saveUserStorage
