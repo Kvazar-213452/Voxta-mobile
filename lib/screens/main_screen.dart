@@ -5,6 +5,7 @@ import 'widgets/main/chat_room_widget.dart';
 import 'widgets/main/loading_screen_widget.dart';
 import 'widgets/main/empty_state_widget.dart';
 import 'widgets/main/app_background.dart';
+import 'widgets/main/windows/settings_modal_widget.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
 
@@ -22,12 +23,14 @@ class _MainScreenState extends State<MainScreen> {
   List<Message> messages = [];
   TextEditingController messageController = TextEditingController();
   TextEditingController searchController = TextEditingController();
+  ScrollController scrollController = ScrollController();
   
   List<ChatItem> chats = [];
   
   bool isLoadingChats = true;
   String? selectedChatId;
   String? currentUserId;
+  Map<String, dynamic> currentChatParticipants = {};
 
   @override
   void initState() {
@@ -52,19 +55,53 @@ class _MainScreenState extends State<MainScreen> {
         jwt,
         (data) {
           if (mounted) {
-            final newMessage = Message(
-              text: data['text'] ?? '',
-              isOwn: false,
-              time: data['time'] ?? TimeOfDay.now().format(context),
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
-              senderName: null,
-              senderAvatar: null,
-              senderId: currentUserId,
-            );
+            print('Обробляємо send_message_return: $data');
             
-            setState(() {
-              messages.add(newMessage);
-            });
+            // Перевіряємо успішність і отримуємо дані повідомлення
+            if (data['code'] == 1 && data.containsKey('chat')) {
+              Map<String, dynamic> chatData = data['chat'];
+              
+              String messageId = chatData['_id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+              String content = chatData['content'] ?? '';
+              String senderId = chatData['sender'] ?? '';
+              String time = chatData['time'] ?? '';
+              
+              // Форматуємо час для відображення
+              String displayTime = _formatMessageTime(time);
+              
+              bool isOwnMessage = senderId == currentUserId;
+              
+              // Отримуємо дані відправника з учасників чату
+              String? senderName;
+              String? senderAvatar;
+              
+              if (currentChatParticipants.containsKey(senderId)) {
+                var senderData = currentChatParticipants[senderId];
+                senderName = senderData['name'] ?? 'Невідомий';
+                senderAvatar = senderData['avatar'] ?? '';
+              }
+              
+              final newMessage = Message(
+                id: messageId,
+                text: content,
+                isOwn: isOwnMessage,
+                time: displayTime,
+                senderName: senderName,
+                senderAvatar: senderAvatar,
+                senderId: senderId,
+              );
+              
+              setState(() {
+                messages.add(newMessage);
+              });
+              
+              // Автоматично прокручуємо вниз після додавання повідомлення
+              _scrollToBottom();
+              
+              print('✅ Повідомлення додано до інтерфейсу: $content');
+            } else {
+              print('❌ Помилка відправки повідомлення: ${data['message'] ?? 'Невідома помилка'}');
+            }
           }
         },
 
@@ -91,12 +128,35 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
+  String _formatMessageTime(String isoTime) {
+    try {
+      DateTime dateTime = DateTime.parse(isoTime);
+      return TimeOfDay.fromDateTime(dateTime).format(context);
+    } catch (e) {
+      print('Помилка форматування часу: $e для $isoTime');
+      return TimeOfDay.now().format(context);
+    }
+  }
+
   @override
   void dispose() {
     disconnectSocket();
     messageController.dispose();
     searchController.dispose();
+    scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToBottom() {
+    if (scrollController.hasClients) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollController.animateTo(
+          scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+    }
   }
 
   @override
@@ -130,6 +190,7 @@ class _MainScreenState extends State<MainScreen> {
       chats: chats,
       searchController: searchController,
       onChatTap: _onChatTap,
+      onSettingsTap: _openSettings,
     );
   }
 
@@ -138,6 +199,7 @@ class _MainScreenState extends State<MainScreen> {
       chatName: currentChatName,
       messages: messages,
       messageController: messageController,
+      scrollController: scrollController,
       onBackPressed: () => setState(() => currentIndex = 0),
       onMessageSent: _onMessageSent,
       chatAvatar: currentChatAvatar,
@@ -149,6 +211,10 @@ class _MainScreenState extends State<MainScreen> {
       List<dynamic> messagesData = chatContent['messages'] ?? [];
       Map<String, dynamic> participants = chatContent['participants'] ?? {};
       
+      // Зберігаємо учасників чату для подальшого використання
+      currentChatParticipants = participants;
+      print('✅ Збережено ${participants.length} учасників чату');
+      
       List<Message> parsedMessages = [];
       
       for (var messageData in messagesData) {
@@ -157,6 +223,9 @@ class _MainScreenState extends State<MainScreen> {
           String messageId = messageData['_id'] ?? '';
           String content = messageData['content'] ?? '';
           String time = messageData['time'] ?? '';
+          
+          // ✅ ВИПРАВЛЕННЯ: Форматуємо час і для історії повідомлень
+          String displayTime = _formatMessageTime(time);
           
           bool isOwnMessage = senderId == currentUserId;
           
@@ -173,7 +242,7 @@ class _MainScreenState extends State<MainScreen> {
             id: messageId,
             text: content,
             isOwn: isOwnMessage,
-            time: time,
+            time: displayTime, // Тепер використовуємо відформатований час
             senderName: senderName,
             senderAvatar: senderAvatar,
             senderId: senderId,
@@ -185,12 +254,36 @@ class _MainScreenState extends State<MainScreen> {
         }
       }
       
+      // Сортуємо повідомлення за оригінальним часом (ISO), а не за відформатованим
       parsedMessages.sort((a, b) {
-        return a.time.compareTo(b.time);
+        try {
+          // Отримуємо оригінальний час з messagesData для сортування
+          var aData = messagesData.firstWhere((msg) => msg['_id'] == a.id, orElse: () => null);
+          var bData = messagesData.firstWhere((msg) => msg['_id'] == b.id, orElse: () => null);
+          
+          if (aData != null && bData != null) {
+            String aTime = aData['time'] ?? '';
+            String bTime = bData['time'] ?? '';
+            
+            DateTime aDateTime = DateTime.parse(aTime);
+            DateTime bDateTime = DateTime.parse(bTime);
+            
+            return aDateTime.compareTo(bDateTime);
+          }
+        } catch (e) {
+          print('Помилка сортування повідомлень: $e');
+        }
+        
+        return 0; // Якщо не можемо порівняти, залишаємо порядок без змін
       });
       
       setState(() {
         messages = parsedMessages;
+      });
+      
+      // Прокручуємо вниз після завантаження історії чату
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
       });
       
       print('✅ Завантажено ${parsedMessages.length} повідомлень');
@@ -206,6 +299,7 @@ class _MainScreenState extends State<MainScreen> {
       currentChatAvatar = chat.avatar;
       selectedChatId = chat.id;
       messages = [];
+      currentChatParticipants = {};
     });
 
     _loadChatMessages(chat.id, chat.type);
@@ -216,21 +310,16 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onMessageSent(String messageText) {
-    final newMessage = Message(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      text: messageText,
-      isOwn: true,
-      time: TimeOfDay.now().format(context),
-      senderName: null,
-      senderAvatar: null,
-      senderId: currentUserId,
-    );
+    sendMessage(messageText, currentUserId ?? 'unknown', selectedChatId ?? '');
     
-    setState(() {
-      messages.add(newMessage);
-      messageController.clear();
-    });
+    messageController.clear();
+  }
 
-    sendMessage(messageText, currentUserId ?? 'unknown');
+  void _openSettings() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const SettingsScreenWidget(),
+    );
   }
 }

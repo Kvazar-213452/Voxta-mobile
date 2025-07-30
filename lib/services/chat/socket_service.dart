@@ -25,7 +25,6 @@ void connectSocket(
     _socket = IO.io(Config.URL_SERVICES_CHAT, 
       IO.OptionBuilder()
         .setTransports(['websocket'])
-        .enableAutoConnect()
         .setTimeout(10000)
         .build()
     );
@@ -35,7 +34,7 @@ void connectSocket(
       _socket!.emit('authenticate', {'token': token});
     });
 
-    _socket!.on('message', (data) {
+    _socket!.on('send_message_return', (data) {
       if (_onMessageReceived != null && data != null) {
         _onMessageReceived!(data as Map<String, dynamic>);
       }
@@ -123,13 +122,19 @@ String _formatTime(String createdAt) {
   }
 }
 
-void sendMessage(String text, String userId) {
+void sendMessage(String text, String userId, String chatId) {
   if (_socket != null && _socket!.connected) {
-    _socket!.emit('message', {
-      'text': text,
-      'userId': userId,
-      'time': DateTime.now().toIso8601String(),
+    _socket!.emit('send_message', {
+      'message': {
+        'content': text,
+        'sender': userId,
+        'time': DateTime.now().toIso8601String()
+      },
+      'chatId': chatId,
+      'type': 'online'
     });
+  } else {
+    print('❌ Сокет не підключений, неможливо відправити повідомлення');
   }
 }
 

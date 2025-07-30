@@ -6,6 +6,7 @@ class ChatRoomWidget extends StatefulWidget {
   final String chatName;
   final List<Message> messages;
   final TextEditingController messageController;
+  final ScrollController scrollController;
   final VoidCallback onBackPressed;
   final Function(String) onMessageSent;
   final String chatAvatar;
@@ -15,6 +16,7 @@ class ChatRoomWidget extends StatefulWidget {
     required this.chatName,
     required this.messages,
     required this.messageController,
+    required this.scrollController,
     required this.onBackPressed,
     required this.onMessageSent,
     required this.chatAvatar,
@@ -192,6 +194,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                     child: Opacity(
                       opacity: value,
                       child: ListView.builder(
+                        controller: widget.scrollController, // Додано ScrollController
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: widget.messages.length,
                         itemBuilder: (context, index) {
