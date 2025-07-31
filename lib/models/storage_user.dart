@@ -27,11 +27,10 @@ Future<UserModel?> getUserStorage() async {
   }
 }
 
-// ? ======== JWT save func ========
+// ! ======== JWT save func ========
 
 Future<void> saveJWTStorage(String jwt) async {
   try {
-    print(jwt);
     await secureStorage.write(key: "jwtData", value: jwt);
   } catch (e) {
     print('erro save jwt in secure storage: $e');

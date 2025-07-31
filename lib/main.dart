@@ -18,6 +18,8 @@ void main() async {
   } else {
     if (await getInfoToJwt(user.id, jwt)) {
       runApp(const MainStart());
+    } else {
+      runApp(const LoginStart());
     }
   }
 }

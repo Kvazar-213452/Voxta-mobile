@@ -66,12 +66,10 @@ class _MainScreenState extends State<MainScreen> {
               String senderId = chatData['sender'] ?? '';
               String time = chatData['time'] ?? '';
               
-              // Форматуємо час для відображення
               String displayTime = _formatMessageTime(time);
               
               bool isOwnMessage = senderId == currentUserId;
               
-              // Отримуємо дані відправника з учасників чату
               String? senderName;
               String? senderAvatar;
               
@@ -211,9 +209,7 @@ class _MainScreenState extends State<MainScreen> {
       List<dynamic> messagesData = chatContent['messages'] ?? [];
       Map<String, dynamic> participants = chatContent['participants'] ?? {};
       
-      // Зберігаємо учасників чату для подальшого використання
       currentChatParticipants = participants;
-      print('✅ Збережено ${participants.length} учасників чату');
       
       List<Message> parsedMessages = [];
       
@@ -224,7 +220,6 @@ class _MainScreenState extends State<MainScreen> {
           String content = messageData['content'] ?? '';
           String time = messageData['time'] ?? '';
           
-          // ✅ ВИПРАВЛЕННЯ: Форматуємо час і для історії повідомлень
           String displayTime = _formatMessageTime(time);
           
           bool isOwnMessage = senderId == currentUserId;
@@ -242,7 +237,7 @@ class _MainScreenState extends State<MainScreen> {
             id: messageId,
             text: content,
             isOwn: isOwnMessage,
-            time: displayTime, // Тепер використовуємо відформатований час
+            time: displayTime,
             senderName: senderName,
             senderAvatar: senderAvatar,
             senderId: senderId,
@@ -274,7 +269,7 @@ class _MainScreenState extends State<MainScreen> {
           print('Помилка сортування повідомлень: $e');
         }
         
-        return 0; // Якщо не можемо порівняти, залишаємо порядок без змін
+        return 0;
       });
       
       setState(() {
@@ -323,5 +318,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
-// Помилка відправки повідомлення: Невідома помилка

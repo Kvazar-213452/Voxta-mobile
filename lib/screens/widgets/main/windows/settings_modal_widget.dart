@@ -20,7 +20,6 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   bool _readReceipts = true;
   bool _onlineStatus = true;
   String _selectedLanguage = 'uk';
-  String _selectedCrypto = 'm1';
 
   @override
   void initState() {
@@ -83,7 +82,6 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       _readReceipts = true;
       _onlineStatus = true;
       _selectedLanguage = 'uk';
-      _selectedCrypto = 'm1';
     });
   }
 
@@ -221,18 +219,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             DropdownMenuItem(value: 'en', child: Text('English')),
           ],
           onChanged: (value) => setState(() => _selectedLanguage = value!),
-        ),
-        _buildDropdownItem(
-          title: 'Тип шифрування',
-          subtitle: 'Вибрати тип шифрування',
-          value: _selectedCrypto,
-          items: const [
-            DropdownMenuItem(value: 'm1', child: Text('SPX.cripto.lite (m1)')),
-            DropdownMenuItem(value: 'm2', child: Text('SPX.ump.net (m2)')),
-            DropdownMenuItem(value: 'm3', child: Text('SPX.ump.better (m3)')),
-          ],
-          onChanged: (value) => setState(() => _selectedCrypto = value!),
-        ),
+        )
       ],
     );
   }

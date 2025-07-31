@@ -6,6 +6,9 @@ import 'package:pointycastle/api.dart' show AsymmetricKeyPair;
 import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/generate.dart';
 import 'storage_service.dart';
+import 'dart:typed_data';
+import 'dart:math';
+import 'package:pointycastle/export.dart';
 
 final FlutterSecureStorage secureStorage = getSecureStorage();
 
@@ -85,3 +88,60 @@ String _chunked(String str) {
     (i) => str.substring(i * chunkSize, (i + 1) * chunkSize > str.length ? str.length : (i + 1) * chunkSize),
   ).join('\n');
 }
+
+
+// ! ========== db key ==========
+
+Future<void> initKeyDB() async {
+  final secureRandom = FortunaRandom();
+
+  final seed = Uint8List(32);
+  final random = Random.secure();
+  for (int i = 0; i < seed.length; i++) {
+    seed[i] = random.nextInt(256);
+  }
+
+  secureRandom.seed(KeyParameter(seed));
+
+  final aesKey = secureRandom.nextBytes(32);
+  final iv = secureRandom.nextBytes(16);
+
+  await saveKeyDBStorage(aesKey, iv);
+
+  print("init DB");
+}
+
+Future<void> saveKeyDBStorage(Uint8List aesKey, Uint8List iv) async {
+  try {
+    final keyMap = {
+      'key': base64.encode(aesKey),
+      'iv': base64.encode(iv),
+    };
+
+    final jsonStr = jsonEncode(keyMap);
+    await secureStorage.write(key: "keyDBData", value: jsonStr);
+  } catch (e) {
+    print('Error saving key to secure storage: $e');
+  }
+}
+
+Future<Map<String, String>?> getKeyDBStorage() async {
+  try {
+    final value = await secureStorage.read(key: "keyDBData");
+
+    if (value == null) return null;
+
+    final decoded = jsonDecode(value);
+    if (decoded is Map<String, dynamic>) {
+      return {
+        'key': decoded['key'] as String,
+        'iv': decoded['iv'] as String,
+      };
+    }
+    return null;
+  } catch (e) {
+    print('Error reading key from secure storage: $e');
+    return null;
+  }
+}
+
