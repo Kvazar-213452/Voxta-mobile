@@ -58,8 +58,8 @@ class _MainScreenState extends State<MainScreen> {
             print('Обробляємо send_message_return: $data');
             
             // Перевіряємо успішність і отримуємо дані повідомлення
-            if (data['code'] == 1 && data.containsKey('chat')) {
-              Map<String, dynamic> chatData = data['chat'];
+            if (data.containsKey('_id')) {
+              Map<String, dynamic> chatData = data;
               
               String messageId = chatData['_id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
               String content = chatData['content'] ?? '';
@@ -323,3 +323,5 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+// Помилка відправки повідомлення: Невідома помилка

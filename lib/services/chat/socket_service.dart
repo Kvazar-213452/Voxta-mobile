@@ -3,6 +3,10 @@ import '../../models/storage_user.dart';
 import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
 import '../../config.dart';
+import 'dart:convert';
+import '../../utils/crypto/crypto_app.dart';
+import '../../models/storage_key.dart';
+import '../../utils/crypto/utils.dart';
 
 IO.Socket? _socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -34,7 +38,15 @@ void connectSocket(
       _socket!.emit('authenticate', {'token': token});
     });
 
-    _socket!.on('send_message_return', (data) {
+    _socket!.on('send_message_return', (data) async {
+      final keyPair = await getOrCreateKeyPair();
+
+      final jsonResponse = data;
+      final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
+      
+      data = jsonDecode(decrypted);
+      print(data);
+      
       if (_onMessageReceived != null && data != null) {
         _onMessageReceived!(data as Map<String, dynamic>);
       }
@@ -122,16 +134,32 @@ String _formatTime(String createdAt) {
   }
 }
 
-void sendMessage(String text, String userId, String chatId) {
+void sendMessage(String text, String userId, String chatId) async {
   if (_socket != null && _socket!.connected) {
-    _socket!.emit('send_message', {
+    final keyPair = await getOrCreateKeyPair();
+    final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
+
+    final dataToEncrypt = jsonEncode({
       'message': {
         'content': text,
         'sender': userId,
         'time': DateTime.now().toIso8601String()
       },
       'chatId': chatId,
-      'type': 'online'
+      'typeChat': 'online'
+    });
+
+    final serverPublicKeyPem = await getServerPublicKey();
+
+    final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
+
+    _socket!.emit('send_message', {
+      'data': {
+        'data': encrypted['data'],
+        'key': encrypted['key'],
+      },
+      'key': publicKeyPem,
+      'type': 'mobile',
     });
   } else {
     print('❌ Сокет не підключений, неможливо відправити повідомлення');
