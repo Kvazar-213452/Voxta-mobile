@@ -5,7 +5,7 @@ import 'widgets/main/chat_room_widget.dart';
 import 'widgets/main/loading_screen_widget.dart';
 import 'widgets/main/empty_state_widget.dart';
 import 'widgets/main/app_background.dart';
-import 'widgets/main/windows/settings_modal_widget.dart';
+import 'widgets/main/windows/settings/settings_window.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
 

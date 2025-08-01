@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class Config {
-  static const String URL_SERVICES_CRYPTO = "http://192.168.68.105:4002";
-  static const String URL_SERVICES_AUNTIFICATION = "http://192.168.68.105:3000";
-  static const String URL_SERVICES_CHAT = "http://192.168.68.105:3001";
+  static const String URL_SERVICES_CRYPTO = "http://192.168.68.101:4002";
+  static const String URL_SERVICES_AUNTIFICATION = "http://192.168.68.101:3000";
+  static const String URL_SERVICES_CHAT = "http://192.168.68.101:3001";
 }
 
 class AppColors {

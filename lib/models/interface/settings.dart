@@ -5,7 +5,6 @@ class Settings {
   final String language;
   final bool readReceipts;
   final bool onlineStatus;
-  final String cripto;
 
   Settings({
     required this.darkMode,
@@ -14,7 +13,6 @@ class Settings {
     required this.language,
     required this.readReceipts,
     required this.onlineStatus,
-    required this.cripto,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,7 +23,6 @@ class Settings {
       'language': language,
       'readReceipts': readReceipts ? 1 : 0,
       'onlineStatus': onlineStatus ? 1 : 0,
-      'cripto': cripto,
     };
   }
 
@@ -37,7 +34,6 @@ class Settings {
       language: map['language'],
       readReceipts: map['readReceipts'] == 1,
       onlineStatus: map['onlineStatus'] == 1,
-      cripto: map['cripto'],
     );
   }
 }

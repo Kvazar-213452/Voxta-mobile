@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'modal.dart';
+import 'header.dart';
+import 'footer.dart';
+import '../../../../../models/storage_settings.dart';
+import '../../../../../models/interface/settings.dart';
 
 class SettingsScreenWidget extends StatefulWidget {
   const SettingsScreenWidget({super.key});
@@ -14,16 +19,24 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
+  // Стан налаштувань
   bool _darkMode = true;
   bool _browserNotifications = false;
   bool _doNotDisturb = false;
   bool _readReceipts = true;
   bool _onlineStatus = true;
   String _selectedLanguage = 'uk';
+  
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
+    _loadSettings();
+  }
+
+  void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -48,6 +61,52 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     _animationController.forward();
   }
 
+  Future<void> _loadSettings() async {
+    try {
+      final settings = await SettingsDB.getSettings();
+      if (settings != null) {
+        setState(() {
+          _darkMode = settings.darkMode;
+          _browserNotifications = settings.browserNotifications;
+          _doNotDisturb = settings.doNotDisturb;
+          _readReceipts = settings.readReceipts;
+          _onlineStatus = settings.onlineStatus;
+          _selectedLanguage = settings.language;
+          _isLoading = false;
+        });
+      } else {
+        // Якщо налаштувань немає, використовуємо дефолтні значення
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // Обробка помилки завантаження
+      print('Помилка завантаження налаштувань: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _saveSettingsToDb() async {
+    try {
+      final settings = Settings(
+        darkMode: _darkMode,
+        browserNotifications: _browserNotifications,
+        doNotDisturb: _doNotDisturb,
+        language: _selectedLanguage,
+        readReceipts: _readReceipts,
+        onlineStatus: _onlineStatus,
+      );
+      
+      await SettingsDB.saveSettings(settings);
+    } catch (e) {
+      print('Помилка збереження налаштувань: $e');
+      // Можна показати повідомлення про помилку користувачу
+    }
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -60,8 +119,60 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     });
   }
 
-  void _saveSettings() {
-    _showSuccessModal();
+  void _saveSettings() async {
+    // Показуємо індикатор завантаження
+    _showLoadingDialog();
+    
+    try {
+      await _saveSettingsToDb();
+      // Закриваємо діалог завантаження
+      Navigator.of(context).pop();
+      // Показуємо модал успіху
+      _showSuccessModal();
+    } catch (e) {
+      // Закриваємо діалог завантаження
+      Navigator.of(context).pop();
+      // Показуємо повідомлення про помилку
+      _showErrorDialog();
+    }
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2d2d32),
+        title: const Text(
+          'Помилка',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Не вдалося зберегти налаштування. Спробуйте ще раз.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Color(0xFF58ff7f)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessModal() {
@@ -101,74 +212,42 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: SafeArea(
-                child: Column(
-                  children: [
-                    _buildHeader(),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 20),
-                            _buildAppearanceSection(),
-                            _buildNotificationsSection(),
-                            _buildChatSection(),
-                            _buildPrivacySection(),
-                            const SizedBox(height: 20),
-                          ],
-                        ),
+                child: _isLoading 
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
                       ),
+                    )
+                  : Column(
+                      children: [
+                        SettingsHeaderWidget(onBackPressed: _closeSettings),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 20),
+                                _buildAppearanceSection(),
+                                _buildNotificationsSection(),
+                                _buildChatSection(),
+                                _buildPrivacySection(),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SettingsFooterWidget(
+                          onLogout: _logout,
+                          onReset: _resetSettings,
+                          onSave: _saveSettings,
+                        ),
+                      ],
                     ),
-                    _buildFooter(),
-                  ],
-                ),
               ),
             ),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: _closeSettings,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(width: 15),
-          const Text(
-            '⚙️ Налаштування',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -408,222 +487,6 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildFooterButton(
-              text: 'Вихід',
-              color: Colors.red.withOpacity(0.2),
-              textColor: Colors.red.shade300,
-              onTap: _logout,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _buildFooterButton(
-              text: 'Скинути',
-              color: Colors.white.withOpacity(0.1),
-              textColor: Colors.white,
-              onTap: _resetSettings,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _buildFooterButton(
-              text: 'Зберегти',
-              color: const Color(0xFF58ff7f),
-              textColor: Colors.black,
-              onTap: _saveSettings,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooterButton({
-    required String text,
-    required Color color,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: textColor,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Success Modal Widget
-class SuccessModalWidget extends StatefulWidget {
-  const SuccessModalWidget({super.key});
-
-  @override
-  State<SuccessModalWidget> createState() => _SuccessModalWidgetState();
-}
-
-class _SuccessModalWidgetState extends State<SuccessModalWidget>
-    with SingleTickerProviderStateMixin {
-  
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return Container(
-          color: Colors.black.withOpacity(0.5 * _fadeAnimation.value),
-          child: Center(
-            child: Transform.scale(
-              scale: _scaleAnimation.value,
-              child: Opacity(
-                opacity: _fadeAnimation.value,
-                child: Material(
-                  color: Colors.transparent,
-                  child: Container(
-                    margin: const EdgeInsets.all(30),
-                    padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1a1a1f),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.1),
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF58ff7f),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            size: 40,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Voxta',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF58ff7f),
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                        const Text(
-                          'Налаштування збережено успішно!\nВсі зміни застосовано.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).pop(),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF58ff7f),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Text(
-                              'Готово',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
