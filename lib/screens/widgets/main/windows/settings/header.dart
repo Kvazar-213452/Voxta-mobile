@@ -31,7 +31,7 @@ class SettingsHeaderWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
-                Icons.arrow_back_ios_new,
+                Icons.arrow_back,
                 color: Colors.white,
                 size: 20,
               ),

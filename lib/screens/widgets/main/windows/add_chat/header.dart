@@ -30,13 +30,9 @@ class ChatHeader extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF58FF7F).withOpacity(0.3),
-                  width: 1,
-                ),
               ),
               child: const Icon(
-                Icons.arrow_back_ios_new,
+                Icons.arrow_back,
                 color: Color(0xFFEEEEEE),
                 size: 18,
               ),
