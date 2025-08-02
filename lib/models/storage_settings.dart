@@ -9,16 +9,13 @@ class SettingsDB {
   static Database? _db;
   static bool _initialized = false;
 
-  // Ініціалізація бази даних залежно від платформи
   static void _initializeDatabaseFactory() {
     if (_initialized) return;
     
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-      // Для десктопних платформ використовуємо FFI
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
-    // Для мобільних платформ (Android/iOS) використовується стандартний sqflite
     
     _initialized = true;
   }
@@ -35,22 +32,18 @@ class SettingsDB {
     Directory dir;
     
     try {
-      // Спробуємо отримати директорію документів
       dir = await getApplicationDocumentsDirectory();
     } catch (e) {
-      // Якщо не вдається, використовуємо поточну директорію (для деяких десктопних систем)
       dir = Directory.current;
     }
     
     String path = join(dir.path, 'voxta_settings.db');
-    print('Database path: $path'); // Для дебагу
+    print('Database path: $path');
 
     return await openDatabase(
       path,
       version: 1,
       onCreate: (db, version) async {
-        print('Creating database tables...'); // Для дебагу
-        
         await db.execute('''
           CREATE TABLE IF NOT EXISTS settings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,12 +56,9 @@ class SettingsDB {
           )
         ''');
 
-        // Перевіряємо чи є записи в таблиці
         final count = Sqflite.firstIntValue(
           await db.rawQuery('SELECT COUNT(*) FROM settings')
         ) ?? 0;
-
-        print('Settings count: $count'); // Для дебагу
 
         if (count == 0) {
           final defaultSettings = Settings(
@@ -81,11 +71,11 @@ class SettingsDB {
           );
           
           await db.insert('settings', defaultSettings.toMap());
-          print('Default settings inserted'); // Для дебагу
+          print('Default settings inserted');
         }
       },
       onOpen: (db) async {
-        print('Database opened successfully'); // Для дебагу
+        print('Database opened successfully');
       },
     );
   }
@@ -94,22 +84,19 @@ class SettingsDB {
     try {
       final db = await database;
       
-      // Спочатку перевіряємо чи є записи
       final existing = await db.query('settings', limit: 1);
       
       if (existing.isEmpty) {
-        // Якщо записів немає, вставляємо новий
         await db.insert('settings', settings.toMap());
-        print('Settings inserted'); // Для дебагу
+        print('Settings inserted');
       } else {
-        // Якщо запис є, оновлюємо його
         await db.update(
           'settings', 
           settings.toMap(),
           where: 'id = ?',
           whereArgs: [existing.first['id']],
         );
-        print('Settings updated'); // Для дебагу
+        print('Settings updated');
       }
     } catch (e) {
       print('Failed to save settings: $e');
@@ -123,11 +110,9 @@ class SettingsDB {
       final result = await db.query('settings', limit: 1);
 
       if (result.isEmpty) {
-        print('No settings found in database'); // Для дебагу
         return null;
       }
       
-      print('Settings loaded: ${result.first}'); // Для дебагу
       return Settings.fromMap(result.first);
     } catch (e) {
       print('Failed to get settings: $e');
@@ -139,14 +124,12 @@ class SettingsDB {
     try {
       final db = await database;
       await db.delete('settings');
-      print('Settings deleted'); // Для дебагу
     } catch (e) {
       print('Failed to delete settings: $e');
       rethrow;
     }
   }
 
-  // Метод для закриття бази даних (корисно для тестування)
   static Future<void> closeDatabase() async {
     if (_db != null) {
       await _db!.close();
@@ -155,12 +138,10 @@ class SettingsDB {
     }
   }
 
-  // Метод для перевірки з'єднання з базою даних
   static Future<bool> testConnection() async {
     try {
       final db = await database;
       await db.rawQuery('SELECT 1');
-      print('Database connection test: SUCCESS');
       return true;
     } catch (e) {
       print('Database connection test: FAILED - $e');

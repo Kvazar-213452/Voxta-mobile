@@ -8,6 +8,7 @@ import 'widgets/main/app_background.dart';
 import 'widgets/main/windows/settings/settings_window.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
+import 'widgets/main/windows/add_chat/add_chat_windows.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -15,7 +16,7 @@ class MainScreen extends StatefulWidget {
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
-
+// ChatListWidget
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
   String currentChatName = "Оберіть чат";
@@ -189,6 +190,7 @@ class _MainScreenState extends State<MainScreen> {
       searchController: searchController,
       onChatTap: _onChatTap,
       onSettingsTap: _openSettings,
+      onAddChatTap: _openAddChat,
     );
   }
 
@@ -315,6 +317,14 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const SettingsScreenWidget(),
+    );
+  }
+
+  void _openAddChat() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AddChatScreen(),
     );
   }
 }
