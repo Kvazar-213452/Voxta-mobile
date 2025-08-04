@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'header.dart';
 import 'footer.dart';
+import 'server_chat_modal.dart';
+import '../../../../../services/chat/socket_service.dart';
+import 'dart:convert';
 
 class AddChatScreen extends StatefulWidget {
   const AddChatScreen({super.key});
@@ -84,6 +87,36 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     }
   }
 
+  String? _getImageBase64() {
+    if (_selectedImage == null) return null;
+    
+    try {
+      final bytes = _selectedImage!.readAsBytesSync();
+      final extension = _selectedImage!.path.split('.').last.toLowerCase();
+      
+      String mimeType;
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case 'png':
+          mimeType = 'image/png';
+          break;
+        case 'gif':
+          mimeType = 'image/gif';
+          break;
+        default:
+          mimeType = 'image/jpeg';
+      }
+      
+      return 'data:$mimeType;base64,${base64Encode(bytes)}';
+    } catch (e) {
+      print('Error converting image to base64: $e');
+      return null;
+    }
+  }
+
   void _selectPrivacy(String privacy) {
     setState(() {
       _selectedPrivacy = privacy;
@@ -96,15 +129,56 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     });
   }
 
+  void _showServerModal() {
+    final avatarBase64 = _getImageBase64();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ServerChatModal(
+          chatName: _chatNameController.text,
+          chatDescription: _chatDescriptionController.text,
+          privacy: _selectedPrivacy,
+          avatarBase64: avatarBase64 ?? '',
+          onCreateServer: (chatName, privacy, avatarBase64, chatDescription, idServer, codeServer) {
+            createChatServer(
+              chatName,
+              privacy,
+              avatarBase64,
+              chatDescription,
+              idServer,
+              codeServer,
+            );
+            _closeScreen();
+          },
+        );
+      },
+    );
+  }
+
   void _createChat() {
     if (_isFormValid) {
-      // Here you would typically call your chat creation logic
       print('Creating chat: ${_chatNameController.text}');
       print('Description: ${_chatDescriptionController.text}');
       print('Privacy: $_selectedPrivacy');
       print('Has avatar: ${_selectedImage != null}');
-      
-      _closeScreen();
+
+      if (_selectedPrivacy == "server") {
+        _showServerModal();
+      } else {
+
+        final avatarBase64 = _getImageBase64();
+
+        createChat(
+          _chatNameController.text,
+          _selectedPrivacy,
+          avatarBase64 ?? '',
+          _chatDescriptionController.text,
+        );
+        
+        _closeScreen();
+      }
     }
   }
 
@@ -167,7 +241,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           _buildDescriptionSection(),
           const SizedBox(height: 30),
           _buildPrivacySection(),
-          const SizedBox(height: 40), // Додатковий простір внизу
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -496,3 +570,5 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     );
   }
 }
+
+// _close

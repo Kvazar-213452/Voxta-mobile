@@ -156,4 +156,3 @@ Future<String> decryptServerResponse(
 
   return utf8.decode(decryptedBytes);
 }
-

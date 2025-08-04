@@ -52,7 +52,7 @@ class ChatItemWidget extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) {
               return ClipOval(
                 child: Image.network(
-                  'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
+                  'https://cdn-icons-png.flaticon.com/512/5519/5519614.png',
                   width: 44,
                   height: 44,
                   fit: BoxFit.cover,

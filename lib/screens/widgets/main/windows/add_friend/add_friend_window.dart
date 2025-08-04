@@ -15,7 +15,6 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
   final TextEditingController _friendNameController = TextEditingController();
   
   bool _isFormValid = false;
-  String _selectedFriendType = 'friend';
   
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -77,7 +76,6 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
       // Here you would typically call your friend addition logic
       print('Adding friend with code: ${_friendCodeController.text}');
       print('Friend name: ${_friendNameController.text}');
-      print('Friend type: $_selectedFriendType');
       
       _closeScreen();
     }

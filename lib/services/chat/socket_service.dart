@@ -4,6 +4,7 @@ import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
 import '../../config.dart';
 import 'dart:convert';
+import 'utils.dart';
 import '../../utils/crypto/crypto_app.dart';
 import '../../models/storage_key.dart';
 import '../../utils/crypto/utils.dart';
@@ -45,21 +46,21 @@ void connectSocket(
       final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
       
       data = jsonDecode(decrypted);
-      print(data);
       
       if (_onMessageReceived != null && data != null) {
         _onMessageReceived!(data as Map<String, dynamic>);
       }
     });
 
-    _socket!.on('authenticated', (data) {
+    _socket!.on('authenticated', (data) async {
       if (data["code"] == 1) {
-        _socket!.emit('getInfoChats', {'chats': data["user"]["chats"]});
+        await loadChats();
       }
     });
 
     _socket!.on('chats_info', (data) {
       if (data["code"] == 1) {
+        print(data["chats"]);
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
         
         if (_onChatsReceived != null) {
@@ -74,6 +75,23 @@ void connectSocket(
       }
     });
 
+    _socket!.on('create_new_chat', (data) async {
+      await loadChats();
+    });
+    
+    _socket!.on('get_info_self', (data) async {
+      if (data['type'] == "load_chats") {
+        final userMap = data['user'];
+        if (userMap != null && userMap is Map<String, dynamic>) {
+          UserModel user = UserModel.fromJson(userMap);
+          await saveUserStorage(user);
+          _socket!.emit('getInfoChats', {'chats': user.chats});
+        } else {
+          print("user is null");
+        }
+      }
+    });
+
     _socket!.onDisconnect((reason) {
       print('Відключено від сервера: $reason');
     });
@@ -82,6 +100,10 @@ void connectSocket(
   } catch (e) {
     print('Помилка підключення: $e');
   }
+}
+
+Future<void> loadChats() async {
+  _socket!.emit('get_info_self', {'type': 'load_chats'});
 }
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
@@ -101,7 +123,7 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
         id: chatId,
         name: name,
         lastMessage: desc.isNotEmpty ? desc : 'Немає повідомлень',
-        time: _formatTime(createdAt),
+        time: formatTime(createdAt),
         avatar: displayAvatar,
         type: type, 
       );
@@ -115,23 +137,6 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
   chatsList.sort((a, b) => b.time.compareTo(a.time));
   
   return chatsList;
-}
-
-String _formatTime(String createdAt) {
-  try {
-    DateTime dateTime = DateTime.parse(createdAt);
-    DateTime now = DateTime.now();
-    
-    if (dateTime.day == now.day && 
-        dateTime.month == now.month && 
-        dateTime.year == now.year) {
-      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-    } else {
-      return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}';
-    }
-  } catch (e) {
-    return 'Невідомо';
-  }
 }
 
 void sendMessage(String text, String userId, String chatId) async {
@@ -171,6 +176,39 @@ void loadChatContent(String chatId, String type) {
     _socket!.emit('load_chat_content', {
       'chatId': chatId,
       'type': type,
+    });
+  } else {
+    print('❌ Сокет не підключений, неможливо завантажити контент чату');
+  }
+}
+
+void createChatServer(String name, String type, String avatar, String desc, String idServer, String codeServer) {
+  if (_socket != null && _socket!.connected) {
+    _socket!.emit('create_chat_server', {
+      'chat': {
+        'name': name,
+        'description': desc,
+        'privacy': type,
+        'avatar': avatar,
+        'createdAt': DateTime.now().toIso8601String(),
+        'idServer': idServer,
+      }
+    });
+  } else {
+    print('❌ Сокет не підключений, неможливо завантажити контент чату');
+  }
+}
+
+void createChat(String name, String type, String avatar, String desc) {
+  if (_socket != null && _socket!.connected) {
+    _socket!.emit('create_chat', {
+      'chat': {
+        'name': name,
+        'description': desc,
+        'privacy': type,
+        'avatar': avatar,
+        'createdAt': DateTime.now().toIso8601String()
+      }
     });
   } else {
     print('❌ Сокет не підключений, неможливо завантажити контент чату');
