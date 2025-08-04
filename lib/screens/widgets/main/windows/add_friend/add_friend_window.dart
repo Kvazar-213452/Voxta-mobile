@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'header.dart';
 import 'footer.dart';
+import '../../../../../services/chat/socket_service.dart';
 
 class AddFriendScreen extends StatefulWidget {
   const AddFriendScreen({super.key});
@@ -15,6 +16,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
   final TextEditingController _friendNameController = TextEditingController();
   
   bool _isFormValid = false;
+  String _myFriendCode = 'Завантаження...';
   
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -49,6 +51,27 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
     
     _friendCodeController.addListener(_validateForm);
     _friendNameController.addListener(_validateForm);
+    
+    // Налаштування слухача для отримання коду друга
+    _setupFriendCodeListener();
+    
+    // Запит коду друга
+    _loadMyFriendCode();
+  }
+
+  void _setupFriendCodeListener() {
+    // Встановлюємо callback для отримання коду друга
+    setOnFriendCodeReceived((String friendCode) {
+      if (mounted) {
+        setState(() {
+          _myFriendCode = friendCode;
+        });
+      }
+    });
+  }
+
+  void _loadMyFriendCode() {
+    getSelfFriendCode();
   }
 
   @override
@@ -56,6 +79,8 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
     _animationController.dispose();
     _friendCodeController.dispose();
     _friendNameController.dispose();
+    // Очищуємо callback
+    setOnFriendCodeReceived(null);
     super.dispose();
   }
 
@@ -85,6 +110,18 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
     ClipboardData? data = await Clipboard.getData('text/plain');
     if (data != null) {
       _friendCodeController.text = data.text ?? '';
+    }
+  }
+
+  void _copyMyCode() {
+    if (_myFriendCode != 'Завантаження...' && _myFriendCode.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: _myFriendCode));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Код скопійовано!'),
+          backgroundColor: Color(0xFF58FF7F),
+        ),
+      );
     }
   }
 
@@ -217,9 +254,9 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.content_paste,
-                  color: const Color(0xFF58FF7F),
+                  color: Color(0xFF58FF7F),
                   size: 20,
                 ),
               ),
@@ -238,7 +275,7 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
     );
   }
 
- Widget _buildMyCodeSection() {
+  Widget _buildMyCodeSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -270,47 +307,49 @@ class _AddFriendScreenState extends State<AddFriendScreen> with TickerProviderSt
                   color: const Color(0xFF58FF7F).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'ABC123XYZ789',
+                child: Text(
+                  _myFriendCode,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF58FF7F),
-                    letterSpacing: 2,
+                    color: _myFriendCode == 'Завантаження...' 
+                        ? const Color(0xFFAAAAAA) 
+                        : const Color(0xFF58FF7F),
+                    letterSpacing: _myFriendCode == 'Завантаження...' ? 0 : 2,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
               GestureDetector(
-                onTap: () {
-                  Clipboard.setData(const ClipboardData(text: 'ABC123XYZ789'));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Код скопійовано!'),
-                      backgroundColor: Color(0xFF58FF7F),
-                    ),
-                  );
-                },
+                onTap: _copyMyCode,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF58FF7F).withOpacity(0.1),
-                    border: Border.all(color: const Color(0xFF58FF7F)),
+                    border: Border.all(
+                      color: _myFriendCode == 'Завантаження...' 
+                          ? Colors.grey 
+                          : const Color(0xFF58FF7F)
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.copy,
-                        color: Color(0xFF58FF7F),
+                        color: _myFriendCode == 'Завантаження...' 
+                            ? Colors.grey 
+                            : const Color(0xFF58FF7F),
                         size: 16,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Копіювати',
                         style: TextStyle(
-                          color: Color(0xFF58FF7F),
+                          color: _myFriendCode == 'Завантаження...' 
+                              ? Colors.grey 
+                              : const Color(0xFF58FF7F),
                           fontWeight: FontWeight.w500,
                         ),
                       ),

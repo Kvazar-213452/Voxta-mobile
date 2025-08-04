@@ -13,6 +13,7 @@ IO.Socket? _socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
 Function(List<ChatItem>)? _onChatsReceived;
 Function(Map<String, dynamic>)? _onChatContentReceived;
+Function(String)? _onFriendCodeReceived;
 
 void connectSocket(
   UserModel user, 
@@ -52,9 +53,9 @@ void connectSocket(
       }
     });
 
-    _socket!.on('authenticated', (data) async {
+    _socket!.on('authenticated', (data) {
       if (data["code"] == 1) {
-        await loadChats();
+        loadChats();
       }
     });
 
@@ -75,8 +76,16 @@ void connectSocket(
       }
     });
 
-    _socket!.on('create_new_chat', (data) async {
-      await loadChats();
+    _socket!.on('create_new_chat', (data) {
+      loadChats();
+    });
+
+    _socket!.on('get_info_self_frined_code', (data) {
+      if (data["type"] == "ui") {
+        if (_onFriendCodeReceived != null && data["code_fiend"] != null) {
+          _onFriendCodeReceived!(data["code_fiend"].toString());
+        }
+      }
     });
     
     _socket!.on('get_info_self', (data) async {
@@ -102,8 +111,21 @@ void connectSocket(
   }
 }
 
-Future<void> loadChats() async {
+// Функція для встановлення callback для отримання коду друга
+void setOnFriendCodeReceived(Function(String)? callback) {
+  _onFriendCodeReceived = callback;
+}
+
+void loadChats() {
   _socket!.emit('get_info_self', {'type': 'load_chats'});
+}
+
+void getSelfFriendCode() {
+  if (_socket != null && _socket!.connected) {
+    _socket!.emit('get_info_self_frined_code', {'type': 'ui'});
+  } else {
+    print('❌ Сокет не підключений, неможливо отримати код друга');
+  }
 }
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
@@ -219,6 +241,7 @@ void disconnectSocket() {
   _socket?.disconnect();
   _socket?.dispose();
   _socket = null;
+  _onFriendCodeReceived = null;
 }
 
 bool get isSocketConnected => _socket?.connected ?? false;
