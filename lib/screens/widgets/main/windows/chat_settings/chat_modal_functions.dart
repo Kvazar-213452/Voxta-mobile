@@ -272,6 +272,8 @@ class ChatModalFunctions {
           type: type,
           avatarUrl: data["avatar"],
           users: data["participants"] ?? [],
+          owner: data["owner"] ?? "",
+          time: data["time"] ?? "",
         );
       },
       onError: (String error) {
@@ -326,6 +328,8 @@ class ChatModalFunctions {
     required String currentDescription,
     required String id,
     required String type,
+    required String time,
+    required String owner,
     required String? avatarUrl,
     required List<dynamic> users,
   }) {
@@ -353,6 +357,8 @@ class ChatModalFunctions {
           chatAvatar: avatarWidget,
           users: users,
           typeChat: type,
+          time: time,
+          owner: owner,
           onSave: (String newName, String newDescription) {
             // Тут можна додати логіку для збереження налаштувань через сокет
             print('Збереження налаштувань: name=$newName, desc=$newDescription, id=$id, type=$type');
