@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/interface/chat_models.dart';
 import 'message_widget.dart';
+import 'windows/chat_settings/chat_modal_functions.dart';
 
 class ChatRoomWidget extends StatefulWidget {
   final String chatName;
@@ -10,6 +11,8 @@ class ChatRoomWidget extends StatefulWidget {
   final VoidCallback onBackPressed;
   final Function(String) onMessageSent;
   final String chatAvatar;
+  final String type;
+  final String id;
 
   const ChatRoomWidget({
     super.key,
@@ -20,6 +23,8 @@ class ChatRoomWidget extends StatefulWidget {
     required this.onBackPressed,
     required this.onMessageSent,
     required this.chatAvatar,
+    required this.type,
+    required this.id,
   });
 
   @override
@@ -173,7 +178,12 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                               ],
                             ),
                           ),
-                          _buildHeaderButton(Icons.more_vert, () {}),
+                          _buildHeaderButton(Icons.more_vert, () => ChatModalFunctions.showChatOptionsModal(
+                            context,
+                            type: widget.type,
+                            id: widget.id,
+                            chatAvatar: _buildChatAvatar(),
+                          )),
                         ],
                       ),
                     ),
@@ -194,7 +204,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                     child: Opacity(
                       opacity: value,
                       child: ListView.builder(
-                        controller: widget.scrollController, // Додано ScrollController
+                        controller: widget.scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         itemCount: widget.messages.length,
                         itemBuilder: (context, index) {

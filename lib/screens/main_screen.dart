@@ -114,7 +114,7 @@ class _MainScreenState extends State<MainScreen> {
           if (mounted) {
             _processChatContent(chatContent);
           }
-        },
+        }
       );
     } catch (e) {
       print("error init: $e");
@@ -200,6 +200,8 @@ class _MainScreenState extends State<MainScreen> {
       onBackPressed: () => setState(() => currentIndex = 0),
       onMessageSent: _onMessageSent,
       chatAvatar: currentChatAvatar,
+      type: currentChatType ?? '',
+      id: selectedChatId ?? '',
     );
   }
 
@@ -326,4 +328,4 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// _onChatContentReceived
+// connectSocket

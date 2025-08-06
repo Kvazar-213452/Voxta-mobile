@@ -36,7 +36,6 @@ String encryptText(String plainText, String base64Key, String base64Iv) {
   return base64.encode(output);
 }
 
-
 String decryptText(String encryptedBase64, String base64Key, String base64Iv) {
   final key = base64.decode(base64Key);
   final iv = base64.decode(base64Iv);

@@ -11,7 +11,7 @@ import '../../models/storage_key.dart';
 import '../../utils/crypto/utils.dart';
 import '../../models/interface/offlne_msg.dart';
 
-IO.Socket? _socket;
+IO.Socket? socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
 Function(List<ChatItem>)? _onChatsReceived;
 Function(Map<String, dynamic>)? _onChatContentReceived;
@@ -29,19 +29,19 @@ void connectSocket(
   saveUserStorage(user);
   
   try {
-    _socket = IO.io(Config.URL_SERVICES_CHAT, 
+    socket = IO.io(Config.URL_SERVICES_CHAT, 
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .setTimeout(10000)
         .build()
     );
 
-    _socket!.onConnect((_) {
+    socket!.onConnect((_) {
       print('Підключено до сокет-серверу');
-      _socket!.emit('authenticate', {'token': token});
+      socket!.emit('authenticate', {'token': token});
     });
 
-    _socket!.on('send_message_return', (data) async {
+    socket!.on('send_message_return', (data) async {
       final keyPair = await getOrCreateKeyPair();
 
       final jsonResponse = data;
@@ -52,13 +52,13 @@ void connectSocket(
       _onMessageReceived!(data as Map<String, dynamic>);
     });
 
-    _socket!.on('authenticated', (data) {
+    socket!.on('authenticated', (data) {
       if (data["code"] == 1) {
         loadChats();
       }
     });
 
-    _socket!.on('chats_info', (data) {
+    socket!.on('chats_info', (data) {
       if (data["code"] == 1) {
         print(data["chats"]);
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
@@ -67,7 +67,7 @@ void connectSocket(
       }
     });
 
-    _socket!.on('load_chat_content_return', (data) async {
+    socket!.on('load_chat_content_return', (data) async {
       if (data["type"] == "offline") {
         final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
 
@@ -79,43 +79,41 @@ void connectSocket(
           "code": 1
         };
 
-        print(data_send);
-
         _onChatContentReceived!(data_send);
       } else {
         _onChatContentReceived!(data as Map<String, dynamic>);
       }
     });
 
-    _socket!.on('create_new_chat', (data) {
+    socket!.on('create_new_chat', (data) {
       loadChats();
     });
     
-    _socket!.on('get_info_self', (data) async {
+    socket!.on('get_info_self', (data) async {
       if (data['type'] == "load_chats") {
         final userMap = data['user'];
         if (userMap != null && userMap is Map<String, dynamic>) {
           UserModel user = UserModel.fromJson(userMap);
           await saveUserStorage(user);
-          _socket!.emit('getInfoChats', {'chats': user.chats});
+          socket!.emit('getInfoChats', {'chats': user.chats});
         } else {
           print("user is null");
         }
       }
     });
 
-    _socket!.onDisconnect((reason) {
+    socket!.onDisconnect((reason) {
       print('Відключено від сервера: $reason');
     });
 
-    _socket!.connect();
+    socket!.connect();
   } catch (e) {
     print('Помилка підключення: $e');
   }
 }
 
 void loadChats() {
-  _socket!.emit('get_info_self', {'type': 'load_chats'});
+  socket!.emit('get_info_self', {'type': 'load_chats'});
 }
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
@@ -178,10 +176,9 @@ void sendMessage(String text, String userId, String chatId, String type) async {
     });
 
     final serverPublicKeyPem = await getServerPublicKey();
-
     final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
-    _socket!.emit('send_message', {
+    socket!.emit('send_message', {
       'data': {
         'data': encrypted['data'],
         'key': encrypted['key'],
@@ -193,14 +190,22 @@ void sendMessage(String text, String userId, String chatId, String type) async {
 }
 
 void loadChatContent(String chatId, String type) {
-  _socket!.emit('load_chat_content', {
+  socket!.emit('load_chat_content', {
     'chatId': chatId,
     'type': type,
   });
 }
 
+void getInfoChat(String chatId, String type) {
+  socket!.emit('get_info_chat', {
+    'chatId': chatId,
+    'typeChat': type,
+    'type': "main",
+  });
+}
+
 void createChatServer(String name, String type, String avatar, String desc, String idServer, String codeServer) {
-  _socket!.emit('create_chat_server', {
+  socket!.emit('create_chat_server', {
     'chat': {
       'name': name,
       'description': desc,
@@ -213,7 +218,7 @@ void createChatServer(String name, String type, String avatar, String desc, Stri
 }
 
 void createChat(String name, String type, String avatar, String desc) {
-  _socket!.emit('create_chat', {
+  socket!.emit('create_chat', {
     'chat': {
       'name': name,
       'description': desc,
@@ -225,9 +230,9 @@ void createChat(String name, String type, String avatar, String desc) {
 }
 
 void disconnectSocket() {
-  _socket?.disconnect();
-  _socket?.dispose();
-  _socket = null;
+  socket?.disconnect();
+  socket?.dispose();
+  socket = null;
 }
 
-bool get isSocketConnected => _socket?.connected ?? false;
+bool get isSocketConnected => socket?.connected ?? false;

@@ -26,25 +26,6 @@ RSAPublicKey parsePublicKeyFromPem(String pem) {
   return RSAPublicKey(modulus, exponent);
 }
 
-BigInt _bytesToBigInt(Uint8List bytes) {
-  BigInt result = BigInt.zero;
-  for (int byte in bytes) {
-    result = (result << 8) + BigInt.from(byte);
-  }
-  return result;
-}
-
-Uint8List _bigIntToBytes(BigInt bigInt) {
-  if (bigInt == BigInt.zero) return Uint8List.fromList([0]);
-  
-  var bytes = <int>[];
-  while (bigInt > BigInt.zero) {
-    bytes.insert(0, (bigInt & BigInt.from(0xff)).toInt());
-    bigInt = bigInt >> 8;
-  }
-  return Uint8List.fromList(bytes);
-}
-
 String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
   final sequence = ASN1Sequence();
   sequence.add(ASN1Integer(publicKey.modulus!));
