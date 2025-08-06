@@ -49,9 +49,7 @@ void connectSocket(
       
       data = jsonDecode(decrypted);
       
-      if (_onMessageReceived != null && data != null) {
-        _onMessageReceived!(data as Map<String, dynamic>);
-      }
+      _onMessageReceived!(data as Map<String, dynamic>);
     });
 
     _socket!.on('authenticated', (data) {
@@ -65,9 +63,7 @@ void connectSocket(
         print(data["chats"]);
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
         
-        if (_onChatsReceived != null) {
-          _onChatsReceived!(parsedChats);
-        }
+        _onChatsReceived!(parsedChats);
       }
     });
 
@@ -85,13 +81,9 @@ void connectSocket(
 
         print(data_send);
 
-        if (_onChatContentReceived != null) {
-          _onChatContentReceived!(data_send);
-        }
+        _onChatContentReceived!(data_send);
       } else {
-        if (_onChatContentReceived != null) {
-          _onChatContentReceived!(data as Map<String, dynamic>);
-        }
+        _onChatContentReceived!(data as Map<String, dynamic>);
       }
     });
 
@@ -164,7 +156,16 @@ void sendMessage(String text, String userId, String chatId, String type) async {
   final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
   if (type == "offline") {
-    
+    final msg = await ChatDB.addMessage(
+      chatId,
+      MsgToDb(
+        sender: userId,
+        content: text,
+        time: DateTime.now().toIso8601String(),
+      ),
+    );
+
+    _onMessageReceived!(msg.toJson());
   } else {
     final dataToEncrypt = jsonEncode({
       'message': {
