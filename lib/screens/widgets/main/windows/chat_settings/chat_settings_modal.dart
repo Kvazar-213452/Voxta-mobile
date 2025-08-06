@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../../../../services/chat/socket_service.dart';
+import 'chat_settings_header.dart';
+import 'chat_settings_footer.dart';
 
 class ChatSettingsModal extends StatefulWidget {
   final String currentName;
   final String currentDescription;
+  final String typeChat;
   final Widget? chatAvatar;
   final List<dynamic> users;
   final Function(String name, String description) onSave;
@@ -13,6 +17,7 @@ class ChatSettingsModal extends StatefulWidget {
     super.key,
     required this.currentName,
     required this.currentDescription,
+    required this.typeChat,
     this.chatAvatar,
     this.users = const [],
     required this.onSave,
@@ -26,8 +31,10 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   bool _isFormValid = false;
+  bool _isLoadingUsers = true;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
+  Map<String, dynamic> _usersData = {};
 
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -40,8 +47,29 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     _nameController = TextEditingController(text: widget.currentName);
     _descriptionController = TextEditingController(text: widget.currentDescription);
     
-    // Виводимо список користувачів в консоль
-    print('Користувачі чату: ${widget.users}');
+
+    getInfoUsers(
+      users: widget.users,
+      type: widget.typeChat,
+      onSuccess: (Map<String, dynamic> usersData) {
+        setState(() {
+          _usersData = usersData;
+          _isLoadingUsers = false;
+        });
+      },
+      onError: (String error) {
+        setState(() {
+          _isLoadingUsers = false;
+        });
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Помилка завантаження: $error'),
+            backgroundColor: Colors.red.shade400,
+          ),
+        );
+      },
+    );
     
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -83,6 +111,84 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     setState(() {
       _isFormValid = _nameController.text.trim().isNotEmpty;
     });
+  }
+
+  static void getInfoUsers({
+    required String type,
+    required List<dynamic> users,
+    required Function(Map<String, dynamic>) onSuccess,
+    required Function(String error) onError,
+  }) {
+    try {
+      socket!.emit('get_info_users', {
+        'server': null,
+        'type': type,
+        'users': users
+      });
+
+      socket!.off('get_info_users_return');
+
+      socket!.on('get_info_users_return', (data) {
+        try {
+          print(data);
+          
+          if (data['code'] == 1 && data['users'] != null) {
+            onSuccess(data['users']);
+          } else {
+            onError('Помилка отримання даних користувачів');
+          }
+          
+        } catch (e) {
+          onError('Помилка обробки даних чату');
+          socket!.off('get_info_users_return');
+        }
+      });
+    } catch (e) {
+      print('Помилка відправлення запиту: $e');
+    }
+  }
+
+  void _removeUser(String userId) {
+    print('Видалити користувача з ID: $userId');
+    // Тут можна додати логіку видалення користувача
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2D2D32),
+          title: const Text(
+            'Підтвердити видалення',
+            style: TextStyle(color: Color(0xFFEEEEEE)),
+          ),
+          content: Text(
+            'Ви дійсно хочете видалити користувача з ID: $userId?',
+            style: const TextStyle(color: Color(0xFFAAAAAA)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Скасувати',
+                style: TextStyle(color: Color(0xFFAAAAAA)),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Додати логіку видалення користувача тут
+                setState(() {
+                  _usersData.remove(userId);
+                });
+              },
+              child: const Text(
+                'Видалити',
+                style: TextStyle(color: Color(0xFFFF5555)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _pickImage() async {
@@ -162,13 +268,17 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _buildHeader(),
+                      ChatSettingsHeader(),
                       Flexible(
                         child: SingleChildScrollView(
                           child: _buildBody(),
                         ),
                       ),
-                      _buildFooter(),
+                      ChatSettingsFooter(
+                        isFormValid: _isFormValid,
+                        onCancel: _closeModal,
+                        onSave: _saveSettings,
+                      ),
                     ],
                   ),
                 ),
@@ -177,65 +287,6 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
           ),
         );
       },
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Відображаємо аватарку чату або стандартну іконку
-          widget.chatAvatar != null
-              ? Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF58FF7F).withOpacity(0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: widget.chatAvatar!,
-                  ),
-                )
-              : Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF58FF7F).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.settings,
-                    color: Color(0xFF58FF7F),
-                    size: 20,
-                  ),
-                ),
-          const SizedBox(width: 16),
-          const Expanded(
-            child: Text(
-              '⚙️ Налаштування чату',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFEEEEEE),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -269,6 +320,187 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             maxLines: 3,
             maxLength: 200,
           ),
+          const SizedBox(height: 24),
+          _buildUsersSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUsersSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Учасники чату (${_usersData.length})',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFFEEEEEE),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_isLoadingUsers)
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+              ),
+            ),
+          )
+        else if (_usersData.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0x1AFFFFFF),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Немає учасників для відображення',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          Container(
+            constraints: const BoxConstraints(maxHeight: 200),
+            child: SingleChildScrollView(
+              child: Column(
+                children: _usersData.entries.map((entry) {
+                  final userId = entry.key;
+                  final userData = entry.value;
+                  
+                  return _buildUserItem(
+                    userId: userId,
+                    name: userData['name'] ?? 'Невідомо',
+                    avatar: userData['avatar'],
+                    description: userData['desc'] ?? '',
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildUserItem({
+    required String userId,
+    required String name,
+    String? avatar,
+    String? description,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0x1AFFFFFF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Аватар користувача
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFF58FF7F).withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(19),
+              child: avatar != null && avatar.isNotEmpty
+                  ? Image.network(
+                      avatar,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: const Color(0xFF58FF7F).withOpacity(0.2),
+                          child: Icon(
+                            Icons.person,
+                            color: const Color(0xFF58FF7F).withOpacity(0.7),
+                            size: 20,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: const Color(0xFF58FF7F).withOpacity(0.2),
+                      child: Icon(
+                        Icons.person,
+                        color: const Color(0xFF58FF7F).withOpacity(0.7),
+                        size: 20,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFEEEEEE),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (description != null && description.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => _removeUser(userId),
+            icon: const Icon(
+              Icons.remove_circle_outline,
+              color: Color(0xFFFF5555),
+              size: 20,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5555).withOpacity(0.1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.all(8),
+            ),
+          ),
         ],
       ),
     );
@@ -289,7 +521,6 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
         const SizedBox(height: 12),
         Row(
           children: [
-            // Відображаємо поточний аватар або заглушку
             Container(
               width: 60,
               height: 60,
@@ -429,67 +660,6 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       ],
     );
   }
-
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextButton(
-              onPressed: _closeModal,
-              style: TextButton.styleFrom(
-                backgroundColor: const Color(0x1AFFFFFF),
-                foregroundColor: const Color(0xFFEEEEEE),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'Скасувати',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: _isFormValid ? _saveSettings : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF58FF7F),
-                foregroundColor: Colors.black,
-                disabledBackgroundColor: const Color(0xFF58FF7F).withOpacity(0.3),
-                disabledForegroundColor: Colors.black.withOpacity(0.5),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                elevation: _isFormValid ? 4 : 0,
-              ),
-              child: const Text(
-                'Зберегти',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
+
+// Учасники 

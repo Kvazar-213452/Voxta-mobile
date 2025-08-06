@@ -262,25 +262,21 @@ class ChatModalFunctions {
       id: id,
       type: type,
       onSuccess: (String name, String description, Map<String, dynamic> data) {
-        // Закриваємо індикатор завантаження
         Navigator.pop(context);
         
-        // Показуємо модальне вікно з налаштуваннями
         showChatSettingsModal(
           context,
           chatName: name,
           currentDescription: description,
           id: id,
           type: type,
-          avatarUrl: data["avatar"], // Передаємо URL аватара
-          users: data["users"] ?? [], // Передаємо користувачів
+          avatarUrl: data["avatar"],
+          users: data["participants"] ?? [],
         );
       },
       onError: (String error) {
-        // Закриваємо індикатор завантаження
         Navigator.pop(context);
         
-        // Показуємо помилку
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
@@ -356,6 +352,7 @@ class ChatModalFunctions {
           currentDescription: currentDescription,
           chatAvatar: avatarWidget,
           users: users,
+          typeChat: type,
           onSave: (String newName, String newDescription) {
             // Тут можна додати логіку для збереження налаштувань через сокет
             print('Збереження налаштувань: name=$newName, desc=$newDescription, id=$id, type=$type');
