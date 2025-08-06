@@ -8,7 +8,6 @@ class ChatListWidget extends StatelessWidget {
   final Function(ChatItem) onChatTap;
   final VoidCallback onSettingsTap;
   final VoidCallback onAddChatTap;
-  final VoidCallback onAddFriendTap;
 
   const ChatListWidget({
     super.key,
@@ -17,7 +16,6 @@ class ChatListWidget extends StatelessWidget {
     required this.onChatTap,
     required this.onSettingsTap,
     required this.onAddChatTap,
-    required this.onAddFriendTap,
   });
 
   @override
@@ -50,8 +48,6 @@ class ChatListWidget extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            _buildHeaderButton(Icons.group, onAddFriendTap),
-                            const SizedBox(width: 8),
                             _buildHeaderButton(Icons.add, onAddChatTap),
                             const SizedBox(width: 8),
                             _buildHeaderButton(Icons.settings, onSettingsTap),

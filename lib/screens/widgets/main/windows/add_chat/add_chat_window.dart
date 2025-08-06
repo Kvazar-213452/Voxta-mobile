@@ -213,7 +213,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                         child: _buildBody(),
                       ),
                       ChatFooter(
-                        onCancel: _closeScreen,
+                        onJoinChat: null,
                         onCreate: _createChat,
                         isFormValid: _isFormValid,
                       ),

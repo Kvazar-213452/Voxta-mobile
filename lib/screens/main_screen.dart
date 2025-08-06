@@ -9,7 +9,6 @@ import 'widgets/main/windows/settings/settings_windo.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
 import 'widgets/main/windows/add_chat/add_chat_window.dart';
-import 'widgets/main/windows/add_friend/add_friend_window.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -57,8 +56,6 @@ class _MainScreenState extends State<MainScreen> {
         jwt,
         (data) {
           if (mounted) {
-            print('Обробляємо send_message_return: $data');
-            
             // Перевіряємо успішність і отримуємо дані повідомлення
             if (data.containsKey('_id')) {
               Map<String, dynamic> chatData = data;
@@ -95,12 +92,10 @@ class _MainScreenState extends State<MainScreen> {
                 messages.add(newMessage);
               });
               
-              // Автоматично прокручуємо вниз після додавання повідомлення
               _scrollToBottom();
               
-              print('✅ Повідомлення додано до інтерфейсу: $content');
             } else {
-              print('❌ Помилка відправки повідомлення: ${data['message'] ?? 'Невідома помилка'}');
+              print('error msg');
             }
           }
         },
@@ -121,7 +116,7 @@ class _MainScreenState extends State<MainScreen> {
         },
       );
     } catch (e) {
-      print("Помилка ініціалізації: $e");
+      print("error init: $e");
       setState(() {
         isLoadingChats = false;
       });
@@ -133,7 +128,7 @@ class _MainScreenState extends State<MainScreen> {
       DateTime dateTime = DateTime.parse(isoTime);
       return TimeOfDay.fromDateTime(dateTime).format(context);
     } catch (e) {
-      print('Помилка форматування часу: $e для $isoTime');
+      print('error time $isoTime');
       return TimeOfDay.now().format(context);
     }
   }
@@ -192,7 +187,6 @@ class _MainScreenState extends State<MainScreen> {
       onChatTap: _onChatTap,
       onSettingsTap: _openSettings,
       onAddChatTap: _openAddChat,
-      onAddFriendTap: _openAddFriend,
     );
   }
 
@@ -253,10 +247,8 @@ class _MainScreenState extends State<MainScreen> {
         }
       }
       
-      // Сортуємо повідомлення за оригінальним часом (ISO), а не за відформатованим
       parsedMessages.sort((a, b) {
         try {
-          // Отримуємо оригінальний час з messagesData для сортування
           var aData = messagesData.firstWhere((msg) => msg['_id'] == a.id, orElse: () => null);
           var bData = messagesData.firstWhere((msg) => msg['_id'] == b.id, orElse: () => null);
           
@@ -327,14 +319,6 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const AddChatScreen(),
-    );
-  }
-
-  void _openAddFriend() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AddFriendScreen(),
     );
   }
 }

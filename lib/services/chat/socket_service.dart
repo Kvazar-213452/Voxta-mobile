@@ -13,7 +13,6 @@ IO.Socket? _socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
 Function(List<ChatItem>)? _onChatsReceived;
 Function(Map<String, dynamic>)? _onChatContentReceived;
-Function(String)? _onFriendCodeReceived;
 
 void connectSocket(
   UserModel user, 
@@ -79,14 +78,6 @@ void connectSocket(
     _socket!.on('create_new_chat', (data) {
       loadChats();
     });
-
-    _socket!.on('get_info_self_frined_code', (data) {
-      if (data["type"] == "ui") {
-        if (_onFriendCodeReceived != null && data["code_fiend"] != null) {
-          _onFriendCodeReceived!(data["code_fiend"].toString());
-        }
-      }
-    });
     
     _socket!.on('get_info_self', (data) async {
       if (data['type'] == "load_chats") {
@@ -111,21 +102,8 @@ void connectSocket(
   }
 }
 
-// Функція для встановлення callback для отримання коду друга
-void setOnFriendCodeReceived(Function(String)? callback) {
-  _onFriendCodeReceived = callback;
-}
-
 void loadChats() {
   _socket!.emit('get_info_self', {'type': 'load_chats'});
-}
-
-void getSelfFriendCode() {
-  if (_socket != null && _socket!.connected) {
-    _socket!.emit('get_info_self_frined_code', {'type': 'ui'});
-  } else {
-    print('❌ Сокет не підключений, неможливо отримати код друга');
-  }
 }
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
@@ -162,86 +140,69 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
 }
 
 void sendMessage(String text, String userId, String chatId) async {
-  if (_socket != null && _socket!.connected) {
-    final keyPair = await getOrCreateKeyPair();
-    final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
+  final keyPair = await getOrCreateKeyPair();
+  final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
-    final dataToEncrypt = jsonEncode({
-      'message': {
-        'content': text,
-        'sender': userId,
-        'time': DateTime.now().toIso8601String()
-      },
-      'chatId': chatId,
-      'typeChat': 'online'
-    });
+  final dataToEncrypt = jsonEncode({
+    'message': {
+      'content': text,
+      'sender': userId,
+      'time': DateTime.now().toIso8601String()
+    },
+    'chatId': chatId,
+    'typeChat': 'online'
+  });
 
-    final serverPublicKeyPem = await getServerPublicKey();
+  final serverPublicKeyPem = await getServerPublicKey();
 
-    final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
+  final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
-    _socket!.emit('send_message', {
-      'data': {
-        'data': encrypted['data'],
-        'key': encrypted['key'],
-      },
-      'key': publicKeyPem,
-      'type': 'mobile',
-    });
-  } else {
-    print('❌ Сокет не підключений, неможливо відправити повідомлення');
-  }
+  _socket!.emit('send_message', {
+    'data': {
+      'data': encrypted['data'],
+      'key': encrypted['key'],
+    },
+    'key': publicKeyPem,
+    'type': 'mobile',
+  });
 }
 
 void loadChatContent(String chatId, String type) {
-  if (_socket != null && _socket!.connected) {
-    _socket!.emit('load_chat_content', {
-      'chatId': chatId,
-      'type': type,
-    });
-  } else {
-    print('❌ Сокет не підключений, неможливо завантажити контент чату');
-  }
+  _socket!.emit('load_chat_content', {
+    'chatId': chatId,
+    'type': type,
+  });
 }
 
 void createChatServer(String name, String type, String avatar, String desc, String idServer, String codeServer) {
-  if (_socket != null && _socket!.connected) {
-    _socket!.emit('create_chat_server', {
-      'chat': {
-        'name': name,
-        'description': desc,
-        'privacy': type,
-        'avatar': avatar,
-        'createdAt': DateTime.now().toIso8601String(),
-        'idServer': idServer,
-      }
-    });
-  } else {
-    print('❌ Сокет не підключений, неможливо завантажити контент чату');
-  }
+  _socket!.emit('create_chat_server', {
+    'chat': {
+      'name': name,
+      'description': desc,
+      'privacy': type,
+      'avatar': avatar,
+      'createdAt': DateTime.now().toIso8601String(),
+      'idServer': idServer,
+    }
+  });
 }
 
 void createChat(String name, String type, String avatar, String desc) {
-  if (_socket != null && _socket!.connected) {
-    _socket!.emit('create_chat', {
-      'chat': {
-        'name': name,
-        'description': desc,
-        'privacy': type,
-        'avatar': avatar,
-        'createdAt': DateTime.now().toIso8601String()
-      }
-    });
-  } else {
-    print('❌ Сокет не підключений, неможливо завантажити контент чату');
-  }
+  _socket!.emit('create_chat', {
+    'chat': {
+      'name': name,
+      'description': desc,
+      'privacy': type,
+      'avatar': avatar,
+      'createdAt': DateTime.now().toIso8601String()
+    }
+  });
 }
 
 void disconnectSocket() {
   _socket?.disconnect();
   _socket?.dispose();
   _socket = null;
-  _onFriendCodeReceived = null;
 }
 
 bool get isSocketConnected => _socket?.connected ?? false;
