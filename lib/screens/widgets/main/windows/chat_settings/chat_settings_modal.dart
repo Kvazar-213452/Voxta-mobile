@@ -298,24 +298,24 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             width: 1,
           ),
         ),
-        Row(
+        child: Row(
           children: [
-            Icon(
-              Icons.star,
-              color: const Color(0xFF58FF7F),
-              size: 18,
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+              ),
             ),
-            const SizedBox(width: 8),
-            Expanded(  // Add Expanded to prevent overflow
+            const SizedBox(width: 12),
+            Expanded(
               child: Text(
-                ownerData?['name'] ?? 'Невідомий власник',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFFEEEEEE),
+                'Завантаження інформації про власника...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.7),
                 ),
-                maxLines: 1,  // Add maxLines
-                overflow: TextOverflow.ellipsis,  // Add ellipsis for long names
               ),
             ),
           ],
@@ -398,12 +398,16 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
                           size: 18,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          ownerData?['name'] ?? 'Невідомий власник',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFEEEEEE),
+                        Expanded(
+                          child: Text(
+                            ownerData?['name'] ?? 'Невідомий власник',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFEEEEEE),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -457,11 +461,15 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
                             size: 20,
                           ),
                           const SizedBox(width: 12),
-                          Text(
-                            'Немає учасників для відображення',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 14,
+                          Expanded(
+                            child: Text(
+                              'Немає учасників для відображення',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -582,28 +590,33 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
               ],
             ),
           ),
+          const SizedBox(width: 8),
           if (!isOwner)
-            IconButton(
-              onPressed: () => _removeUser(userId),
-              icon: const Icon(
-                Icons.remove_circle_outline,
-                color: Color(0xFFFF5555),
-                size: 20,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: const Color(0xFFFF5555).withOpacity(0.1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            SizedBox(
+              width: 32,
+              height: 32,
+              child: IconButton(
+                onPressed: () => _removeUser(userId),
+                icon: const Icon(
+                  Icons.remove_circle_outline,
+                  color: Color(0xFFFF5555),
+                  size: 18,
                 ),
-                padding: const EdgeInsets.all(8),
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF5555).withOpacity(0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  padding: EdgeInsets.zero,
+                ),
               ),
             )
           else
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
                 color: const Color(0xFF58FF7F).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: const Color(0xFF58FF7F).withOpacity(0.3),
                 ),
@@ -611,7 +624,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
               child: Text(
                 'Власник',
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 9,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF58FF7F),
                 ),
@@ -777,4 +790,3 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     );
   }
 }
-

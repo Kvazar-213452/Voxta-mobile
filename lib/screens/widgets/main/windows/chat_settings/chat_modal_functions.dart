@@ -273,7 +273,7 @@ class ChatModalFunctions {
           avatarUrl: data["avatar"],
           users: data["participants"] ?? [],
           owner: data["owner"] ?? "",
-          time: data["time"] ?? "",
+          time: data["createdAt"] ?? "",
         );
       },
       onError: (String error) {
