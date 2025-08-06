@@ -6,6 +6,7 @@ import 'footer.dart';
 import 'server_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
 import 'dart:convert';
+import '../../../../../models/offline_chat.dart';
 
 class AddChatScreen extends StatefulWidget {
   const AddChatScreen({super.key});
@@ -157,7 +158,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     );
   }
 
-  void _createChat() {
+  void _createChat() async {
     if (_isFormValid) {
       print('Creating chat: ${_chatNameController.text}');
       print('Description: ${_chatDescriptionController.text}');
@@ -169,6 +170,10 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       } else {
 
         final avatarBase64 = _getImageBase64();
+
+        if (_selectedPrivacy == "offline") {
+          await ChatDB.createChat(_chatNameController.text);
+        }
 
         createChat(
           _chatNameController.text,
@@ -571,4 +576,4 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
   }
 }
 
-// _close
+// create

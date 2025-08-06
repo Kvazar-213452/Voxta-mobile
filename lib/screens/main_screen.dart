@@ -30,6 +30,7 @@ class _MainScreenState extends State<MainScreen> {
   
   bool isLoadingChats = true;
   String? selectedChatId;
+  String? currentChatType;
   String? currentUserId;
   Map<String, dynamic> currentChatParticipants = {};
 
@@ -204,6 +205,7 @@ class _MainScreenState extends State<MainScreen> {
 
   void _processChatContent(Map<String, dynamic> chatContent) {
     if (chatContent["code"] == 1 && chatContent.containsKey('messages') && chatContent.containsKey('participants')) {
+      print(chatContent);
       List<dynamic> messagesData = chatContent['messages'] ?? [];
       Map<String, dynamic> participants = chatContent['participants'] ?? {};
       
@@ -289,6 +291,7 @@ class _MainScreenState extends State<MainScreen> {
       currentChatName = chat.name;
       currentChatAvatar = chat.avatar;
       selectedChatId = chat.id;
+      currentChatType = chat.type;
       messages = [];
       currentChatParticipants = {};
     });
@@ -301,7 +304,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onMessageSent(String messageText) {
-    sendMessage(messageText, currentUserId ?? 'unknown', selectedChatId ?? '');
+    sendMessage(messageText, currentUserId ?? 'unknown', selectedChatId ?? '', currentChatType  ?? '');
     
     messageController.clear();
   }
@@ -322,3 +325,5 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+// _onChatContentReceived

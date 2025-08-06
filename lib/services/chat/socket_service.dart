@@ -1,5 +1,6 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../models/storage_user.dart';
+import '../../models/offline_chat.dart';
 import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
 import '../../config.dart';
@@ -8,6 +9,7 @@ import 'utils.dart';
 import '../../utils/crypto/crypto_app.dart';
 import '../../models/storage_key.dart';
 import '../../utils/crypto/utils.dart';
+import '../../models/interface/offlne_msg.dart';
 
 IO.Socket? _socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -69,9 +71,27 @@ void connectSocket(
       }
     });
 
-    _socket!.on('load_chat_content_return', (data) {
-      if (_onChatContentReceived != null) {
-        _onChatContentReceived!(data as Map<String, dynamic>);
+    _socket!.on('load_chat_content_return', (data) async {
+      if (data["type"] == "offline") {
+        final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
+
+        final Map<String, dynamic> data_send = {
+          "messages": msg.map((m) => m.toJson()).toList(),
+          "chatId": data["chatId"],
+          "participants": data["participants"],
+          "type": "offline",
+          "code": 1
+        };
+
+        print(data_send);
+
+        if (_onChatContentReceived != null) {
+          _onChatContentReceived!(data_send);
+        }
+      } else {
+        if (_onChatContentReceived != null) {
+          _onChatContentReceived!(data as Map<String, dynamic>);
+        }
       }
     });
 
@@ -139,32 +159,36 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
   return chatsList;
 }
 
-void sendMessage(String text, String userId, String chatId) async {
+void sendMessage(String text, String userId, String chatId, String type) async {
   final keyPair = await getOrCreateKeyPair();
   final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
-  final dataToEncrypt = jsonEncode({
-    'message': {
-      'content': text,
-      'sender': userId,
-      'time': DateTime.now().toIso8601String()
-    },
-    'chatId': chatId,
-    'typeChat': 'online'
-  });
+  if (type == "offline") {
+    
+  } else {
+    final dataToEncrypt = jsonEncode({
+      'message': {
+        'content': text,
+        'sender': userId,
+        'time': DateTime.now().toIso8601String()
+      },
+      'chatId': chatId,
+      'typeChat': type
+    });
 
-  final serverPublicKeyPem = await getServerPublicKey();
+    final serverPublicKeyPem = await getServerPublicKey();
 
-  final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
+    final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
-  _socket!.emit('send_message', {
-    'data': {
-      'data': encrypted['data'],
-      'key': encrypted['key'],
-    },
-    'key': publicKeyPem,
-    'type': 'mobile',
-  });
+    _socket!.emit('send_message', {
+      'data': {
+        'data': encrypted['data'],
+        'key': encrypted['key'],
+      },
+      'key': publicKeyPem,
+      'type': 'mobile',
+    });
+  }
 }
 
 void loadChatContent(String chatId, String type) {
