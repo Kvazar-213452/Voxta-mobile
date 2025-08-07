@@ -42,3 +42,10 @@ void saveSettingsChat(String id, String type, Map<String, dynamic> dataChat) {
   });
 }
 
+void delUserInChat(String id, String type, String userId) {
+  socket!.emit('del_user_in_chat', {
+    'userId': userId,
+    'id': id,
+    'typeChat': type
+  });
+}

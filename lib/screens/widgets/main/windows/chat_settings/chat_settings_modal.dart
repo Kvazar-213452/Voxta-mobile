@@ -13,9 +13,10 @@ class ChatSettingsModal extends StatefulWidget {
   final String typeChat;
   final String owner;
   final String time;
+  final String chatId;
   final Widget? chatAvatar;
   final List<dynamic> users;
-  final Function(String name, String description, String? avatar) onSave; // Оновлено
+  final Function(String name, String description, String? avatar) onSave;
 
   const ChatSettingsModal({
     super.key,
@@ -27,6 +28,7 @@ class ChatSettingsModal extends StatefulWidget {
     this.chatAvatar,
     this.users = const [],
     required this.onSave,
+    required this.chatId,
   });
 
   @override
@@ -120,7 +122,6 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   }
 
   void _removeUser(String userId) async {
-    print('Видалити користувача з ID: $userId');
     final userData = _usersData[userId];
     final userName = userData?['name'] ?? 'Невідомий користувач';
     
@@ -129,10 +130,16 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       userId: userId,
       userName: userName,
     );
-    
+
     if (result == true) {
       setState(() {
-        _usersData.remove(userId);
+        delUserInChat(widget.chatId, widget.typeChat, userId);
+        // ! треба довавити закриття
+        // ! треба довавити закриття
+        // ! треба довавити закриття
+        // ! треба довавити закриття
+        // ! треба довавити закриття
+        // ! треба довавити закриття
       });
     }
   }

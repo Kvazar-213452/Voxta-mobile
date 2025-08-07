@@ -360,6 +360,7 @@ class ChatModalFunctions {
           typeChat: type,
           time: time,
           owner: owner,
+          chatId: id,
           onSave: (String newName, String newDescription, String? avatarBase64) {
             saveSettingsChat(id, type, {
               "name": newName,

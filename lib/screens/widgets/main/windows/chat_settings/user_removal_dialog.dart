@@ -4,12 +4,14 @@ class UserRemovalDialog extends StatelessWidget {
   final String userId;
   final String userName;
   final VoidCallback onConfirm;
+  final VoidCallback onCancel;
 
   const UserRemovalDialog({
     super.key,
     required this.userId,
     required this.userName,
     required this.onConfirm,
+    required this.onCancel,
   });
 
   @override
@@ -138,7 +140,7 @@ class UserRemovalDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: onCancel, // Тепер викликаємо callback безпосередньо
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: Colors.white.withOpacity(0.08),
@@ -163,10 +165,7 @@ class UserRemovalDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      onConfirm();
-                    },
+                    onPressed: onConfirm, // Тепер викликаємо callback безпосередньо
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: const Color(0xFFFF5555),
@@ -207,6 +206,7 @@ class UserRemovalDialog extends StatelessWidget {
           userId: userId,
           userName: userName,
           onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context).pop(false),
         );
       },
     );
