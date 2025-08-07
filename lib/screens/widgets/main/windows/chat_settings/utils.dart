@@ -34,4 +34,11 @@ void getInfoUsers({
   }
 }
 
+void saveSettingsChat(String id, String type, Map<String, dynamic> dataChat) {
+  socket!.emit('save_settings_chat', {
+    'dataChat': dataChat,
+    'id': id,
+    'typeChat': type
+  });
+}
 

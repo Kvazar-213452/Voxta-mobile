@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'utils.dart';
 import 'chat_settings_header.dart';
 import 'chat_settings_footer.dart';
@@ -14,7 +15,7 @@ class ChatSettingsModal extends StatefulWidget {
   final String time;
   final Widget? chatAvatar;
   final List<dynamic> users;
-  final Function(String name, String description) onSave;
+  final Function(String name, String description, String? avatar) onSave; // Оновлено
 
   const ChatSettingsModal({
     super.key,
@@ -161,17 +162,38 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     }
   }
 
+  // Конвертація зображення в base64
+  Future<String?> _convertImageToBase64() async {
+    if (_selectedImage == null) return null;
+    
+    try {
+      final bytes = await _selectedImage!.readAsBytes();
+      return base64Encode(bytes);
+    } catch (e) {
+      print('Помилка конвертації зображення в base64: $e');
+      return null;
+    }
+  }
+
   void _closeModal() {
     _animationController.reverse().then((_) {
       Navigator.of(context).pop();
     });
   }
 
-  void _saveSettings() {
+  void _saveSettings() async {
     if (_isFormValid) {
+      String? avatarBase64;
+      
+      // Конвертуємо зображення в base64 тільки якщо було вибрано нове
+      if (_selectedImage != null) {
+        avatarBase64 = await _convertImageToBase64();
+      }
+      
       widget.onSave(
         _nameController.text.trim(),
         _descriptionController.text.trim(),
+        avatarBase64, // null якщо аватар не змінювався, base64 якщо новий
       );
       _closeModal();
     }

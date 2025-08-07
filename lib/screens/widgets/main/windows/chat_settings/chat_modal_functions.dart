@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_settings_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
+import 'utils.dart';
 
 class ChatModalFunctions {
   static void showChatOptionsModal(
@@ -359,19 +360,12 @@ class ChatModalFunctions {
           typeChat: type,
           time: time,
           owner: owner,
-          onSave: (String newName, String newDescription) {
-            // Тут можна додати логіку для збереження налаштувань через сокет
-            print('Збереження налаштувань: name=$newName, desc=$newDescription, id=$id, type=$type');
-            
-            // Приклад відправлення оновлених даних на сервер:
-            /*
-            socket!.emit('update_chat_info', {
-              'chatId': id,
-              'typeChat': type,
-              'name': newName,
-              'description': newDescription,
+          onSave: (String newName, String newDescription, String? avatarBase64) {
+            saveSettingsChat(id, type, {
+              "name": newName,
+              "desc": newDescription,
+              "avatar": avatarBase64
             });
-            */
           },
         );
       },
