@@ -361,6 +361,7 @@ class ChatModalFunctions {
           time: time,
           owner: owner,
           chatId: id,
+          currentInviteCode: "ABC123XYZ", // або null
           onSave: (String newName, String newDescription, String? avatarBase64) {
             saveSettingsChat(id, type, {
               "name": newName,
@@ -373,3 +374,5 @@ class ChatModalFunctions {
     );
   }
 }
+
+// ChatSettingsModal

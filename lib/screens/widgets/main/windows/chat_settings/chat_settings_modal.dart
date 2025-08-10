@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'utils.dart';
 import 'chat_settings_header.dart';
 import 'chat_settings_footer.dart';
+import 'widgets/chat_basic_widgets.dart';
+import 'widgets/chat_users_widgets.dart';
+import 'widgets/chat_invite_widgets.dart';
 import 'user_removal_dialog.dart';
 
 class ChatSettingsModal extends StatefulWidget {
@@ -16,6 +19,7 @@ class ChatSettingsModal extends StatefulWidget {
   final String chatId;
   final Widget? chatAvatar;
   final List<dynamic> users;
+  final String? currentInviteCode;
   final Function(String name, String description, String? avatar) onSave;
 
   const ChatSettingsModal({
@@ -27,6 +31,7 @@ class ChatSettingsModal extends StatefulWidget {
     required this.time,
     this.chatAvatar,
     this.users = const [],
+    this.currentInviteCode,
     required this.onSave,
     required this.chatId,
   });
@@ -40,6 +45,8 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   late TextEditingController _descriptionController;
   bool _isFormValid = false;
   bool _isLoadingUsers = true;
+  bool _isGeneratingInviteCode = false;
+  String? _currentInviteCode;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   Map<String, dynamic> _usersData = {};
@@ -54,8 +61,14 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     
     _nameController = TextEditingController(text: widget.currentName);
     _descriptionController = TextEditingController(text: widget.currentDescription);
+    _currentInviteCode = widget.currentInviteCode;
     
+    _initializeUsers();
+    _initializeAnimations();
+    _setupFormValidation();
+  }
 
+  void _initializeUsers() {
     getInfoUsers(
       users: widget.users,
       type: widget.typeChat,
@@ -78,7 +91,9 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
         );
       },
     );
-    
+  }
+
+  void _initializeAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -101,7 +116,9 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     ));
     
     _animationController.forward();
-    
+  }
+
+  void _setupFormValidation() {
     _nameController.addListener(_validateForm);
     _descriptionController.addListener(_validateForm);
     _validateForm();
@@ -134,12 +151,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     if (result == true) {
       setState(() {
         delUserInChat(widget.chatId, widget.typeChat, userId);
-        // ! треба довавити закриття
-        // ! треба довавити закриття
-        // ! треба довавити закриття
-        // ! треба довавити закриття
-        // ! треба довавити закриття
-        // ! треба довавити закриття
+        // TODO: Додати закриття модального вікна після видалення користувача
       });
     }
   }
@@ -169,7 +181,98 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     }
   }
 
-  // Конвертація зображення в base64
+  Future<void> _generateInviteCode() async {
+    print('Генерація коду');
+    
+    setState(() {
+      _isGeneratingInviteCode = true;
+    });
+
+    try {
+      // Тут має бути виклик API для генерації коду запрошення
+      // Наприклад: generateInviteCode(widget.chatId);
+      
+      // Симуляція запиту до API
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Симуляція успішної генерації нового коду
+      final newInviteCode = _generateRandomCode();
+      print('Новий код згенеровано: $newInviteCode');
+      
+      // Оновлюємо UI
+      setState(() {
+        _currentInviteCode = newInviteCode;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Новий код запрошення: $newInviteCode'),
+          backgroundColor: const Color(0xFF58FF7F),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      
+    } catch (e) {
+      print('Помилка генерації коду: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Помилка генерації коду: $e'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isGeneratingInviteCode = false;
+      });
+    }
+  }
+
+  String _generateRandomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = DateTime.now().millisecondsSinceEpoch;
+    String code = '';
+    for (int i = 0; i < 8; i++) {
+      code += chars[(random + i) % chars.length];
+    }
+    return code;
+  }
+
+  Future<void> _deleteInviteCode() async {
+    print('Видалення коду');
+    
+    try {
+      // Тут має бути виклик API для видалення коду запрошення
+      // Наприклад: deleteInviteCode(widget.chatId);
+      
+      // Симуляція запиту до API
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      print('Код запрошення успішно видалено');
+      
+      // Оновлюємо UI
+      setState(() {
+        _currentInviteCode = null;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Код запрошення видалено'),
+          backgroundColor: Color(0xFFFF5555),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      
+    } catch (e) {
+      print('Помилка видалення коду: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Помилка видалення коду: $e'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
+    }
+  }
+
   Future<String?> _convertImageToBase64() async {
     if (_selectedImage == null) return null;
     
@@ -192,7 +295,6 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     if (_isFormValid) {
       String? avatarBase64;
       
-      // Конвертуємо зображення в base64 тільки якщо було вибрано нове
       if (_selectedImage != null) {
         avatarBase64 = await _convertImageToBase64();
       }
@@ -200,7 +302,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       widget.onSave(
         _nameController.text.trim(),
         _descriptionController.text.trim(),
-        avatarBase64, // null якщо аватар не змінювався, base64 якщо новий
+        avatarBase64,
       );
       _closeModal();
     }
@@ -242,7 +344,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ChatSettingsHeader(),
+                      const ChatSettingsHeader(),
                       Flexible(
                         child: SingleChildScrollView(
                           child: _buildBody(),
@@ -278,16 +380,20 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             ),
           ),
           const SizedBox(height: 20),
-          _buildAvatarSection(),
+          ChatAvatarSection(
+            chatAvatar: widget.chatAvatar,
+            selectedImage: _selectedImage,
+            onPickImage: _pickImage,
+          ),
           const SizedBox(height: 20),
-          _buildInputField(
+          ChatInputField(
             controller: _nameController,
             label: 'Назва чату',
             hint: 'Введіть назву чату...',
             maxLength: 50,
           ),
           const SizedBox(height: 16),
-          _buildInputField(
+          ChatInputField(
             controller: _descriptionController,
             label: 'Опис чату',
             hint: 'Введіть опис чату...',
@@ -295,527 +401,32 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             maxLength: 200,
           ),
           const SizedBox(height: 16),
-          Text(
-            'Дата створення: ${widget.time}',
-            style: TextStyle(fontSize: 16, color: Colors.white),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Тип чату: ${widget.typeChat}',
-            style: TextStyle(fontSize: 16, color: Colors.white),
+          ChatInfoSection(
+            time: widget.time,
+            typeChat: widget.typeChat,
           ),
           const SizedBox(height: 16),
-          _buildOwnerSection(),
+          ChatInviteCodesSection(
+            currentInviteCode: _currentInviteCode,
+            isGenerating: _isGeneratingInviteCode,
+            onGenerateCode: _generateInviteCode,
+            onDeleteCode: _deleteInviteCode,
+          ),
+          const SizedBox(height: 16),
+          ChatOwnerSection(
+            owner: widget.owner,
+            usersData: _usersData,
+            isLoadingUsers: _isLoadingUsers,
+          ),
           const SizedBox(height: 24),
-          _buildUsersSection(),
+          ChatUsersSection(
+            usersData: _usersData,
+            isLoadingUsers: _isLoadingUsers,
+            owner: widget.owner,
+            onRemoveUser: _removeUser,
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildOwnerSection() {
-    final ownerData = _usersData[widget.owner];
-    
-    if (_isLoadingUsers) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0x1AFFFFFF),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF58FF7F).withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Завантаження інформації про власника...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Власник чату',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0x1AFFFFFF),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF58FF7F).withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Row(
-            children: [
-              // Аватар власника
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: const Color(0xFF58FF7F).withOpacity(0.5),
-                    width: 2,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(23),
-                  child: ownerData != null && ownerData['avatar'] != null && ownerData['avatar'].isNotEmpty
-                      ? Image.network(
-                          ownerData['avatar'],
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: const Color(0xFF58FF7F).withOpacity(0.2),
-                              child: Icon(
-                                Icons.person,
-                                color: const Color(0xFF58FF7F).withOpacity(0.7),
-                                size: 24,
-                              ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: const Color(0xFF58FF7F).withOpacity(0.2),
-                          child: Icon(
-                            Icons.person,
-                            color: const Color(0xFF58FF7F).withOpacity(0.7),
-                            size: 24,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star,
-                          color: const Color(0xFF58FF7F),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            ownerData?['name'] ?? 'Невідомий власник',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFFEEEEEE),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUsersSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Учасники чату (${_usersData.length})',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          height: 150,
-          decoration: BoxDecoration(
-            color: const Color(0x1AFFFFFF),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          child: _isLoadingUsers
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
-                  ),
-                )
-              : _usersData.isEmpty
-                  ? Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Colors.white.withOpacity(0.5),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Немає учасників для відображення',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
-                                fontSize: 14,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _usersData.length,
-                      itemBuilder: (context, index) {
-                        final entry = _usersData.entries.elementAt(index);
-                        final userId = entry.key;
-                        final userData = entry.value;
-                        
-                        return _buildUserItem(
-                          userId: userId,
-                          name: userData['name'] ?? 'Невідомо',
-                          avatar: userData['avatar'],
-                        );
-                      },
-                    ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUserItem({
-    required String userId,
-    required String name,
-    String? avatar,
-  }) {
-    final isOwner = userId == widget.owner;
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0x1AFFFFFF),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isOwner 
-              ? const Color(0xFF58FF7F).withOpacity(0.3)
-              : Colors.white.withOpacity(0.1),
-        ),
-      ),
-      child: Row(
-        children: [
-          // Аватар користувача
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isOwner 
-                    ? const Color(0xFF58FF7F).withOpacity(0.5)
-                    : const Color(0xFF58FF7F).withOpacity(0.3),
-                width: isOwner ? 2 : 1,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(isOwner ? 18 : 19),
-              child: avatar != null && avatar.isNotEmpty
-                  ? Image.network(
-                      avatar,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: const Color(0xFF58FF7F).withOpacity(0.2),
-                          child: Icon(
-                            Icons.person,
-                            color: const Color(0xFF58FF7F).withOpacity(0.7),
-                            size: 20,
-                          ),
-                        );
-                      },
-                    )
-                  : Container(
-                      color: const Color(0xFF58FF7F).withOpacity(0.2),
-                      child: Icon(
-                        Icons.person,
-                        color: const Color(0xFF58FF7F).withOpacity(0.7),
-                        size: 20,
-                      ),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    if (isOwner) ...[
-                      Icon(
-                        Icons.star,
-                        color: const Color(0xFF58FF7F),
-                        size: 14,
-                      ),
-                      const SizedBox(width: 4),
-                    ],
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: isOwner ? FontWeight.w700 : FontWeight.w600,
-                          color: isOwner 
-                              ? const Color(0xFF58FF7F)
-                              : const Color(0xFFEEEEEE),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          if (!isOwner)
-            SizedBox(
-              width: 32,
-              height: 32,
-              child: IconButton(
-                onPressed: () => _removeUser(userId),
-                icon: const Icon(
-                  Icons.remove_circle_outline,
-                  color: Color(0xFFFF5555),
-                  size: 18,
-                ),
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5555).withOpacity(0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF58FF7F).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: const Color(0xFF58FF7F).withOpacity(0.3),
-                ),
-              ),
-              child: Text(
-                'Власник',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF58FF7F),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAvatarSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Аватар чату',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
-                  color: const Color(0xFF58FF7F).withOpacity(0.3),
-                  width: 2,
-                ),
-                color: widget.chatAvatar == null && _selectedImage == null
-                    ? const Color(0xFF58FF7F).withOpacity(0.1)
-                    : null,
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: _selectedImage != null
-                    ? Image.file(
-                        _selectedImage!,
-                        fit: BoxFit.cover,
-                      )
-                    : widget.chatAvatar != null
-                        ? widget.chatAvatar!
-                        : Icon(
-                            Icons.group,
-                            color: const Color(0xFF58FF7F).withOpacity(0.7),
-                            size: 28,
-                          ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _pickImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF58FF7F).withOpacity(0.2),
-                      foregroundColor: const Color(0xFF58FF7F),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: const Color(0xFF58FF7F).withOpacity(0.3),
-                        ),
-                      ),
-                    ),
-                    icon: const Icon(Icons.camera_alt, size: 18),
-                    label: Text(
-                      _selectedImage != null ? 'Змінити аватар' : 'Додати аватар',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'JPG, PNG або GIF до 5MB',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    int maxLines = 1,
-    int? maxLength,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          maxLength: maxLength,
-          style: const TextStyle(
-            color: Color(0xFFEEEEEE),
-            fontSize: 16,
-          ),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-            ),
-            filled: true,
-            fillColor: const Color(0x1AFFFFFF),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF58FF7F),
-                width: 2,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            counterStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
-              fontSize: 12,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
