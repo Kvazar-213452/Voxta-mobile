@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../services/chat/socket_service.dart';
 
 class _JoinChatModal extends StatefulWidget {
   final Function(String)? onJoinChat;
@@ -70,9 +71,14 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
 
   void _joinChat() {
     if (_isFormValid) {
-      final chatId = _chatIdController.text.trim();
+      final key = _chatIdController.text.trim();
+
+      socket!.emit('join_chat', {
+        'key': key
+      });
+      
       if (widget.onJoinChat != null) {
-        widget.onJoinChat!(chatId);
+        widget.onJoinChat!(key);
       }
       _closeModal();
     }
@@ -409,3 +415,5 @@ class ChatFooter extends StatelessWidget {
     );
   }
 }
+
+// join
