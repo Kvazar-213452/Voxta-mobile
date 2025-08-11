@@ -161,3 +161,5 @@ class ChatListWidget extends StatelessWidget {
     );
   }
 }
+
+// ChatSettingsModal

@@ -328,4 +328,4 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// connectSocket
+// ChatSettingsModal

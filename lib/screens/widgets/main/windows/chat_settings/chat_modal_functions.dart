@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'chat_settings_modal.dart';
-import '../../../../../services/chat/socket_service.dart';
 import 'utils.dart';
 
 class ChatModalFunctions {
@@ -290,40 +289,7 @@ class ChatModalFunctions {
     );
   }
 
-  static void getInfoChat({
-    required String id,
-    required String type,
-    required Function(String name, String description, Map<String, dynamic> data) onSuccess,
-    required Function(String error) onError,
-  }) {
-    try {
-      socket!.emit('get_info_chat', {
-        'chatId': id,
-        'typeChat': type,
-        'type': "main",
-      });
-
-      socket!.off('chat_info');
-
-      socket!.on('chat_info', (data) {
-        try {
-          final String name = data['chat']['name'] ?? 'Невідомий чат';
-          final String description = data['chat']['desc'] ?? '';
-          
-          onSuccess(name, description, data['chat'] as Map<String, dynamic>);
-          
-        } catch (e) {
-          print('Помилка парсингу даних чату: $e');
-          onError('Помилка обробки даних чату');
-          socket!.off('chat_info');
-        }
-      });
-    } catch (e) {
-      print('Помилка відправлення запиту: $e');
-    }
-  }
-
-  static void showChatSettingsModal(
+  static Future<void> showChatSettingsModal(
     BuildContext context, {
     required String chatName,
     required String currentDescription,
@@ -333,7 +299,7 @@ class ChatModalFunctions {
     required String owner,
     required String? avatarUrl,
     required List<dynamic> users,
-  }) {
+  }) async {
     Widget? avatarWidget;
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       avatarWidget = Image.network(
@@ -346,6 +312,14 @@ class ChatModalFunctions {
           );
         },
       );
+    }
+
+    String keyChat = '';
+
+    try {
+      keyChat = await getKeyChat(id);
+    } catch (e) {
+      print("error: $e");
     }
 
     showDialog(
@@ -361,7 +335,7 @@ class ChatModalFunctions {
           time: time,
           owner: owner,
           chatId: id,
-          currentInviteCode: "ABC123XYZ", // або null
+          currentInviteCode: keyChat,
           onSave: (String newName, String newDescription, String? avatarBase64) {
             saveSettingsChat(id, type, {
               "name": newName,

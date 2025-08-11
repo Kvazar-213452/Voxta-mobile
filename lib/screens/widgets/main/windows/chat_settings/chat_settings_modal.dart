@@ -9,6 +9,8 @@ import 'widgets/chat_basic_widgets.dart';
 import 'widgets/chat_users_widgets.dart';
 import 'widgets/chat_invite_widgets.dart';
 import 'user_removal_dialog.dart';
+import '../../../../../services/chat/socket_service.dart';
+import 'utils.dart';
 
 class ChatSettingsModal extends StatefulWidget {
   final String currentName;
@@ -151,8 +153,9 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     if (result == true) {
       setState(() {
         delUserInChat(widget.chatId, widget.typeChat, userId);
-        // TODO: Додати закриття модального вікна після видалення користувача
       });
+
+      _closeModal();
     }
   }
 
@@ -182,44 +185,18 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   }
 
   Future<void> _generateInviteCode() async {
-    print('Генерація коду');
-    
     setState(() {
       _isGeneratingInviteCode = true;
     });
 
     try {
-      // Тут має бути виклик API для генерації коду запрошення
-      // Наприклад: generateInviteCode(widget.chatId);
-      
-      // Симуляція запиту до API
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Симуляція успішної генерації нового коду
-      final newInviteCode = _generateRandomCode();
-      print('Новий код згенеровано: $newInviteCode');
-      
-      // Оновлюємо UI
+      String newInviteCode = await generateRandomCode(widget.chatId);
+
       setState(() {
         _currentInviteCode = newInviteCode;
       });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Новий код запрошення: $newInviteCode'),
-          backgroundColor: const Color(0xFF58FF7F),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-      
     } catch (e) {
       print('Помилка генерації коду: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Помилка генерації коду: $e'),
-          backgroundColor: Colors.red.shade400,
-        ),
-      );
     } finally {
       setState(() {
         _isGeneratingInviteCode = false;
@@ -227,49 +204,17 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     }
   }
 
-  String _generateRandomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = DateTime.now().millisecondsSinceEpoch;
-    String code = '';
-    for (int i = 0; i < 8; i++) {
-      code += chars[(random + i) % chars.length];
-    }
-    return code;
-  }
-
   Future<void> _deleteInviteCode() async {
-    print('Видалення коду');
-    
     try {
-      // Тут має бути виклик API для видалення коду запрошення
-      // Наприклад: deleteInviteCode(widget.chatId);
-      
-      // Симуляція запиту до API
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      print('Код запрошення успішно видалено');
-      
-      // Оновлюємо UI
+      socket!.emit('del_key_chat', {
+        'id': widget.chatId
+      });
+
       setState(() {
         _currentInviteCode = null;
       });
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Код запрошення видалено'),
-          backgroundColor: Color(0xFFFF5555),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      
     } catch (e) {
       print('Помилка видалення коду: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Помилка видалення коду: $e'),
-          backgroundColor: Colors.red.shade400,
-        ),
-      );
     }
   }
 
@@ -430,3 +375,5 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     );
   }
 }
+
+// generateRandomCode

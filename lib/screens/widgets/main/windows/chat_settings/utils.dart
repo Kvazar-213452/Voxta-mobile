@@ -1,4 +1,5 @@
 import '../../../../../services/chat/socket_service.dart';
+import 'dart:async';
 
 // ! ============ server func ============
 void getInfoUsers({
@@ -48,4 +49,93 @@ void delUserInChat(String id, String type, String userId) {
     'id': id,
     'typeChat': type
   });
+}
+
+Future<String> getKeyChat(String id) async {
+  final completer = Completer<String>();
+
+  try {
+    socket!.emit('get_key_chat', { 'id': id });
+
+    socket!.off('get_key_chat');
+
+    socket!.on('get_key_chat', (data) {
+      try {
+        if (data['code'] == 1) {
+          completer.complete(data['key']);
+        } else {
+          completer.completeError('Помилка отримання даних користувачів');
+        }
+      } catch (e) {
+        completer.completeError('Помилка обробки даних чату');
+        socket!.off('get_key_chat');
+      }
+    });
+  } catch (e) {
+    completer.completeError('Помилка відправлення запиту: $e');
+  }
+
+  return completer.future;
+}
+
+void getInfoChat({
+  required String id,
+  required String type,
+  required Function(String name, String description, Map<String, dynamic> data) onSuccess,
+  required Function(String error) onError,
+}) {
+  try {
+    socket!.emit('get_info_chat', {
+      'chatId': id,
+      'typeChat': type,
+      'type': "main",
+    });
+
+    socket!.off('chat_info');
+
+    socket!.on('chat_info', (data) {
+      try {
+        final String name = data['chat']['name'] ?? 'Невідомий чат';
+        final String description = data['chat']['desc'] ?? '';
+        
+        onSuccess(name, description, data['chat'] as Map<String, dynamic>);
+        
+      } catch (e) {
+        print('Помилка парсингу даних чату: $e');
+        onError('Помилка обробки даних чату');
+        socket!.off('chat_info');
+      }
+    });
+  } catch (e) {
+    print('Помилка відправлення запиту: $e');
+  }
+}
+
+Future<String> generateRandomCode(String id) async {
+  final completer = Completer<String>();
+
+  try {
+    socket!.emit('generate_key_chat', {
+      'id': id
+    });
+
+    socket!.off('generate_key_chat');
+
+    socket!.on('generate_key_chat', (data) {
+      try {
+        if (data['code'] == 1) {
+          completer.complete(data['key']);
+        } else {
+          completer.completeError('Помилка отримання даних користувачів');
+        }
+      } catch (e) {
+        completer.completeError('Помилка обробки даних чату');
+        socket!.off('generate_key_chat');
+      }
+    });
+  } catch (e) {
+    completer.completeError('Помилка відправлення запиту: $e');
+  }
+
+  return completer.future;
 }

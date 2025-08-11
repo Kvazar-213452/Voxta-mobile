@@ -204,13 +204,6 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: currentInviteCode!));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Код скопійовано в буфер обміну'),
-        backgroundColor: Color(0xFF58FF7F),
-        duration: Duration(seconds: 2),
-      ),
-    );
   }
 
   ButtonStyle _getGenerateButtonStyle() {
