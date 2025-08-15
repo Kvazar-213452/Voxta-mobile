@@ -4,11 +4,8 @@ import '../../models/offline_chat.dart';
 import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
 import '../../config.dart';
-import 'dart:convert';
 import 'utils.dart';
-import '../../utils/crypto/crypto_app.dart';
-import '../../models/storage_key.dart';
-import '../../utils/crypto/utils.dart';
+import '../../utils/crypto/crypto_auto.dart';
 import '../../models/interface/offlne_msg.dart';
 
 IO.Socket? socket;
@@ -36,31 +33,30 @@ void connectSocket(
         .build()
     );
 
-    socket!.onConnect((_) {
+    socket!.onConnect((_) async {
       print('Підключено до сокет-серверу');
-      socket!.emit('authenticate', {'token': token});
+
+      socket!.emit('authenticate', await encrypt_auto({'token': token}));
     });
 
     socket!.on('send_message_return', (data) async {
-      final keyPair = await getOrCreateKeyPair();
+      data = await decrypted_auto(data);
 
-      final jsonResponse = data;
-      final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
-      
-      data = jsonDecode(decrypted);
-      
       _onMessageReceived!(data as Map<String, dynamic>);
     });
 
-    socket!.on('authenticated', (data) {
+    socket!.on('authenticated', (data) async {
+      data = await decrypted_auto(data);
+
       if (data["code"] == 1) {
-        loadChats();
+        await loadChats();
       }
     });
 
-    socket!.on('chats_info', (data) {
+    socket!.on('chats_info', (data) async {
+      data = await decrypted_auto(data);
+
       if (data["code"] == 1) {
-        print(data["chats"]);
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
         
         _onChatsReceived!(parsedChats);
@@ -68,14 +64,8 @@ void connectSocket(
     });
 
     socket!.on('load_chat_content_return', (data) async {
-      final keyPair = await getOrCreateKeyPair();
+      data = await decrypted_auto(data);
 
-      final jsonResponse = data;
-      final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
-      
-      data = jsonDecode(decrypted);
-
-      print(data);
       if (data["code"] == 1) {
         if (data["type"] == "offline") {
           final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
@@ -95,17 +85,20 @@ void connectSocket(
       }
     });
 
-    socket!.on('create_new_chat', (data) {
-      loadChats();
+    socket!.on('create_new_chat', (data) async {
+      await loadChats();
     });
     
     socket!.on('get_info_self', (data) async {
+      data = await decrypted_auto(data);
+
       if (data['type'] == "load_chats") {
         final userMap = data['user'];
         if (userMap != null && userMap is Map<String, dynamic>) {
           UserModel user = UserModel.fromJson(userMap);
           await saveUserStorage(user);
-          socket!.emit('getInfoChats', {'chats': user.chats});
+
+          socket!.emit('getInfoChats', await encrypt_auto({'chats': user.chats}));
         } else {
           print("user is null");
         }
@@ -122,8 +115,8 @@ void connectSocket(
   }
 }
 
-void loadChats() {
-  socket!.emit('get_info_self', {'type': 'load_chats'});
+Future<void> loadChats() async {
+  socket!.emit('get_info_self', await encrypt_auto({'type': 'load_chats'}));
 }
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
@@ -160,9 +153,6 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
 }
 
 void sendMessage(String text, String userId, String chatId, String type) async {
-  final keyPair = await getOrCreateKeyPair();
-  final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
-
   if (type == "offline") {
     final msg = await ChatDB.addMessage(
       chatId,
@@ -175,7 +165,7 @@ void sendMessage(String text, String userId, String chatId, String type) async {
 
     _onMessageReceived!(msg.toJson());
   } else {
-    final dataToEncrypt = jsonEncode({
+    final dataToEncrypt = {
       'message': {
         'content': text,
         'sender': userId,
@@ -183,50 +173,14 @@ void sendMessage(String text, String userId, String chatId, String type) async {
       },
       'chatId': chatId,
       'typeChat': type
-    });
+    };
 
-    final serverPublicKeyPem = await getServerPublicKey();
-    final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
-
-    socket!.emit('send_message', {
-      'data': {
-        'data': encrypted['data'],
-        'key': encrypted['key'],
-      },
-      'key': publicKeyPem,
-      'type': 'mobile',
-    });
+    socket!.emit('send_message', await encrypt_auto(dataToEncrypt));
   }
 }
 
 void loadChatContent(String chatId, String type) async {
-  final keyPair = await getOrCreateKeyPair();
-  final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
-
-  final dataToEncrypt = jsonEncode({
-    'chatId': chatId,
-    'type': type,
-  });
-
-  final serverPublicKeyPem = await getServerPublicKey();
-  final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
-
-  socket!.emit('load_chat_content', {
-    'data': {
-      'data': encrypted['data'],
-      'key': encrypted['key'],
-    },
-    'key': publicKeyPem,
-    'type': 'mobile',
-  });
-}
-
-void getInfoChat(String chatId, String type) {
-  socket!.emit('get_info_chat', {
-    'chatId': chatId,
-    'typeChat': type,
-    'type': "main",
-  });
+  socket!.emit('load_chat_content', await encrypt_auto({'chatId': chatId, 'type': type,}));
 }
 
 void createChatServer(String name, String type, String avatar, String desc, String idServer, String codeServer) {
@@ -242,8 +196,8 @@ void createChatServer(String name, String type, String avatar, String desc, Stri
   });
 }
 
-void createChat(String name, String type, String avatar, String desc) {
-  socket!.emit('create_chat', {
+void createChat(String name, String type, String avatar, String desc) async {
+  final dataCrypto = {
     'chat': {
       'name': name,
       'description': desc,
@@ -251,7 +205,9 @@ void createChat(String name, String type, String avatar, String desc) {
       'avatar': avatar,
       'createdAt': DateTime.now().toIso8601String()
     }
-  });
+  };
+
+  socket!.emit('create_chat', await encrypt_auto(dataCrypto));
 }
 
 void disconnectSocket() {
@@ -261,3 +217,5 @@ void disconnectSocket() {
 }
 
 bool get isSocketConnected => socket?.connected ?? false;
+
+// getInfoChats

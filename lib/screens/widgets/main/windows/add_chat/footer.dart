@@ -70,7 +70,7 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
     });
   }
 
-  void _joinChat() {
+  Future<void> _joinChat() async {
     if (_isFormValid) {
       final key = _chatIdController.text.trim();
 
@@ -83,7 +83,7 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
       }
       _closeModal();
       AddChatScreen.addChatScreenKey.currentState?.closeScreen();
-      loadChats();
+      await loadChats();
     }
   }
 
