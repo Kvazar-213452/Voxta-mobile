@@ -9,7 +9,8 @@ import 'dart:convert';
 import '../../../../../models/offline_chat.dart';
 
 class AddChatScreen extends StatefulWidget {
-  const AddChatScreen({super.key});
+  static final GlobalKey<_AddChatScreenState> addChatScreenKey = GlobalKey<_AddChatScreenState>();
+  const AddChatScreen({Key? key}) : super(key: key);
 
   @override
   State<AddChatScreen> createState() => _AddChatScreenState();
@@ -124,7 +125,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     });
   }
 
-  void _closeScreen() {
+  void closeScreen() {
     _animationController.reverse().then((_) {
       Navigator.of(context).pop();
     });
@@ -151,7 +152,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
               idServer,
               codeServer,
             );
-            _closeScreen();
+            closeScreen();
           },
         );
       },
@@ -168,7 +169,6 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       if (_selectedPrivacy == "server") {
         _showServerModal();
       } else {
-
         final avatarBase64 = _getImageBase64();
 
         if (_selectedPrivacy == "offline") {
@@ -182,7 +182,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           _chatDescriptionController.text,
         );
         
-        _closeScreen();
+        closeScreen();
       }
     }
   }
@@ -213,7 +213,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                 child: SafeArea(
                   child: Column(
                     children: [
-                      ChatHeader(onBack: _closeScreen),
+                      ChatHeader(onBack: closeScreen),
                       Expanded(
                         child: _buildBody(),
                       ),
@@ -575,5 +575,3 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     );
   }
 }
-
-// create

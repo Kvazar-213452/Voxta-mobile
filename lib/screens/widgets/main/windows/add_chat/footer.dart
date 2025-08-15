@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../services/chat/socket_service.dart';
+import 'add_chat_window.dart';
 
 class _JoinChatModal extends StatefulWidget {
   final Function(String)? onJoinChat;
@@ -81,6 +82,8 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
         widget.onJoinChat!(key);
       }
       _closeModal();
+      AddChatScreen.addChatScreenKey.currentState?.closeScreen();
+      loadChats();
     }
   }
 

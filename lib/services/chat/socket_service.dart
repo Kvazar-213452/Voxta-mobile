@@ -68,20 +68,30 @@ void connectSocket(
     });
 
     socket!.on('load_chat_content_return', (data) async {
-      if (data["type"] == "offline") {
-        final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
+      final keyPair = await getOrCreateKeyPair();
 
-        final Map<String, dynamic> data_send = {
-          "messages": msg.map((m) => m.toJson()).toList(),
-          "chatId": data["chatId"],
-          "participants": data["participants"],
-          "type": "offline",
-          "code": 1
-        };
+      final jsonResponse = data;
+      final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
+      
+      data = jsonDecode(decrypted);
 
-        _onChatContentReceived!(data_send);
-      } else {
-        _onChatContentReceived!(data as Map<String, dynamic>);
+      print(data);
+      if (data["code"] == 1) {
+        if (data["type"] == "offline") {
+          final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
+
+          final Map<String, dynamic> data_send = {
+            "messages": msg.map((m) => m.toJson()).toList(),
+            "chatId": data["chatId"],
+            "participants": data["participants"],
+            "type": "offline",
+            "code": 1
+          };
+
+          _onChatContentReceived!(data_send);
+        } else {
+          _onChatContentReceived!(data as Map<String, dynamic>);
+        }
       }
     });
 
@@ -189,10 +199,25 @@ void sendMessage(String text, String userId, String chatId, String type) async {
   }
 }
 
-void loadChatContent(String chatId, String type) {
-  socket!.emit('load_chat_content', {
+void loadChatContent(String chatId, String type) async {
+  final keyPair = await getOrCreateKeyPair();
+  final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
+
+  final dataToEncrypt = jsonEncode({
     'chatId': chatId,
     'type': type,
+  });
+
+  final serverPublicKeyPem = await getServerPublicKey();
+  final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
+
+  socket!.emit('load_chat_content', {
+    'data': {
+      'data': encrypted['data'],
+      'key': encrypted['key'],
+    },
+    'key': publicKeyPem,
+    'type': 'mobile',
   });
 }
 

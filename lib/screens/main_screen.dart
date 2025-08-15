@@ -323,9 +323,9 @@ class _MainScreenState extends State<MainScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AddChatScreen(),
+      builder: (context) => AddChatScreen(key: AddChatScreen.addChatScreenKey),
     );
   }
 }
 
-// ChatSettingsModal
+// AddChatScreen
