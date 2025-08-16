@@ -7,6 +7,7 @@ class ChatListWidget extends StatelessWidget {
   final TextEditingController searchController;
   final Function(ChatItem) onChatTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback onProfileSettingsTap;
   final VoidCallback onAddChatTap;
 
   const ChatListWidget({
@@ -16,6 +17,7 @@ class ChatListWidget extends StatelessWidget {
     required this.onChatTap,
     required this.onSettingsTap,
     required this.onAddChatTap,
+    required this.onProfileSettingsTap,
   });
 
   @override
@@ -48,9 +50,11 @@ class ChatListWidget extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            _buildHeaderButton(Icons.add, onAddChatTap),
+                            _buildHeaderButton(Icons.manage_accounts, onProfileSettingsTap),
                             const SizedBox(width: 8),
                             _buildHeaderButton(Icons.settings, onSettingsTap),
+                            const SizedBox(width: 8),
+                            _buildHeaderButton(Icons.add, onAddChatTap),
                           ],
                         ),
                       ],

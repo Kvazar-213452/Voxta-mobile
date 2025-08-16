@@ -6,6 +6,7 @@ import 'widgets/main/loading_screen_widget.dart';
 import 'widgets/main/empty_state_widget.dart';
 import 'widgets/main/app_background.dart';
 import 'widgets/main/windows/settings/settings_windo.dart';
+import 'widgets/main/windows/profile_settings/profile_window.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
 import 'widgets/main/windows/add_chat/add_chat_window.dart';
@@ -187,6 +188,7 @@ class _MainScreenState extends State<MainScreen> {
       searchController: searchController,
       onChatTap: _onChatTap,
       onSettingsTap: _openSettings,
+      onProfileSettingsTap: _openProfileSettings,
       onAddChatTap: _openAddChat,
     );
   }
@@ -324,6 +326,14 @@ class _MainScreenState extends State<MainScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AddChatScreen(key: AddChatScreen.addChatScreenKey),
+    );
+  }
+  
+  void _openProfileSettings() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const ProfileScreenWidget(),
     );
   }
 }
