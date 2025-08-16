@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'header.dart';
 import 'footer.dart';
+import 'utils.dart';
 
 class ProfileScreenWidget extends StatefulWidget {
   const ProfileScreenWidget({super.key});
@@ -12,7 +13,7 @@ class ProfileScreenWidget extends StatefulWidget {
 }
 
 class _ProfileScreenWidgetState extends State<ProfileScreenWidget> 
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
   
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
@@ -22,12 +23,14 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
   final TextEditingController _descriptionController = TextEditingController();
   
   // Дані профілю
-  String _profileImageUrl = 'https://play-lh.googleusercontent.com/tjs6beHY9MUE_X4yeUB6Vj-qFXv8oOs71ka82vjbp_2_1cBTOCfGLsZ_8pORo2W-SA';
+  String _profileImageUrl = '';
   File? _selectedImage;
-  String _userEmail = 'user@example.com';
-  String _userId = 'ID: 123456789';
+  String _userEmail = '';
+  String _userId = '';
+  String _userTime = '';
   
   bool _isLoading = false;
+  bool _isDataLoading = true;
 
   @override
   void initState() {
@@ -61,12 +64,59 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     _animationController.forward();
   }
 
-  void _loadProfileData() {
-    // Симуляція завантаження даних профілю
-    setState(() {
-      _nameController.text = 'Користувач';
-      _descriptionController.text = 'Це мій опис профілю';
-    });
+  Future<void> _loadProfileData() async {
+    try {
+      setState(() {
+        _isDataLoading = true;
+      });
+
+      // Використовуємо функцію з retry механізмом
+      final userData = await getSelfWithRetry(maxRetries: 2);
+
+      if (mounted) {
+        setState(() {
+          _nameController.text = userData['name']?.toString() ?? '';
+          _descriptionController.text = userData['desc']?.toString() ?? '';
+          _profileImageUrl = userData['avatar']?.toString() ?? '';
+          _userId = 'ID: ${userData['id']?.toString() ?? 'Невідомо'}';
+          _userTime = userData['time']?.toString() ?? 'Не вказано';
+          _isDataLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isDataLoading = false;
+        });
+        
+        // Показати повідомлення про помилку з кращим текстом
+        String errorMessage = 'Невідома помилка';
+        
+        if (e.toString().contains('secure_storage') || 
+            e.toString().contains('CryptUnprotectData')) {
+          errorMessage = 'Помилка системи безпеки. Перезапустіть додаток';
+        } else if (e.toString().contains('з\'єднання')) {
+          errorMessage = 'Немає з\'єднання з сервером';
+        } else if (e.toString().contains('Час очікування')) {
+          errorMessage = 'Сервер не відповідає. Спробуйте пізніше';
+        } else {
+          errorMessage = 'Помилка завантаження: ${e.toString()}';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Повторити',
+              textColor: Colors.white,
+              onPressed: () => _loadProfileData(),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -121,12 +171,27 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     );
   }
 
-  void _resetProfile() {
-    setState(() {
-      _nameController.text = 'Користувач';
-      _descriptionController.text = 'Це мій опис профілю';
-      _selectedImage = null;
-    });
+  void _resetProfile() async {
+    try {
+      setState(() {
+        _isDataLoading = true;
+      });
+
+      await _loadProfileData();
+      
+      if (mounted) {
+        setState(() {
+          _selectedImage = null;
+        });
+      }
+    } catch (e) {
+      // Помилка вже оброблена в _loadProfileData
+      if (mounted) {
+        setState(() {
+          _isDataLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -153,38 +218,61 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                   ),
                 ),
                 child: SafeArea(
-                  child: Column(
-                    children: [
-                      ProfileHeaderWidget(onBackPressed: _closeProfile),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 30),
-                              _buildProfileImage(),
-                              const SizedBox(height: 30),
-                              _buildEditableFields(),
-                              const SizedBox(height: 20),
-                              _buildReadOnlyFields(),
-                              const SizedBox(height: 30),
-                            ],
+                  child: _isDataLoading 
+                    ? _buildLoadingScreen()
+                    : Column(
+                        children: [
+                          ProfileHeaderWidget(onBackPressed: _closeProfile),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 30),
+                                  _buildProfileImage(),
+                                  const SizedBox(height: 30),
+                                  _buildEditableFields(),
+                                  const SizedBox(height: 20),
+                                  _buildReadOnlyFields(),
+                                  const SizedBox(height: 30),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                          ProfileFooterWidget(
+                            onReset: _resetProfile,
+                            onSave: _saveProfile,
+                            isLoading: _isLoading,
+                          ),
+                        ],
                       ),
-                      ProfileFooterWidget(
-                        onReset: _resetProfile,
-                        onSave: _saveProfile,
-                        isLoading: _isLoading,
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Завантаження профілю...',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -215,13 +303,39 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                           height: 120,
                           fit: BoxFit.cover,
                         )
-                      : Image.network(
-                          _profileImageUrl,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
+                      : _profileImageUrl.isNotEmpty
+                          ? Image.network(
+                              _profileImageUrl,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 120,
+                                  height: 120,
+                                  color: Colors.white.withOpacity(0.1),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.white.withOpacity(0.6),
+                                  ),
+                                );
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  width: 120,
+                                  height: 120,
+                                  color: Colors.white.withOpacity(0.1),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
                               width: 120,
                               height: 120,
                               color: Colors.white.withOpacity(0.1),
@@ -230,22 +344,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                 size: 60,
                                 color: Colors.white.withOpacity(0.6),
                               ),
-                            );
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              width: 120,
-                              height: 120,
-                              color: Colors.white.withOpacity(0.1),
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                            ),
                 ),
               ),
               Positioned(
@@ -387,6 +486,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
               TextField(
                 controller: _descriptionController,
                 maxLines: 3,
+                maxLength: 300,
                 style: const TextStyle(
                   color: Color(0xFFEEEEEE),
                   fontSize: 16,
@@ -426,6 +526,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                     color: Colors.white.withOpacity(0.6),
                     size: 20,
                   ),
+                  counterStyle: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 12,
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -447,15 +551,15 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     return Column(
       children: [
         _buildReadOnlyField(
-          title: 'Електронна пошта',
-          value: _userEmail,
-          icon: Icons.email_outlined,
-        ),
-        const SizedBox(height: 15),
-        _buildReadOnlyField(
           title: 'Унікальний ідентифікатор',
           value: _userId,
           icon: Icons.badge_outlined,
+        ),
+        const SizedBox(height: 15),
+        _buildReadOnlyField(
+          title: 'Дата реєстрації',
+          value: _userTime,
+          icon: Icons.schedule_outlined,
         ),
       ],
     );
@@ -511,7 +615,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
               children: [
                 Expanded(
                   child: Text(
-                    value,
+                    value.isEmpty ? 'Не вказано' : value,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white.withOpacity(0.7),

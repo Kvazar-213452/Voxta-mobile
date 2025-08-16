@@ -10,7 +10,6 @@ import 'widgets/chat_users_widgets.dart';
 import 'widgets/chat_invite_widgets.dart';
 import 'user_removal_dialog.dart';
 import '../../../../../services/chat/socket_service.dart';
-import 'utils.dart';
 
 class ChatSettingsModal extends StatefulWidget {
   final String currentName;
