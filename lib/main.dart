@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/pasw_screen.dart';
 import 'models/storage_user.dart';
 import 'models/storage_service.dart';
 import 'models/interface/user.dart';
@@ -37,6 +38,23 @@ class LoginStart extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const LoginScreen(),
+    );
+  }
+}
+
+class PaswStart extends StatelessWidget {
+  const PaswStart({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Voxta',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const PawsScreen(),
     );
   }
 }
