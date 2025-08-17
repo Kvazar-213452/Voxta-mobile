@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 
-final theme = "white";
-
 class AppColors {
+  static String theme = "";
+
+  static void changeTheme(String theme_new) {
+    theme = theme_new;
+  }
+
   static Color get gradientStart => theme == "white" ? _AppColorsWhite.gradientStart : _AppColorsDark.gradientStart;
   static Color get gradientMiddle => theme == "white" ? _AppColorsWhite.gradientMiddle : _AppColorsDark.gradientMiddle;
   static Color get gradientEnd => theme == "white" ? _AppColorsWhite.gradientEnd : _AppColorsDark.gradientEnd;
@@ -67,7 +71,6 @@ class AppColors {
   static Color get shadowBlack30 => theme == "white" ? _AppColorsWhite.shadowBlack30 : _AppColorsDark.shadowBlack30;
 }
 
-// Приватний клас для світлої теми
 class _AppColorsWhite {
   static const Color gradientStart = Color(0xFFFFFFFF);
   static const Color gradientMiddle = Color(0xFFFCFCFC);
@@ -133,7 +136,6 @@ class _AppColorsWhite {
   static const Color shadowBlack30 = Color(0x4D000000);
 }
 
-// Приватний клас для темної теми
 class _AppColorsDark {
   static const Color gradientStart = Color(0xFF1f1f1f);
   static const Color gradientMiddle = Color(0xFF2d2d32);

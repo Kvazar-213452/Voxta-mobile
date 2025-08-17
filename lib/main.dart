@@ -3,6 +3,7 @@ import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/pasw_screen.dart';
 import 'models/storage_user.dart';
+import 'utils/init_settings_func.dart';
 import 'models/storage_service.dart';
 import 'models/storage_pasw.dart';
 import 'models/interface/user.dart';
@@ -12,6 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   initSecureStorage();
+  initSettingsTheme();
   final UserModel? user = await getUserStorage();
   final String? jwt = await getJWTStorage();
   final int? pasw = await getPaswStorage();
