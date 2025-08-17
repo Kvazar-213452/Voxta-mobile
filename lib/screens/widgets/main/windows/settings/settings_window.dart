@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'modal.dart';
 import 'header.dart';
 import 'footer.dart';
@@ -19,13 +20,15 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
-  // Стан налаштувань
   bool _darkMode = true;
   bool _browserNotifications = false;
   bool _doNotDisturb = false;
   bool _readReceipts = true;
   bool _onlineStatus = true;
   String _selectedLanguage = 'uk';
+  int _pasw = 0;
+  
+  final TextEditingController _passwordController = TextEditingController();
   
   bool _isLoading = true;
 
@@ -72,16 +75,16 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           _readReceipts = settings.readReceipts;
           _onlineStatus = settings.onlineStatus;
           _selectedLanguage = settings.language;
+          _pasw = settings.pasw;
+          _passwordController.text = _pasw == 0 ? '' : _pasw.toString().padLeft(6, '0');
           _isLoading = false;
         });
       } else {
-        // Якщо налаштувань немає, використовуємо дефолтні значення
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      // Обробка помилки завантаження
       print('Помилка завантаження налаштувань: $e');
       setState(() {
         _isLoading = false;
@@ -98,18 +101,19 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         language: _selectedLanguage,
         readReceipts: _readReceipts,
         onlineStatus: _onlineStatus,
+        pasw: _pasw,
       );
       
       await SettingsDB.saveSettings(settings);
     } catch (e) {
       print('Помилка збереження налаштувань: $e');
-      // Можна показати повідомлення про помилку користувачу
     }
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -120,19 +124,14 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   }
 
   void _saveSettings() async {
-    // Показуємо індикатор завантаження
     _showLoadingDialog();
     
     try {
       await _saveSettingsToDb();
-      // Закриваємо діалог завантаження
       Navigator.of(context).pop();
-      // Показуємо модал успіху
       _showSuccessModal();
     } catch (e) {
-      // Закриваємо діалог завантаження
       Navigator.of(context).pop();
-      // Показуємо повідомлення про помилку
       _showErrorDialog();
     }
   }
@@ -193,7 +192,31 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       _readReceipts = true;
       _onlineStatus = true;
       _selectedLanguage = 'uk';
+      _pasw = 0;
+      _passwordController.clear();
     });
+  }
+
+  void _resetPassword() {
+    setState(() {
+      _pasw = 0;
+      _passwordController.clear();
+    });
+  }
+
+  void _onPasswordChanged(String value) {
+    if (value.length == 6) {
+      final intValue = int.tryParse(value);
+      if (intValue != null) {
+        setState(() {
+          _pasw = intValue;
+        });
+      }
+    } else {
+      setState(() {
+        _pasw = 0;
+      });
+    }
   }
 
   void _logout() {
@@ -230,6 +253,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                                 _buildAppearanceSection(),
                                 _buildNotificationsSection(),
                                 _buildChatSection(),
+                                _buildSecuritySection(),
                                 _buildPrivacySection(),
                                 const SizedBox(height: 20),
                               ],
@@ -303,9 +327,18 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 
+  Widget _buildSecuritySection() {
+    return _buildSection(
+      title: '🔒 Безпека',
+      children: [
+        _buildPasswordInputItem(),
+      ],
+    );
+  }
+
   Widget _buildPrivacySection() {
     return _buildSection(
-      title: '🔒 Приватність',
+      title: '👁️ Приватність',
       children: [
         _buildToggleItem(
           title: 'Читання повідомлень',
@@ -320,6 +353,108 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           onChanged: (value) => setState(() => _onlineStatus = value),
         ),
       ],
+    );
+  }
+
+  Widget _buildPasswordInputItem() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Пароль додатка',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Встановити 6-цифровий пароль для входу',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: _resetPassword,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: const Size(0, 30),
+                ),
+                child: const Text(
+                  'Вимкнути',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            child: TextField(
+              controller: _passwordController,
+              keyboardType: TextInputType.number,
+              obscureText: false,
+              maxLength: 6,
+              onChanged: _onPasswordChanged,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                letterSpacing: 8,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+              decoration: InputDecoration(
+                hintText: '0 0 0 0 0 0',
+                hintStyle: TextStyle(
+                  color: Colors.white.withOpacity(0.3),
+                  fontSize: 16,
+                  letterSpacing: 8,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                counterText: '',
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -490,3 +625,5 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 }
+
+// getSettings

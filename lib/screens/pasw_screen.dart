@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../models/storage_pasw.dart';
+import '../main.dart';
 
 class PawsScreen extends StatefulWidget {
   const PawsScreen({Key? key}) : super(key: key);
@@ -71,7 +73,7 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _onPinChanged(String value, int index) {
+  Future<void> _onPinChanged(String value, int index) async {
     setState(() {
       _isError = false;
     });
@@ -90,7 +92,7 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
     
     // Check if PIN is complete
     if (_enteredPin.length == 6) {
-      _verifyPin();
+      await _verifyPin();
     }
   }
 
@@ -98,11 +100,10 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
     _enteredPin = _controllers.map((controller) => controller.text).join('');
   }
 
-  void _verifyPin() {
-    // Simulate PIN verification (replace with your logic)
-    const correctPin = '123456'; // Example PIN
+  Future<void> _verifyPin() async {
+    final correctPin = await getPaswStorage();
     
-    if (_enteredPin == correctPin) {
+    if (_enteredPin == correctPin?.toString()) {
       _onSuccess();
     } else {
       _onError();
@@ -111,12 +112,10 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
 
   void _onSuccess() {
     HapticFeedback.lightImpact();
-    // Navigate to next screen or perform success action
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('PIN успішно введено!'),
-        backgroundColor: Color(0xFF58FF7F),
-        duration: Duration(seconds: 2),
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => const MainStart(),
       ),
     );
   }

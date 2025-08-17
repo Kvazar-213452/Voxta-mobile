@@ -25,7 +25,6 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
   // Дані профілю
   String _profileImageUrl = '';
   File? _selectedImage;
-  String _userEmail = '';
   String _userId = '';
   String _userTime = '';
   

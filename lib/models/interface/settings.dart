@@ -3,6 +3,7 @@ class Settings {
   final bool browserNotifications;
   final bool doNotDisturb;
   final String language;
+  final int pasw;
   final bool readReceipts;
   final bool onlineStatus;
 
@@ -13,6 +14,7 @@ class Settings {
     required this.language,
     required this.readReceipts,
     required this.onlineStatus,
+    required this.pasw,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +25,7 @@ class Settings {
       'language': language,
       'readReceipts': readReceipts ? 1 : 0,
       'onlineStatus': onlineStatus ? 1 : 0,
+      'pasw': pasw,
     };
   }
 
@@ -34,6 +37,7 @@ class Settings {
       language: map['language'],
       readReceipts: map['readReceipts'] == 1,
       onlineStatus: map['onlineStatus'] == 1,
+      pasw: map['pasw'] ?? 0,
     );
   }
 }

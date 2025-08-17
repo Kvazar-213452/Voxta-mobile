@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'interface/settings.dart';
+import 'storage_pasw.dart';
 
 class SettingsDB {
   static Database? _db;
@@ -52,7 +53,8 @@ class SettingsDB {
             doNotDisturb INTEGER DEFAULT 0,
             language TEXT DEFAULT 'uk',
             readReceipts INTEGER DEFAULT 1,
-            onlineStatus INTEGER DEFAULT 1
+            onlineStatus INTEGER DEFAULT 1,
+            pasw INTEGER DEFAULT 0
           )
         ''');
 
@@ -67,7 +69,8 @@ class SettingsDB {
             doNotDisturb: false,
             language: 'uk',
             readReceipts: true,
-            onlineStatus: true
+            onlineStatus: true,
+            pasw: 0,
           );
           
           await db.insert('settings', defaultSettings.toMap());
@@ -82,6 +85,11 @@ class SettingsDB {
 
   static Future<void> saveSettings(Settings settings) async {
     try {
+      final settingsOld = await getSettings();
+      if (settingsOld?.pasw != settings.pasw) {
+        await savePaswStorage(settings.pasw);
+      }
+
       final db = await database;
       
       final existing = await db.query('settings', limit: 1);

@@ -4,6 +4,7 @@ import 'screens/main_screen.dart';
 import 'screens/pasw_screen.dart';
 import 'models/storage_user.dart';
 import 'models/storage_service.dart';
+import 'models/storage_pasw.dart';
 import 'models/interface/user.dart';
 import 'services/authentication.dart';
 
@@ -13,12 +14,17 @@ void main() async {
   initSecureStorage();
   final UserModel? user = await getUserStorage();
   final String? jwt = await getJWTStorage();
+  final int? pasw = await getPaswStorage();
 
   if (user == null || jwt == null) {
     runApp(const LoginStart());
   } else {
     if (await getInfoToJwt(user.id, jwt)) {
-      runApp(const MainStart());
+      if (pasw == 0 || pasw == null) {
+        runApp(const MainStart());
+      } else {
+        runApp(const PaswStart());
+      }
     } else {
       runApp(const LoginStart());
     }
