@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../app_colors.dart';
 
 class LoginBackground extends StatelessWidget {
   final Widget child;
-
-  static const Color glowColor = Color(0xC758FF7F);
 
   const LoginBackground({
     super.key,
@@ -13,19 +12,20 @@ class LoginBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF1F1F1F),
-            Color(0xFF2D2D32),
-            Color(0xFF232338),
+            AppColors.gradientStart,
+            AppColors.gradientMiddle,
+            AppColors.gradientEnd,
           ],
         ),
       ),
       child: Stack(
         children: [
+          // М'який зелений акцент замість яскравого
           Positioned(
             top: MediaQuery.of(context).size.height * 0.2,
             left: MediaQuery.of(context).size.width * 0.6,
@@ -36,10 +36,10 @@ class LoginBackground extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    glowColor.withOpacity(0.3),
-                    Colors.transparent,
+                    AppColors.brandGreen.withOpacity(0.05),
+                    AppColors.transparent,
                   ],
-                  stops: const [0.0, 0.7],
+                  stops: const [0.0, 0.8],
                 ),
               ),
             ),

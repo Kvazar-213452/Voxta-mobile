@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app_colors.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
@@ -21,13 +22,13 @@ class EmptyStateWidget extends StatelessWidget {
           Icon(
             icon,
             size: 64,
-            color: Colors.white54,
+            color: AppColors.white54,
           ),
           const SizedBox(height: 16),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white70,
+            style: TextStyle(
+              color: AppColors.white70,
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
@@ -35,8 +36,8 @@ class EmptyStateWidget extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: Colors.white54,
+            style: TextStyle(
+              color: AppColors.white54,
               fontSize: 14,
             ),
             textAlign: TextAlign.center,

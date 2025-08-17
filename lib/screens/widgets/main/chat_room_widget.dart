@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../models/interface/chat_models.dart';
 import 'message_widget.dart';
 import 'windows/chat_settings/chat_modal_functions.dart';
+import '../../../app_colors.dart';
 
 class ChatRoomWidget extends StatefulWidget {
   final String chatName;
@@ -54,17 +55,17 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
               return Container(
                 width: 40,
                 height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3d3d3d),
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                     ),
                   ),
                 ),
@@ -120,11 +121,11 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                     child: Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: AppColors.whiteText.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border(
                           bottom: BorderSide(
-                            color: Colors.white.withOpacity(0.1),
+                            color: AppColors.whiteText.withOpacity(0.1),
                           ),
                         ),
                       ),
@@ -137,12 +138,12 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: AppColors.whiteText.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.arrow_back,
-                                  color: Colors.white,
+                                  color: AppColors.whiteText,
                                 ),
                               ),
                             ),
@@ -159,8 +160,8 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                               children: [
                                 AnimatedDefaultTextStyle(
                                   duration: const Duration(milliseconds: 300),
-                                  style: const TextStyle(
-                                    color: Colors.white,
+                                  style: TextStyle(
+                                    color: AppColors.whiteText,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -170,7 +171,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                                 AnimatedDefaultTextStyle(
                                   duration: const Duration(milliseconds: 300),
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: AppColors.whiteText.withOpacity(0.7),
                                     fontSize: 12,
                                   ),
                                   child: const Text('онлайн'),
@@ -233,16 +234,16 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                           Expanded(
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
+                                color: AppColors.whiteText.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(25),
                               ),
                               child: TextField(
                                 controller: widget.messageController,
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(color: AppColors.whiteText),
                                 decoration: InputDecoration(
                                   hintText: 'Напишіть повідомлення...',
                                   hintStyle: TextStyle(
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: AppColors.whiteText.withOpacity(0.6),
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(
@@ -265,13 +266,13 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                               child: Container(
                                 width: 45,
                                 height: 45,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF58ff7f),
+                                decoration: BoxDecoration(
+                                  color: AppColors.brandGreen,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.send,
-                                  color: Colors.black,
+                                  color: AppColors.blackText,
                                 ),
                               ),
                             ),
@@ -301,13 +302,13 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteText.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: AppColors.whiteText.withOpacity(0.1)),
             ),
             child: Icon(
               icon,
-              color: Colors.white,
+              color: AppColors.whiteText,
               size: 18,
             ),
           ),
@@ -323,5 +324,3 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     }
   }
 }
-
-// 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app_colors.dart';
 
 class LoadingScreenWidget extends StatelessWidget {
   final String title;
@@ -16,14 +17,14 @@ class LoadingScreenWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
           ),
           const SizedBox(height: 16),
           Text(
             title,
-            style: const TextStyle(
-              color: Colors.white70,
+            style: TextStyle(
+              color: AppColors.white70,
               fontSize: 16,
             ),
           ),
@@ -31,8 +32,8 @@ class LoadingScreenWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: const TextStyle(
-                color: Colors.white54,
+              style: TextStyle(
+                color: AppColors.white54,
                 fontSize: 14,
               ),
               textAlign: TextAlign.center,

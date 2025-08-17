@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class ProfileHeaderWidget extends StatelessWidget {
   final VoidCallback onBackPressed;
@@ -15,7 +16,7 @@ class ProfileHeaderWidget extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.transparentWhite,
           ),
         ),
       ),
@@ -27,23 +28,23 @@ class ProfileHeaderWidget extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.transparentWhite,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
-                color: Colors.white,
+                color: AppColors.whiteText,
                 size: 20,
               ),
             ),
           ),
           const SizedBox(width: 15),
-          const Text(
+          Text(
             '👤 Профіль',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: AppColors.whiteText,
             ),
           ),
         ],

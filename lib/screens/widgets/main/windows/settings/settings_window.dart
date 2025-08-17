@@ -5,6 +5,7 @@ import 'header.dart';
 import 'footer.dart';
 import '../../../../../models/storage_settings.dart';
 import '../../../../../models/interface/settings.dart';
+import '../../../../../app_colors.dart';
 
 class SettingsScreenWidget extends StatefulWidget {
   const SettingsScreenWidget({super.key});
@@ -140,9 +141,9 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
+      builder: (context) => Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
         ),
       ),
     );
@@ -152,21 +153,21 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2d2d32),
-        title: const Text(
+        backgroundColor: AppColors.gradientMiddle,
+        title: Text(
           'Помилка',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.whiteText),
         ),
-        content: const Text(
+        content: Text(
           'Не вдалося зберегти налаштування. Спробуйте ще раз.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: AppColors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
+            child: Text(
               'OK',
-              style: TextStyle(color: Color(0xFF58ff7f)),
+              style: TextStyle(color: AppColors.brandGreen),
             ),
           ),
         ],
@@ -229,16 +230,16 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       animation: _animationController,
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF1a1a1f),
+          backgroundColor: AppColors.profileBackground,
           body: Transform.translate(
             offset: Offset(MediaQuery.of(context).size.width * _slideAnimation.value, 0),
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: SafeArea(
                 child: _isLoading 
-                  ? const Center(
+                  ? Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
                       ),
                     )
                   : Column(
@@ -355,10 +356,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: AppColors.whiteTransparent10,
         ),
       ),
       child: Column(
@@ -370,12 +371,12 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Пароль додатка',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: AppColors.whiteText,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -383,7 +384,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                       'Встановити 6-цифровий пароль для входу',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.6),
+                        color: AppColors.whiteTransparent60,
                       ),
                     ),
                   ],
@@ -395,10 +396,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   minimumSize: const Size(0, 30),
                 ),
-                child: const Text(
+                child: Text(
                   'Вимкнути',
                   style: TextStyle(
-                    color: Colors.red,
+                    color: AppColors.errorRed,
                     fontSize: 12,
                   ),
                 ),
@@ -408,10 +409,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteTransparent10,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteTransparent20,
               ),
             ),
             child: TextField(
@@ -424,8 +425,8 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                 FilteringTextInputFormatter.digitsOnly,
                 LengthLimitingTextInputFormatter(6),
               ],
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.whiteText,
                 fontSize: 16,
                 letterSpacing: 8,
                 fontWeight: FontWeight.w500,
@@ -434,7 +435,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
               decoration: InputDecoration(
                 hintText: '0 0 0 0 0 0',
                 hintStyle: TextStyle(
-                  color: Colors.white.withOpacity(0.3),
+                  color: AppColors.whiteTransparent30,
                   fontSize: 16,
                   letterSpacing: 8,
                 ),
@@ -462,10 +463,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             padding: const EdgeInsets.only(bottom: 15),
             child: Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.white,
+                color: AppColors.whiteText,
               ),
             ),
           ),
@@ -485,10 +486,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: AppColors.whiteTransparent10,
         ),
       ),
       child: Row(
@@ -499,10 +500,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: AppColors.whiteText,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -510,7 +511,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.6),
+                    color: AppColors.whiteTransparent60,
                   ),
                 ),
               ],
@@ -533,10 +534,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.white.withOpacity(0.1),
+          color: AppColors.whiteTransparent10,
         ),
       ),
       child: Row(
@@ -547,10 +548,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                    color: AppColors.whiteText,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -558,7 +559,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.6),
+                    color: AppColors.whiteTransparent60,
                   ),
                 ),
               ],
@@ -567,19 +568,19 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteTransparent10,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Material(
-              color: Colors.transparent,
+              color: AppColors.transparent,
               child: DropdownButton<String>(
                 value: value,
                 items: items,
                 onChanged: onChanged,
                 underline: const SizedBox(),
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                dropdownColor: const Color(0xFF2d2d32),
+                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.whiteText, size: 20),
+                style: TextStyle(color: AppColors.whiteText, fontSize: 14),
+                dropdownColor: AppColors.gradientMiddle,
               ),
             ),
           ),
@@ -597,9 +598,9 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         height: 26,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(13),
-          color: value ? const Color(0xFF58ff7f) : Colors.white.withOpacity(0.2),
+          color: value ? AppColors.brandGreen : AppColors.whiteTransparent20,
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteTransparent10,
           ),
         ),
         child: AnimatedAlign(
@@ -609,8 +610,8 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             width: 20,
             height: 20,
             margin: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: AppColors.whiteText,
               shape: BoxShape.circle,
             ),
           ),

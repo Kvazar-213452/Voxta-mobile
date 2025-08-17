@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/interface/chat_models.dart';
+import '../../../app_colors.dart';
 
 class MessageWidget extends StatelessWidget {
   final Message message;
@@ -34,17 +35,17 @@ class MessageWidget extends StatelessWidget {
               return Container(
                 width: 32,
                 height: 32,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3d3d3d),
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: SizedBox(
                     width: 12,
                     height: 12,
                     child: CircularProgressIndicator(
                       strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                     ),
                   ),
                 ),
@@ -117,7 +118,7 @@ class MessageWidget extends StatelessWidget {
                             child: AnimatedDefaultTextStyle(
                               duration: const Duration(milliseconds: 200),
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: AppColors.whiteText.withOpacity(0.8),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -133,14 +134,14 @@ class MessageWidget extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: message.isOwn
-                                ? const Color(0xFF58ff7f).withOpacity(0.2)
-                                : Colors.white.withOpacity(0.1),
+                                ? AppColors.brandGreen.withOpacity(0.2)
+                                : AppColors.whiteText.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(18),
                           ),
                           child: AnimatedDefaultTextStyle(
                             duration: const Duration(milliseconds: 200),
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteText,
                               fontSize: 14,
                             ),
                             child: Text(message.text),
@@ -150,7 +151,7 @@ class MessageWidget extends StatelessWidget {
                         AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 200),
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: AppColors.whiteText.withOpacity(0.6),
                             fontSize: 11,
                           ),
                           child: Text(message.time),

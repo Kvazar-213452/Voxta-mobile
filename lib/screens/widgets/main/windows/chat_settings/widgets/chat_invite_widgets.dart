@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../../../app_colors.dart';
 
 class ChatInviteCodesSection extends StatelessWidget {
   final String? currentInviteCode;
@@ -20,22 +21,22 @@ class ChatInviteCodesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Коди запрошення',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0x1AFFFFFF),
+            color: AppColors.transparentWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteText.withOpacity(0.1),
             ),
           ),
           child: Column(
@@ -63,47 +64,47 @@ class ChatInviteCodesSection extends StatelessWidget {
           'Поточний код запрошення:',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.whiteText.withOpacity(0.7),
           ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0x1A58FF7F),
+            color: AppColors.brandGreenTransparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: const Color(0xFF58FF7F).withOpacity(0.3),
+              color: AppColors.brandGreen.withOpacity(0.3),
             ),
           ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.vpn_key,
-                color: Color(0xFF58FF7F),
+                color: AppColors.brandGreen,
                 size: 20,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   currentInviteCode!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF58FF7F),
+                    color: AppColors.brandGreen,
                     fontFamily: 'monospace',
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () => _copyToClipboard(context),
-                icon: const Icon(
+                icon: Icon(
                   Icons.copy,
-                  color: Color(0xFF58FF7F),
+                  color: AppColors.brandGreen,
                   size: 18,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF58FF7F).withOpacity(0.1),
+                  backgroundColor: AppColors.brandGreen.withOpacity(0.1),
                   minimumSize: const Size(32, 32),
                   padding: EdgeInsets.zero,
                 ),
@@ -153,7 +154,7 @@ class ChatInviteCodesSection extends StatelessWidget {
         children: [
           Icon(
             Icons.vpn_key_off,
-            color: Colors.white.withOpacity(0.3),
+            color: AppColors.whiteTransparent30,
             size: 48,
           ),
           const SizedBox(height: 12),
@@ -161,7 +162,7 @@ class ChatInviteCodesSection extends StatelessWidget {
             'Код запрошення не створено',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.7),
+              color: AppColors.whiteText.withOpacity(0.7),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -171,7 +172,7 @@ class ChatInviteCodesSection extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.whiteText.withOpacity(0.5),
             ),
           ),
           const SizedBox(height: 20),
@@ -197,7 +198,7 @@ class ChatInviteCodesSection extends StatelessWidget {
       'Код запрошення дозволяє іншим користувачам приєднатися до чату. Будьте обережні при поширенні коду.',
       style: TextStyle(
         fontSize: 12,
-        color: Colors.white.withOpacity(0.5),
+        color: AppColors.whiteText.withOpacity(0.5),
       ),
     );
   }
@@ -208,13 +209,13 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   ButtonStyle _getGenerateButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF58FF7F).withOpacity(0.2),
-      foregroundColor: const Color(0xFF58FF7F),
+      backgroundColor: AppColors.brandGreen.withOpacity(0.2),
+      foregroundColor: AppColors.brandGreen,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: const Color(0xFF58FF7F).withOpacity(0.3),
+          color: AppColors.brandGreen.withOpacity(0.3),
         ),
       ),
     );
@@ -222,13 +223,13 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   ButtonStyle _getDeleteButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFFFF5555).withOpacity(0.2),
-      foregroundColor: const Color(0xFFFF5555),
+      backgroundColor: AppColors.warningRed.withOpacity(0.2),
+      foregroundColor: AppColors.warningRed,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: const Color(0xFFFF5555).withOpacity(0.3),
+          color: AppColors.warningRed.withOpacity(0.3),
         ),
       ),
     );
@@ -236,13 +237,13 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   ButtonStyle _getCreateButtonStyle() {
     return ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFF58FF7F).withOpacity(0.2),
-      foregroundColor: const Color(0xFF58FF7F),
+      backgroundColor: AppColors.brandGreen.withOpacity(0.2),
+      foregroundColor: AppColors.brandGreen,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: const Color(0xFF58FF7F).withOpacity(0.3),
+          color: AppColors.brandGreen.withOpacity(0.3),
         ),
       ),
       padding: const EdgeInsets.symmetric(
@@ -254,12 +255,12 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   Widget _getGenerateButtonIcon() {
     return isGenerating
-        ? const SizedBox(
+        ? SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
             ),
           )
         : const Icon(Icons.refresh, size: 18);
@@ -267,12 +268,12 @@ class ChatInviteCodesSection extends StatelessWidget {
 
   Widget _getCreateButtonIcon() {
     return isGenerating
-        ? const SizedBox(
+        ? SizedBox(
             width: 18,
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
             ),
           )
         : const Icon(Icons.add, size: 18);

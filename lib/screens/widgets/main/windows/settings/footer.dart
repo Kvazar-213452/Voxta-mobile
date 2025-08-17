@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class SettingsFooterWidget extends StatelessWidget {
   final VoidCallback onLogout;
@@ -19,7 +20,7 @@ class SettingsFooterWidget extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteTransparent10,
           ),
         ),
       ),
@@ -28,8 +29,8 @@ class SettingsFooterWidget extends StatelessWidget {
           Expanded(
             child: _buildFooterButton(
               text: 'Вихід',
-              color: Colors.red.withOpacity(0.2),
-              textColor: Colors.red.shade300,
+              color: AppColors.errorRedTransparent20,
+              textColor: AppColors.errorRedLight,
               onTap: onLogout,
             ),
           ),
@@ -37,8 +38,8 @@ class SettingsFooterWidget extends StatelessWidget {
           Expanded(
             child: _buildFooterButton(
               text: 'Скинути',
-              color: Colors.white.withOpacity(0.1),
-              textColor: Colors.white,
+              color: AppColors.whiteTransparent10,
+              textColor: AppColors.whiteText,
               onTap: onReset,
             ),
           ),
@@ -46,8 +47,8 @@ class SettingsFooterWidget extends StatelessWidget {
           Expanded(
             child: _buildFooterButton(
               text: 'Зберегти',
-              color: const Color(0xFF58ff7f),
-              textColor: Colors.black,
+              color: AppColors.brandGreen,
+              textColor: AppColors.blackText,
               onTap: onSave,
             ),
           ),
@@ -70,7 +71,7 @@ class SettingsFooterWidget extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteTransparent10,
           ),
         ),
         child: Center(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class SuccessModalWidget extends StatefulWidget {
   const SuccessModalWidget({super.key});
@@ -53,22 +54,22 @@ class _SuccessModalWidgetState extends State<SuccessModalWidget>
       animation: _animationController,
       builder: (context, child) {
         return Container(
-          color: Colors.black.withOpacity(0.5 * _fadeAnimation.value),
+          color: Color.lerp(AppColors.transparent, AppColors.overlayBlack50, _fadeAnimation.value),
           child: Center(
             child: Transform.scale(
               scale: _scaleAnimation.value,
               child: Opacity(
                 opacity: _fadeAnimation.value,
                 child: Material(
-                  color: Colors.transparent,
+                  color: AppColors.transparent,
                   child: Container(
                     margin: const EdgeInsets.all(30),
                     padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1a1a1f),
+                      color: AppColors.profileBackground,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.1),
+                        color: AppColors.whiteTransparent10,
                       ),
                     ),
                     child: Column(
@@ -77,32 +78,32 @@ class _SuccessModalWidgetState extends State<SuccessModalWidget>
                         Container(
                           width: 80,
                           height: 80,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF58ff7f),
+                          decoration: BoxDecoration(
+                            color: AppColors.brandGreen,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.check,
                             size: 40,
-                            color: Colors.black,
+                            color: AppColors.blackText,
                           ),
                         ),
                         const SizedBox(height: 20),
-                        const Text(
+                        Text(
                           'Voxta',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF58ff7f),
+                            color: AppColors.brandGreen,
                           ),
                         ),
                         const SizedBox(height: 15),
-                        const Text(
+                        Text(
                           'Налаштування збережено успішно!\nВсі зміни застосовано.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white,
+                            color: AppColors.whiteText,
                             height: 1.5,
                           ),
                         ),
@@ -115,15 +116,15 @@ class _SuccessModalWidgetState extends State<SuccessModalWidget>
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF58ff7f),
+                              color: AppColors.brandGreen,
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Готово',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                                color: AppColors.blackText,
                               ),
                             ),
                           ),

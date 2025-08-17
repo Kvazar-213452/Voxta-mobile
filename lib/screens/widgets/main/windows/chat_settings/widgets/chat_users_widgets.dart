@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'chat_basic_widgets.dart';
+import '../../../../../../app_colors.dart';
 
 class ChatOwnerSection extends StatelessWidget {
   final String owner;
@@ -21,21 +22,21 @@ class ChatOwnerSection extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0x1AFFFFFF),
+          color: AppColors.transparentWhite,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF58FF7F).withOpacity(0.3),
+            color: AppColors.brandGreenTransparent03,
             width: 1,
           ),
         ),
         child: Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 20,
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
               ),
             ),
             const SizedBox(width: 12),
@@ -44,7 +45,7 @@ class ChatOwnerSection extends StatelessWidget {
                 'Завантаження інформації про власника...',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
+                  color: AppColors.whiteTransparent07,
                 ),
               ),
             ),
@@ -56,22 +57,22 @@ class ChatOwnerSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Власник чату',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0x1AFFFFFF),
+            color: AppColors.transparentWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: const Color(0xFF58FF7F).withOpacity(0.3),
+              color: AppColors.brandGreenTransparent03,
               width: 1,
             ),
           ),
@@ -89,19 +90,19 @@ class ChatOwnerSection extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.star,
-                          color: Color(0xFF58FF7F),
+                          color: AppColors.brandGreen,
                           size: 18,
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             ownerData?['name'] ?? 'Невідомий власник',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFFEEEEEE),
+                              color: AppColors.lightGray,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -141,26 +142,26 @@ class ChatUsersSection extends StatelessWidget {
       children: [
         Text(
           'Учасники чату (${usersData.length})',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           height: 150,
           decoration: BoxDecoration(
-            color: const Color(0x1AFFFFFF),
+            color: AppColors.transparentWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteTransparent10,
             ),
           ),
           child: isLoadingUsers
-              ? const Center(
+              ? Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
                   ),
                 )
               : usersData.isEmpty
@@ -170,7 +171,7 @@ class ChatUsersSection extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: Colors.white.withOpacity(0.5),
+                            color: AppColors.whiteTransparent50,
                             size: 20,
                           ),
                           const SizedBox(width: 12),
@@ -178,7 +179,7 @@ class ChatUsersSection extends StatelessWidget {
                             child: Text(
                               'Немає учасників для відображення',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.7),
+                                color: AppColors.whiteTransparent07,
                                 fontSize: 14,
                               ),
                               maxLines: 1,
@@ -233,12 +234,12 @@ class UserItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0x1AFFFFFF),
+        color: AppColors.transparentWhite,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isOwner 
-              ? const Color(0xFF58FF7F).withOpacity(0.3)
-              : Colors.white.withOpacity(0.1),
+              ? AppColors.brandGreenTransparent03
+              : AppColors.whiteTransparent10,
         ),
       ),
       child: Row(
@@ -256,9 +257,9 @@ class UserItem extends StatelessWidget {
                 Row(
                   children: [
                     if (isOwner) ...[
-                      const Icon(
+                      Icon(
                         Icons.star,
-                        color: Color(0xFF58FF7F),
+                        color: AppColors.brandGreen,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
@@ -270,8 +271,8 @@ class UserItem extends StatelessWidget {
                           fontSize: 14,
                           fontWeight: isOwner ? FontWeight.w700 : FontWeight.w600,
                           color: isOwner 
-                              ? const Color(0xFF58FF7F)
-                              : const Color(0xFFEEEEEE),
+                              ? AppColors.brandGreen
+                              : AppColors.lightGray,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -289,13 +290,13 @@ class UserItem extends StatelessWidget {
               height: 32,
               child: IconButton(
                 onPressed: onRemove,
-                icon: const Icon(
+                icon: Icon(
                   Icons.remove_circle_outline,
-                  color: Color(0xFFFF5555),
+                  color: AppColors.warningRed,
                   size: 18,
                 ),
                 style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF5555).withOpacity(0.1),
+                  backgroundColor: AppColors.warningRedTransparent10,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
@@ -307,18 +308,18 @@ class UserItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF58FF7F).withOpacity(0.1),
+                color: AppColors.brandGreenTransparent10,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: const Color(0xFF58FF7F).withOpacity(0.3),
+                  color: AppColors.brandGreenTransparent03,
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Власник',
                 style: TextStyle(
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF58FF7F),
+                  color: AppColors.brandGreen,
                 ),
               ),
             ),

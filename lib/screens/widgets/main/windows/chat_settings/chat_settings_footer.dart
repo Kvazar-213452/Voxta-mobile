@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class ChatSettingsFooter extends StatelessWidget {
   final bool isFormValid;
@@ -19,7 +20,7 @@ class ChatSettingsFooter extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -30,8 +31,8 @@ class ChatSettingsFooter extends StatelessWidget {
             child: TextButton(
               onPressed: onCancel,
               style: TextButton.styleFrom(
-                backgroundColor: const Color(0x1AFFFFFF),
-                foregroundColor: const Color(0xFFEEEEEE),
+                backgroundColor: AppColors.transparentWhite,
+                foregroundColor: AppColors.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -52,10 +53,10 @@ class ChatSettingsFooter extends StatelessWidget {
             child: ElevatedButton(
               onPressed: isFormValid ? onSave : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF58FF7F),
-                foregroundColor: Colors.black,
-                disabledBackgroundColor: const Color(0xFF58FF7F).withOpacity(0.3),
-                disabledForegroundColor: Colors.black.withOpacity(0.5),
+                backgroundColor: AppColors.brandGreen,
+                foregroundColor: AppColors.blackText,
+                disabledBackgroundColor: AppColors.brandGreen.withOpacity(0.3),
+                disabledForegroundColor: AppColors.blackText.withOpacity(0.5),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

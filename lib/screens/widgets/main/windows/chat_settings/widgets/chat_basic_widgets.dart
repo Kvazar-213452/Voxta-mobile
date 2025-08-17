@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import '../../../../../../app_colors.dart';
 
 class ChatAvatarSection extends StatelessWidget {
   final Widget? chatAvatar;
@@ -18,12 +19,12 @@ class ChatAvatarSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Аватар чату',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
@@ -35,11 +36,11 @@ class ChatAvatarSection extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(
-                  color: const Color(0xFF58FF7F).withOpacity(0.3),
+                  color: AppColors.brandGreen.withOpacity(0.3),
                   width: 2,
                 ),
                 color: chatAvatar == null && selectedImage == null
-                    ? const Color(0xFF58FF7F).withOpacity(0.1)
+                    ? AppColors.brandGreen.withOpacity(0.1)
                     : null,
               ),
               child: ClipRRect(
@@ -53,7 +54,7 @@ class ChatAvatarSection extends StatelessWidget {
                         ? chatAvatar!
                         : Icon(
                             Icons.group,
-                            color: const Color(0xFF58FF7F).withOpacity(0.7),
+                            color: AppColors.brandGreen.withOpacity(0.7),
                             size: 28,
                           ),
               ),
@@ -66,13 +67,13 @@ class ChatAvatarSection extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: onPickImage,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF58FF7F).withOpacity(0.2),
-                      foregroundColor: const Color(0xFF58FF7F),
+                      backgroundColor: AppColors.brandGreen.withOpacity(0.2),
+                      foregroundColor: AppColors.brandGreen,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                         side: BorderSide(
-                          color: const Color(0xFF58FF7F).withOpacity(0.3),
+                          color: AppColors.brandGreen.withOpacity(0.3),
                         ),
                       ),
                     ),
@@ -90,7 +91,7 @@ class ChatAvatarSection extends StatelessWidget {
                     'JPG, PNG або GIF до 5MB',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.5),
+                      color: AppColors.whiteText.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -126,10 +127,10 @@ class ChatInputField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -137,33 +138,33 @@ class ChatInputField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines,
           maxLength: maxLength,
-          style: const TextStyle(
-            color: Color(0xFFEEEEEE),
+          style: TextStyle(
+            color: AppColors.lightGray,
             fontSize: 16,
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.whiteText.withOpacity(0.5),
             ),
             filled: true,
-            fillColor: const Color(0x1AFFFFFF),
+            fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteText.withOpacity(0.2),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteText.withOpacity(0.2),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF58FF7F),
+              borderSide: BorderSide(
+                color: AppColors.brandGreen,
                 width: 2,
               ),
             ),
@@ -172,7 +173,7 @@ class ChatInputField extends StatelessWidget {
               vertical: 14,
             ),
             counterStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.whiteText.withOpacity(0.5),
               fontSize: 12,
             ),
           ),
@@ -199,12 +200,12 @@ class ChatInfoSection extends StatelessWidget {
       children: [
         Text(
           'Дата створення: $time',
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          style: TextStyle(fontSize: 16, color: AppColors.whiteText),
         ),
         const SizedBox(height: 12),
         Text(
           'Тип чату: $typeChat',
-          style: const TextStyle(fontSize: 16, color: Colors.white),
+          style: TextStyle(fontSize: 16, color: AppColors.whiteText),
         ),
       ],
     );
@@ -235,8 +236,8 @@ class UserAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: isOwner 
-              ? const Color(0xFF58FF7F).withOpacity(0.5)
-              : const Color(0xFF58FF7F).withOpacity(0.3),
+              ? AppColors.brandGreen.withOpacity(0.5)
+              : AppColors.brandGreen.withOpacity(0.3),
           width: isOwner ? 2 : 1,
         ),
       ),
@@ -248,20 +249,20 @@ class UserAvatar extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: const Color(0xFF58FF7F).withOpacity(0.2),
+                    color: AppColors.brandGreen.withOpacity(0.2),
                     child: Icon(
                       Icons.person,
-                      color: const Color(0xFF58FF7F).withOpacity(0.7),
+                      color: AppColors.brandGreen.withOpacity(0.7),
                       size: iconSize,
                     ),
                   );
                 },
               )
             : Container(
-                color: const Color(0xFF58FF7F).withOpacity(0.2),
+                color: AppColors.brandGreen.withOpacity(0.2),
                 child: Icon(
                   Icons.person,
-                  color: const Color(0xFF58FF7F).withOpacity(0.7),
+                  color: AppColors.brandGreen.withOpacity(0.7),
                   size: iconSize,
                 ),
               ),

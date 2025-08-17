@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'custom_input_field.dart';
+import '../../../app_colors.dart';
 
 class LoginForm extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -7,9 +8,6 @@ class LoginForm extends StatelessWidget {
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final VoidCallback onSubmit;
-
-  static const Color primaryColor = Color(0xFF58FF7F);
-  static const Color textMuted = Color(0xFFAAAAAA);
 
   const LoginForm({
     super.key,
@@ -27,12 +25,12 @@ class LoginForm extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'Вхід в акаунт',
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w600,
-              color: primaryColor,
+              color: AppColors.brandGreen,
             ),
           ),
           const SizedBox(height: 30),
@@ -85,8 +83,8 @@ class LoginForm extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onSubmit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.black,
+                backgroundColor: AppColors.brandGreen,
+                foregroundColor: AppColors.blackText,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -106,19 +104,19 @@ class LoginForm extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'Вже є акаунт? ',
-                style: TextStyle(fontSize: 13, color: textMuted),
+                style: TextStyle(fontSize: 13, color: AppColors.grayText),
               ),
               GestureDetector(
                 onTap: () {
                   // Тут можна зробити навігацію
                 },
-                child: const Text(
+                child: Text(
                   'Зарегеструватись',
                   style: TextStyle(
                     fontSize: 13,
-                    color: primaryColor,
+                    color: AppColors.brandGreen,
                     fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
                   ),

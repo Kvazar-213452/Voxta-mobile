@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
 import 'utils.dart';
 
@@ -13,9 +14,9 @@ class ChatModalFunctions {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
+        return Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
           ),
         );
       },
@@ -39,7 +40,7 @@ class ChatModalFunctions {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: AppColors.destructiveRed,
           ),
         );
       },
@@ -55,35 +56,33 @@ class ChatModalFunctions {
   }) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF2d2d2d),
+            color: AppColors.modalBackground,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
             ),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.modalBorder,
             ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Handle indicator
               Container(
                 margin: const EdgeInsets.only(top: 12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: AppColors.modalHandle,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              
-              // Header
+
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Row(
@@ -99,8 +98,8 @@ class ChatModalFunctions {
                         children: [
                           Text(
                             chatName,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: AppColors.whiteText,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),
@@ -108,7 +107,7 @@ class ChatModalFunctions {
                           Text(
                             type,
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: AppColors.white70,
                               fontSize: 12,
                             ),
                           ),
@@ -119,13 +118,11 @@ class ChatModalFunctions {
                 ),
               ),
               
-              // Divider
               Container(
                 height: 1,
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.modalDivider,
               ),
               
-              // Options
               _buildModalOption(
                 icon: Icons.settings,
                 title: 'Налаштування',
@@ -160,7 +157,7 @@ class ChatModalFunctions {
     bool isDestructive = false,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Container(
@@ -170,8 +167,8 @@ class ChatModalFunctions {
               Icon(
                 icon,
                 color: isDestructive 
-                  ? Colors.red.shade400 
-                  : Colors.white.withOpacity(0.8),
+                  ? AppColors.destructiveRed
+                  : AppColors.white70,
                 size: 24,
               ),
               const SizedBox(width: 16),
@@ -179,8 +176,8 @@ class ChatModalFunctions {
                 title,
                 style: TextStyle(
                   color: isDestructive 
-                    ? Colors.red.shade400 
-                    : Colors.white,
+                    ? AppColors.destructiveRed
+                    : AppColors.whiteText,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -188,7 +185,7 @@ class ChatModalFunctions {
               const Spacer(),
               Icon(
                 Icons.chevron_right,
-                color: Colors.white.withOpacity(0.4),
+                color: AppColors.white54,
                 size: 20,
               ),
             ],
@@ -203,34 +200,33 @@ class ChatModalFunctions {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF2d2d2d),
+          backgroundColor: AppColors.modalBackground,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
             'Заблокувати $chatName?',
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.whiteText),
           ),
-          content: const Text(
+          content: Text(
             'Ви не зможете отримувати повідомлення від цього користувача.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: AppColors.white70),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Скасувати',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppColors.white70),
               ),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                // Додайте логіку для блокування
               },
               child: Text(
                 'Заблокувати',
-                style: TextStyle(color: Colors.red.shade400),
+                style: TextStyle(color: AppColors.destructiveRed),
               ),
             ),
           ],
@@ -244,20 +240,18 @@ class ChatModalFunctions {
     required String id,
     required String type,
   }) {
-    // Показуємо індикатор завантаження
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const Center(
+        return Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58FF7F)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
           ),
         );
       },
     );
 
-    // Запитуємо інформацію про чат
     getInfoChat(
       id: id,
       type: type,
@@ -282,7 +276,7 @@ class ChatModalFunctions {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: AppColors.destructiveRed,
           ),
         );
       },
@@ -306,9 +300,9 @@ class ChatModalFunctions {
         avatarUrl,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          return const Icon(
+          return Icon(
             Icons.group,
-            color: Color(0xFF58FF7F),
+            color: AppColors.brandGreen,
           );
         },
       );
@@ -324,7 +318,7 @@ class ChatModalFunctions {
 
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: AppColors.overlayBackground,
       builder: (BuildContext context) {
         return ChatSettingsModal(
           currentName: chatName,
@@ -348,5 +342,3 @@ class ChatModalFunctions {
     );
   }
 }
-
-// ChatSettingsModal

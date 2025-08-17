@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../services/chat/socket_service.dart';
+import '../../../../../app_colors.dart';
 import 'add_chat_window.dart';
 
 class _JoinChatModal extends StatefulWidget {
@@ -102,18 +103,18 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
                 child: Container(
                   margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF2D2D32),
-                        Color(0xFF232338),
-                        Color(0xFF1F1F1F),
+                        AppColors.gradientMiddle,
+                        AppColors.gradientEnd,
+                        AppColors.gradientStart,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF58FF7F).withOpacity(0.3),
+                      color: AppColors.brandGreen.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
@@ -140,7 +141,7 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -151,23 +152,23 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFF58FF7F).withOpacity(0.2),
+              color: AppColors.brandGreen.withOpacity(0.2),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.login,
-              color: Color(0xFF58FF7F),
+              color: AppColors.brandGreen,
               size: 20,
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               '🚪 Приєднатися до чату',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFEEEEEE),
+                color: AppColors.lightGray,
               ),
             ),
           ),
@@ -182,11 +183,11 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Введіть ID чату, до якого хочете приєднатися:',
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFFAAAAAA),
+              color: AppColors.white70,
             ),
           ),
           const SizedBox(height: 20),
@@ -212,48 +213,48 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(
-            color: Color(0xFFEEEEEE),
+          style: TextStyle(
+            color: AppColors.lightGray,
             fontSize: 16,
           ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.whiteText.withOpacity(0.5),
             ),
             prefixIcon: Icon(
               icon,
-              color: const Color(0xFF58FF7F).withOpacity(0.7),
+              color: AppColors.brandGreen.withOpacity(0.7),
               size: 20,
             ),
             filled: true,
-            fillColor: const Color(0x1AFFFFFF),
+            fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteText.withOpacity(0.2),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.whiteText.withOpacity(0.2),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF58FF7F),
+              borderSide: BorderSide(
+                color: AppColors.brandGreen,
                 width: 2,
               ),
             ),
@@ -273,7 +274,7 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -284,8 +285,8 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
             child: TextButton(
               onPressed: _closeModal,
               style: TextButton.styleFrom(
-                backgroundColor: const Color(0x1AFFFFFF),
-                foregroundColor: const Color(0xFFEEEEEE),
+                backgroundColor: AppColors.transparentWhite,
+                foregroundColor: AppColors.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -306,10 +307,10 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
             child: ElevatedButton(
               onPressed: _isFormValid ? _joinChat : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF58FF7F),
-                foregroundColor: Colors.black,
-                disabledBackgroundColor: const Color(0xFF58FF7F).withOpacity(0.3),
-                disabledForegroundColor: Colors.black.withOpacity(0.5),
+                backgroundColor: AppColors.brandGreen,
+                foregroundColor: AppColors.blackText,
+                disabledBackgroundColor: AppColors.brandGreen.withOpacity(0.3),
+                disabledForegroundColor: AppColors.blackText.withOpacity(0.5),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -361,7 +362,7 @@ class ChatFooter extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -372,8 +373,8 @@ class ChatFooter extends StatelessWidget {
             child: TextButton(
               onPressed: () => _showJoinChatModal(context),
               style: TextButton.styleFrom(
-                backgroundColor: const Color(0x1AFFFFFF),
-                foregroundColor: const Color(0xFFEEEEEE),
+                backgroundColor: AppColors.transparentWhite,
+                foregroundColor: AppColors.lightGray,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -394,10 +395,10 @@ class ChatFooter extends StatelessWidget {
             child: ElevatedButton(
               onPressed: isFormValid ? onCreate : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF58FF7F),
-                foregroundColor: Colors.black,
-                disabledBackgroundColor: const Color(0xFF58FF7F).withOpacity(0.3),
-                disabledForegroundColor: Colors.black.withOpacity(0.5),
+                backgroundColor: AppColors.brandGreen,
+                foregroundColor: AppColors.blackText,
+                disabledBackgroundColor: AppColors.brandGreen.withOpacity(0.3),
+                disabledForegroundColor: AppColors.blackText.withOpacity(0.5),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -418,5 +419,3 @@ class ChatFooter extends StatelessWidget {
     );
   }
 }
-
-// join

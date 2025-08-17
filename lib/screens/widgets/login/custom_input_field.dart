@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app_colors.dart';
 
 class CustomInputField extends StatelessWidget {
   final TextEditingController controller;
@@ -6,11 +7,6 @@ class CustomInputField extends StatelessWidget {
   final String placeholder;
   final bool isPassword;
   final String? Function(String?)? validator;
-
-  static const Color primaryColor = Color(0xFF58FF7F);
-  static const Color textLight = Color(0xFFEEEEEE);
-  static const Color textMuted = Color(0xFFAAAAAA);
-  static const Color inputBg = Color(0x1AFFFFFF);
 
   const CustomInputField({
     super.key,
@@ -28,9 +24,9 @@ class CustomInputField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: textMuted,
+            color: AppColors.grayText,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -39,29 +35,29 @@ class CustomInputField extends StatelessWidget {
           controller: controller,
           obscureText: isPassword,
           validator: validator,
-          style: const TextStyle(
-            color: textLight,
+          style: TextStyle(
+            color: AppColors.lightGray,
             fontSize: 14,
           ),
           decoration: InputDecoration(
             hintText: placeholder,
-            hintStyle: const TextStyle(
-              color: Color(0xFF999999),
+            hintStyle: TextStyle(
+              color: AppColors.hintGray,
               fontSize: 14,
             ),
             filled: true,
-            fillColor: inputBg,
+            fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: primaryColor, width: 1),
+              borderSide: BorderSide(color: AppColors.brandGreen, width: 1),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
+              borderSide: BorderSide(color: AppColors.errorRed, width: 1),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),

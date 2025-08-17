@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class UserRemovalDialog extends StatelessWidget {
   final String userId;
@@ -17,32 +18,32 @@ class UserRemovalDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       elevation: 0,
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2D2D32),
-              Color(0xFF232338),
+              AppColors.gradientMiddle,
+              AppColors.gradientEnd,
             ],
           ),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFFFF5555).withOpacity(0.3),
+            color: AppColors.warningRed.withOpacity(0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFF5555).withOpacity(0.1),
+              color: AppColors.warningRed.withOpacity(0.1),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: AppColors.blackText.withOpacity(0.3),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -51,7 +52,6 @@ class UserRemovalDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Іконка попередження
             Container(
               width: 60,
               height: 60,
@@ -60,29 +60,28 @@ class UserRemovalDialog extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    const Color(0xFFFF5555).withOpacity(0.2),
-                    const Color(0xFFFF3333).withOpacity(0.1),
+                    AppColors.warningRed.withOpacity(0.2),
+                    AppColors.warningRedLight.withOpacity(0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(
-                  color: const Color(0xFFFF5555).withOpacity(0.3),
+                  color: AppColors.warningRed.withOpacity(0.3),
                   width: 1,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.warning_rounded,
-                color: Color(0xFFFF5555),
+                color: AppColors.warningRed,
                 size: 28,
               ),
             ),
             const SizedBox(height: 20),
-            
-            // Заголовок
-            const Text(
+
+            Text(
               'Підтвердити видалення',
               style: TextStyle(
-                color: Color(0xFFEEEEEE),
+                color: AppColors.lightGray,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
@@ -90,12 +89,11 @@ class UserRemovalDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             
-            // Опис
             RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: const TextStyle(
-                  color: Color(0xFFAAAAAA),
+                style: TextStyle(
+                  color: AppColors.grayText,
                   fontSize: 16,
                   height: 1.4,
                 ),
@@ -103,8 +101,8 @@ class UserRemovalDialog extends StatelessWidget {
                   const TextSpan(text: 'Ви дійсно хочете видалити користувача\n'),
                   TextSpan(
                     text: userName,
-                    style: const TextStyle(
-                      color: Color(0xFF58FF7F),
+                    style: TextStyle(
+                      color: AppColors.brandGreen,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -117,17 +115,17 @@ class UserRemovalDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF5555).withOpacity(0.1),
+                color: AppColors.warningRed.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: const Color(0xFFFF5555).withOpacity(0.2),
+                  color: AppColors.warningRed.withOpacity(0.2),
                   width: 1,
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Ця дія незворотна',
                 style: TextStyle(
-                  color: Color(0xFFFF5555),
+                  color: AppColors.warningRed,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -135,20 +133,19 @@ class UserRemovalDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             
-            // Кнопки
             Row(
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: onCancel, // Тепер викликаємо callback безпосередньо
+                    onPressed: onCancel,
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.white.withOpacity(0.08),
-                      foregroundColor: const Color(0xFFAAAAAA),
+                      backgroundColor: AppColors.whiteTransparent08,
+                      foregroundColor: AppColors.grayText,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: Colors.white.withOpacity(0.1),
+                          color: AppColors.whiteText.withOpacity(0.1),
                           width: 1,
                         ),
                       ),
@@ -168,10 +165,10 @@ class UserRemovalDialog extends StatelessWidget {
                     onPressed: onConfirm, // Тепер викликаємо callback безпосередньо
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFFFF5555),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.warningRed,
+                      foregroundColor: AppColors.whiteText,
                       elevation: 0,
-                      shadowColor: const Color(0xFFFF5555).withOpacity(0.3),
+                      shadowColor: AppColors.warningRed.withOpacity(0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -200,7 +197,7 @@ class UserRemovalDialog extends StatelessWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      barrierColor: Colors.black87.withOpacity(0.8),
+      barrierColor: AppColors.dialogOverlay,
       builder: (BuildContext context) {
         return UserRemovalDialog(
           userId: userId,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class ChatSettingsHeader extends StatelessWidget {
 
@@ -13,20 +14,20 @@ class ChatSettingsHeader extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               '⚙️ Налаштування чату',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFEEEEEE),
+                color: AppColors.lightGray,
               ),
             ),
           ),

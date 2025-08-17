@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'dart:convert';
+import '../../../../../app_colors.dart';
 import 'utils.dart';
 import 'chat_settings_header.dart';
 import 'chat_settings_footer.dart';
@@ -87,7 +88,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
-            backgroundColor: Colors.red.shade400,
+            backgroundColor: AppColors.destructiveRed,
           ),
         );
       },
@@ -177,7 +178,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Помилка вибору зображення: $e'),
-          backgroundColor: Colors.red.shade400,
+          backgroundColor: AppColors.destructiveRed,
         ),
       );
     }
@@ -258,7 +259,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       animation: _animationController,
       builder: (context, child) {
         return Material(
-          color: Colors.black.withOpacity(0.5 * _fadeAnimation.value),
+          color: AppColors.blackText.withOpacity(0.5 * _fadeAnimation.value),
           child: Center(
             child: Transform.scale(
               scale: _scaleAnimation.value,
@@ -270,18 +271,18 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
                     maxHeight: MediaQuery.of(context).size.height * 0.85,
                   ),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Color(0xFF2D2D32),
-                        Color(0xFF232338),
-                        Color(0xFF1F1F1F),
+                        AppColors.gradientMiddle,
+                        AppColors.gradientEnd,
+                        AppColors.gradientStart,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFF58FF7F).withOpacity(0.3),
+                      color: AppColors.brandGreen.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
@@ -316,11 +317,11 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Налаштуйте параметри чату:',
             style: TextStyle(
               fontSize: 14,
-              color: Color(0xFFAAAAAA),
+              color: AppColors.grayText,
             ),
           ),
           const SizedBox(height: 20),
@@ -374,5 +375,3 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     );
   }
 }
-
-// generateRandomCode

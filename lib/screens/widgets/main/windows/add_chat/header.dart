@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class ChatHeader extends StatelessWidget {
   final VoidCallback onBack;
@@ -15,7 +16,7 @@ class ChatHeader extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.whiteText.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -28,24 +29,24 @@ class ChatHeader extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.whiteText.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
-                color: Color(0xFFEEEEEE),
+                color: AppColors.lightGray,
                 size: 18,
               ),
             ),
           ),
           const SizedBox(width: 16),
-          const Expanded(
+          Expanded(
             child: Text(
               '💬 Створити чат',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFEEEEEE),
+                color: AppColors.lightGray,
               ),
             ),
           ),

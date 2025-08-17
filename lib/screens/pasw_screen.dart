@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/storage_pasw.dart';
 import '../main.dart';
+import '../../app_colors.dart';
 
 class PawsScreen extends StatefulWidget {
   const PawsScreen({Key? key}) : super(key: key);
@@ -150,21 +151,21 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A1A),
+      backgroundColor: AppColors.darkBackground,
       body: AnimatedBuilder(
         animation: _fadeController,
         builder: (context, child) {
           return Opacity(
             opacity: _fadeAnimation.value,
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF1F1F1F),
-                    Color(0xFF2D2D32),
-                    Color(0xFF232338),
+                    AppColors.gradientStart,
+                    AppColors.gradientMiddle,
+                    AppColors.gradientEnd,
                   ],
                 ),
               ),
@@ -197,26 +198,26 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: const Color(0xFF58FF7F).withOpacity(0.2),
+            color: AppColors.brandGreen.withOpacity(0.2),
             borderRadius: BorderRadius.circular(40),
             border: Border.all(
-              color: const Color(0xFF58FF7F),
+              color: AppColors.brandGreen,
               width: 2,
             ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.lock_outline,
-            color: Color(0xFF58FF7F),
+            color: AppColors.brandGreen,
             size: 40,
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
+        Text(
           'Введіть PIN-код',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 8),
@@ -225,7 +226,7 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.whiteText.withOpacity(0.7),
           ),
         ),
       ],
@@ -252,13 +253,13 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
       width: 50,
       height: 60,
       decoration: BoxDecoration(
-        color: const Color(0x1AFFFFFF),
+        color: AppColors.transparentWhite,
         border: Border.all(
           color: _isError 
-              ? Colors.red
+              ? AppColors.errorRed
               : _controllers[index].text.isNotEmpty 
-                  ? const Color(0xFF58FF7F)
-                  : Colors.white.withOpacity(0.2),
+                  ? AppColors.brandGreen
+                  : AppColors.whiteText.withOpacity(0.2),
           width: 2,
         ),
         borderRadius: BorderRadius.circular(12),
@@ -267,8 +268,8 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
         controller: _controllers[index],
         focusNode: _focusNodes[index],
         textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: Color(0xFFEEEEEE),
+        style: TextStyle(
+          color: AppColors.lightGray,
           fontSize: 24,
           fontWeight: FontWeight.w600,
         ),
@@ -304,9 +305,9 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
       onTap: () {
         // Handle forgot PIN
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Функція відновлення PIN-коду'),
-            backgroundColor: Color(0xFF2D2D32),
+            backgroundColor: AppColors.gradientMiddle,
           ),
         );
       },
@@ -314,7 +315,7 @@ class _PawsScreenState extends State<PawsScreen> with TickerProviderStateMixin {
         'Забули PIN-код?',
         style: TextStyle(
           fontSize: 16,
-          color: const Color(0xFF58FF7F),
+          color: AppColors.brandGreen,
           fontWeight: FontWeight.w500,
           decoration: TextDecoration.underline,
         ),

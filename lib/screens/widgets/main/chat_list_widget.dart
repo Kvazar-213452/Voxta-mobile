@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/interface/chat_models.dart';
 import 'chat_item_widget.dart';
+import '../../../app_colors.dart';
 
 class ChatListWidget extends StatelessWidget {
   final List<ChatItem> chats;
@@ -40,12 +41,12 @@ class ChatListWidget extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Voxta',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF58ff7f),
+                            color: AppColors.brandGreen,
                           ),
                         ),
                         Row(
@@ -76,15 +77,15 @@ class ChatListWidget extends StatelessWidget {
                     opacity: value,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: AppColors.whiteText.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: TextField(
                         controller: searchController,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: AppColors.whiteText),
                         decoration: InputDecoration(
                           hintText: 'Пошук чатів...',
-                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
+                          hintStyle: TextStyle(color: AppColors.whiteText.withOpacity(0.6)),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
@@ -92,7 +93,7 @@ class ChatListWidget extends StatelessWidget {
                           ),
                           prefixIcon: Icon(
                             Icons.search,
-                            color: Colors.white.withOpacity(0.6),
+                            color: AppColors.whiteText.withOpacity(0.6),
                           ),
                         ),
                       ),
@@ -150,13 +151,13 @@ class ChatListWidget extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteText.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: AppColors.whiteText.withOpacity(0.1)),
             ),
             child: Icon(
               icon,
-              color: Colors.white,
+              color: AppColors.whiteText,
               size: 18,
             ),
           ),
@@ -165,5 +166,3 @@ class ChatListWidget extends StatelessWidget {
     );
   }
 }
-
-// ChatSettingsModal

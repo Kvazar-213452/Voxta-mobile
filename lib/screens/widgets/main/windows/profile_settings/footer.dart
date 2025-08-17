@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../app_colors.dart';
 
 class ProfileFooterWidget extends StatelessWidget {
   final VoidCallback onSave;
@@ -17,7 +18,7 @@ class ProfileFooterWidget extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.transparentWhite,
           ),
         ),
       ),
@@ -28,8 +29,8 @@ class ProfileFooterWidget extends StatelessWidget {
             flex: 2,
             child: _buildFooterButton(
               text: isLoading ? 'Збереження...' : 'Зберегти зміни',
-              color: const Color(0xFF58ff7f),
-              textColor: Colors.black,
+              color: AppColors.brandGreen,
+              textColor: AppColors.blackText,
               onTap: isLoading ? () {} : onSave,
               isLoading: isLoading,
             ),
@@ -54,27 +55,27 @@ class ProfileFooterWidget extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: AppColors.transparentWhite,
           ),
         ),
         child: Center(
-          child: isLoading 
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+          child: isLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.blackText),
+                  ),
+                )
+              : Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
                 ),
-              )
-            : Text(
-                text,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
-                ),
-              ),
         ),
       ),
     );

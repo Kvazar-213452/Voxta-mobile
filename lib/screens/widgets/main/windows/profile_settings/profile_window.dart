@@ -5,6 +5,7 @@ import 'header.dart';
 import 'footer.dart';
 import 'utils.dart';
 import '../../../../../utils/getImageBase64.dart';
+import '../../../../../app_colors.dart';
 
 class ProfileScreenWidget extends StatefulWidget {
   const ProfileScreenWidget({super.key});
@@ -105,11 +106,11 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.errorRed,
             duration: const Duration(seconds: 4),
             action: SnackBarAction(
               label: 'Повторити',
-              textColor: Colors.white,
+              textColor: AppColors.whiteText,
               onPressed: () => _loadProfileData(),
             ),
           ),
@@ -183,20 +184,20 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       animation: _animationController,
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF1a1a1f),
+          backgroundColor: AppColors.profileBackground,
           body: Transform.translate(
             offset: Offset(MediaQuery.of(context).size.width * _slideAnimation.value, 0),
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF1F1F1F),
-                      Color(0xFF2D2D32),
-                      Color(0xFF232338),
+                      AppColors.gradientStart,
+                      AppColors.gradientMiddle,
+                      AppColors.gradientEnd,
                     ],
                   ),
                 ),
@@ -238,18 +239,18 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
   }
 
   Widget _buildLoadingScreen() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
           ),
           SizedBox(height: 20),
           Text(
             'Завантаження профілю...',
             style: TextStyle(
-              color: Colors.white70,
+              color: AppColors.white70,
               fontSize: 16,
             ),
           ),
@@ -272,7 +273,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(60),
                   border: Border.all(
-                    color: const Color(0xFF58ff7f),
+                    color: AppColors.brandGreen,
                     width: 3,
                   ),
                 ),
@@ -295,11 +296,11 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                 return Container(
                                   width: 120,
                                   height: 120,
-                                  color: Colors.white.withOpacity(0.1),
+                                  color: AppColors.whiteText.withOpacity(0.1),
                                   child: Icon(
                                     Icons.person,
                                     size: 60,
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: AppColors.whiteText.withOpacity(0.6),
                                   ),
                                 );
                               },
@@ -308,10 +309,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                                 return Container(
                                   width: 120,
                                   height: 120,
-                                  color: Colors.white.withOpacity(0.1),
-                                  child: const Center(
+                                  color: AppColors.whiteText.withOpacity(0.1),
+                                  child: Center(
                                     child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF58ff7f)),
+                                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
                                     ),
                                   ),
                                 );
@@ -320,11 +321,11 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                           : Container(
                               width: 120,
                               height: 120,
-                              color: Colors.white.withOpacity(0.1),
+                              color: AppColors.whiteText.withOpacity(0.1),
                               child: Icon(
                                 Icons.person,
                                 size: 60,
-                                color: Colors.white.withOpacity(0.6),
+                                color: AppColors.whiteText.withOpacity(0.6),
                               ),
                             ),
                 ),
@@ -336,16 +337,16 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF58ff7f),
+                    color: AppColors.brandGreen,
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: const Color(0xFF1a1a1f),
+                      color: AppColors.profileBackground,
                       width: 3,
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.camera_alt,
-                    color: Colors.black,
+                    color: AppColors.blackText,
                     size: 18,
                   ),
                 ),
@@ -358,7 +359,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
           'Натисніть, щоб змінити фото',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.white.withOpacity(0.7),
+            color: AppColors.whiteText.withOpacity(0.7),
           ),
         ),
       ],
@@ -371,53 +372,53 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: AppColors.whiteText.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteText.withOpacity(0.1),
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Ім\'я користувача',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFEEEEEE),
+                  color: AppColors.lightGray,
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _nameController,
-                style: const TextStyle(
-                  color: Color(0xFFEEEEEE),
+                style: TextStyle(
+                  color: AppColors.lightGray,
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Введіть ваше ім\'я...',
                   hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: AppColors.whiteText.withOpacity(0.5),
                   ),
                   filled: true,
-                  fillColor: const Color(0x1AFFFFFF),
+                  fillColor: AppColors.transparentWhite,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.whiteText.withOpacity(0.2),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.whiteText.withOpacity(0.2),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF58ff7f),
+                    borderSide: BorderSide(
+                      color: AppColors.brandGreen,
                       width: 2,
                     ),
                   ),
@@ -427,7 +428,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                   ),
                   suffixIcon: Icon(
                     Icons.edit,
-                    color: Colors.white.withOpacity(0.6),
+                    color: AppColors.whiteText.withOpacity(0.6),
                     size: 20,
                   ),
                 ),
@@ -437,7 +438,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                 'Це ім\'я буде відображатися в чатах',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.6),
+                  color: AppColors.whiteText.withOpacity(0.6),
                 ),
               ),
             ],
@@ -447,21 +448,21 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: AppColors.whiteText.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.1),
+              color: AppColors.whiteText.withOpacity(0.1),
             ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Опис профілю',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFFEEEEEE),
+                  color: AppColors.lightGray,
                 ),
               ),
               const SizedBox(height: 12),
@@ -469,33 +470,33 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                 controller: _descriptionController,
                 maxLines: 3,
                 maxLength: 300,
-                style: const TextStyle(
-                  color: Color(0xFFEEEEEE),
+                style: TextStyle(
+                  color: AppColors.lightGray,
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Розкажіть про себе...',
                   hintStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
+                    color: AppColors.whiteText.withOpacity(0.5),
                   ),
                   filled: true,
-                  fillColor: const Color(0x1AFFFFFF),
+                  fillColor: AppColors.transparentWhite,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.whiteText.withOpacity(0.2),
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.2),
+                      color: AppColors.whiteText.withOpacity(0.2),
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF58ff7f),
+                    borderSide: BorderSide(
+                      color: AppColors.brandGreen,
                       width: 2,
                     ),
                   ),
@@ -505,11 +506,11 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                   ),
                   suffixIcon: Icon(
                     Icons.description_outlined,
-                    color: Colors.white.withOpacity(0.6),
+                    color: AppColors.whiteText.withOpacity(0.6),
                     size: 20,
                   ),
                   counterStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: AppColors.whiteText.withOpacity(0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -519,7 +520,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                 'Коротко опишіть себе (максимум 300 символів)',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.6),
+                  color: AppColors.whiteText.withOpacity(0.6),
                 ),
               ),
             ],
@@ -555,10 +556,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: AppColors.whiteText.withOpacity(0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withOpacity(0.08),
+          color: AppColors.whiteText.withOpacity(0.08),
         ),
       ),
       child: Column(
@@ -568,7 +569,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
             children: [
               Icon(
                 icon,
-                color: Colors.white.withOpacity(0.6),
+                color: AppColors.whiteText.withOpacity(0.6),
                 size: 20,
               ),
               const SizedBox(width: 8),
@@ -577,7 +578,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.8),
+                  color: AppColors.whiteText.withOpacity(0.8),
                 ),
               ),
             ],
@@ -587,10 +588,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: AppColors.whiteText.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.whiteText.withOpacity(0.1),
               ),
             ),
             child: Row(
@@ -600,13 +601,13 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                     value.isEmpty ? 'Не вказано' : value,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.7),
+                      color: AppColors.whiteText.withOpacity(0.7),
                     ),
                   ),
                 ),
                 Icon(
                   Icons.lock_outline,
-                  color: Colors.white.withOpacity(0.4),
+                  color: AppColors.whiteText.withOpacity(0.4),
                   size: 18,
                 ),
               ],
@@ -617,5 +618,3 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     );
   }
 }
-
-// close

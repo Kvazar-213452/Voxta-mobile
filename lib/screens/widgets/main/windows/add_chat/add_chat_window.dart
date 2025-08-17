@@ -7,6 +7,7 @@ import 'server_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../utils/getImageBase64.dart';
 import '../../../../../models/offline_chat.dart';
+import '../../../../../app_colors.dart';
 
 class AddChatScreen extends StatefulWidget {
   static final GlobalKey<_AddChatScreenState> addChatScreenKey = GlobalKey<_AddChatScreenState>();
@@ -163,20 +164,20 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       animation: _animationController,
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: AppColors.darkBackground,
           body: Transform.translate(
             offset: Offset(MediaQuery.of(context).size.width * _slideAnimation.value, 0),
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF1F1F1F),
-                      Color(0xFF2D2D32),
-                      Color(0xFF232338),
+                      AppColors.gradientStart,
+                      AppColors.gradientMiddle,
+                      AppColors.gradientEnd,
                     ],
                   ),
                 ),
@@ -226,12 +227,12 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Аватар чату',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
@@ -241,11 +242,11 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0x1AFFFFFF),
+              color: AppColors.transparentWhite,
               border: Border.all(
                 color: _selectedImage != null 
-                    ? const Color(0xFF58FF7F) 
-                    : Colors.white.withOpacity(0.2),
+                    ? AppColors.brandGreen 
+                    : AppColors.white54,
                 width: 2,
                 style: BorderStyle.solid,
               ),
@@ -264,10 +265,10 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Аватар обрано',
                     style: TextStyle(
-                      color: Color(0xFF58FF7F),
+                      color: AppColors.brandGreen,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -277,16 +278,16 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: AppColors.transparentWhite,
                       borderRadius: BorderRadius.circular(40),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
+                        color: AppColors.white54,
                         width: 2,
                       ),
                     ),
                     child: Icon(
                       Icons.add_a_photo,
-                      color: Colors.white.withOpacity(0.6),
+                      color: AppColors.white70,
                       size: 32,
                     ),
                   ),
@@ -294,7 +295,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                   Text(
                     'Оберіть зображення для аватару',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
+                      color: AppColors.white70,
                       fontSize: 16,
                     ),
                   ),
@@ -308,7 +309,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           'Підтримуються формати: JPG, PNG, GIF (макс. 5MB)',
           style: TextStyle(
             fontSize: 12,
-            color: const Color(0xFFAAAAAA),
+            color: Colors.grey.shade400,
           ),
         ),
       ],
@@ -319,44 +320,44 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Назва чату',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _chatNameController,
-          style: const TextStyle(
-            color: Color(0xFFEEEEEE),
+          style: TextStyle(
+            color: AppColors.lightGray,
             fontSize: 16,
           ),
           decoration: InputDecoration(
             hintText: 'Введіть назву чату...',
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.white54,
             ),
             filled: true,
-            fillColor: const Color(0x1AFFFFFF),
+            fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.white54,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.white54,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFF58FF7F),
+              borderSide: BorderSide(
+                color: AppColors.brandGreen,
                 width: 2,
               ),
             ),
@@ -367,11 +368,11 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Оберіть зрозумілу назву для вашого чату',
           style: TextStyle(
             fontSize: 12,
-            color: Color(0xFFAAAAAA),
+            color: Colors.grey.shade400,
           ),
         ),
       ],
@@ -382,45 +383,45 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Опис чату',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _chatDescriptionController,
           maxLines: 4,
-          style: const TextStyle(
-            color: Color(0xFFEEEEEE),
+          style: TextStyle(
+            color: AppColors.lightGray,
             fontSize: 16,
           ),
           decoration: InputDecoration(
             hintText: 'Опишіть тему або мету чату...',
             hintStyle: TextStyle(
-              color: Colors.white.withOpacity(0.5),
+              color: AppColors.white54,
             ),
             filled: true,
-            fillColor: const Color(0x1AFFFFFF),
+            fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.white54,
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.2),
+                color: AppColors.white54,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFF58FF7F),
+              borderSide: BorderSide(
+                color: AppColors.brandGreen,
                 width: 2,
               ),
             ),
@@ -431,11 +432,11 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Короткий опис допоможе іншим зрозуміти тему чату',
           style: TextStyle(
             fontSize: 12,
-            color: Color(0xFFAAAAAA),
+            color: Colors.grey.shade400,
           ),
         ),
       ],
@@ -446,12 +447,12 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Приватність',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFEEEEEE),
+            color: AppColors.lightGray,
           ),
         ),
         const SizedBox(height: 12),
@@ -479,12 +480,12 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected 
-              ? const Color(0xFF58FF7F).withOpacity(0.1)
-              : const Color(0x1AFFFFFF),
+              ? AppColors.brandGreen.withOpacity(0.1)
+              : AppColors.transparentWhite,
           border: Border.all(
             color: isSelected 
-                ? const Color(0xFF58FF7F)
-                : Colors.white.withOpacity(0.2),
+                ? AppColors.brandGreen
+                : AppColors.white54,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -496,8 +497,8 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
               height: 48,
               decoration: BoxDecoration(
                 color: isSelected 
-                    ? const Color(0xFF58FF7F).withOpacity(0.2)
-                    : Colors.white.withOpacity(0.1),
+                    ? AppColors.brandGreen.withOpacity(0.2)
+                    : AppColors.transparentWhite,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
@@ -518,8 +519,8 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: isSelected 
-                          ? const Color(0xFF58FF7F)
-                          : const Color(0xFFEEEEEE),
+                          ? AppColors.brandGreen
+                          : AppColors.lightGray,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -527,16 +528,16 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                     description,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.7),
+                      color: AppColors.white70,
                     ),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              const Icon(
+              Icon(
                 Icons.check_circle,
-                color: Color(0xFF58FF7F),
+                color: AppColors.brandGreen,
                 size: 24,
               ),
           ],
@@ -545,5 +546,3 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     );
   }
 }
-
-// create

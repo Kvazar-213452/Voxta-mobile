@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/interface/chat_models.dart';
+import '../../../app_colors.dart';
 
 class ChatItemWidget extends StatelessWidget {
   final ChatItem chat;
@@ -33,17 +34,17 @@ class ChatItemWidget extends StatelessWidget {
               return Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF3d3d3d),
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
                   shape: BoxShape.circle,
                 ),
-                child: const Center(
+                child: Center(
                   child: SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                     ),
                   ),
                 ),
@@ -89,7 +90,7 @@ class ChatItemWidget extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.whiteText.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: Colors.transparent),
               ),
@@ -117,8 +118,8 @@ class ChatItemWidget extends StatelessWidget {
                             children: [
                               AnimatedDefaultTextStyle(
                                 duration: const Duration(milliseconds: 200),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: AppColors.whiteText,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 child: Text(chat.name),
@@ -127,7 +128,7 @@ class ChatItemWidget extends StatelessWidget {
                               AnimatedDefaultTextStyle(
                                 duration: const Duration(milliseconds: 200),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.6),
+                                  color: AppColors.whiteText.withOpacity(0.6),
                                   fontSize: 12,
                                 ),
                                 child: Text(
@@ -142,7 +143,7 @@ class ChatItemWidget extends StatelessWidget {
                         AnimatedDefaultTextStyle(
                           duration: const Duration(milliseconds: 200),
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.6),
+                            color: AppColors.whiteText.withOpacity(0.6),
                             fontSize: 11,
                           ),
                           child: Text(chat.time),
@@ -159,5 +160,3 @@ class ChatItemWidget extends StatelessWidget {
     );
   }
 }
-
-// ChatSettingsModal
