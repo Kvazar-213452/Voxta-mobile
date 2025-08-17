@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
 class ProfileFooterWidget extends StatelessWidget {
-  final VoidCallback onReset;
   final VoidCallback onSave;
   final bool isLoading;
 
   const ProfileFooterWidget({
     super.key,
-    required this.onReset,
     required this.onSave,
     this.isLoading = false,
   });
@@ -25,14 +23,6 @@ class ProfileFooterWidget extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: _buildFooterButton(
-              text: 'Скинути',
-              color: Colors.white.withOpacity(0.1),
-              textColor: Colors.white,
-              onTap: onReset,
-            ),
-          ),
           const SizedBox(width: 15),
           Expanded(
             flex: 2,

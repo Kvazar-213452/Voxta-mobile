@@ -294,8 +294,8 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       title: '🔔 Сповіщення',
       children: [
         _buildToggleItem(
-          title: 'Браузерні сповіщення',
-          subtitle: 'Показувати сповіщення в браузері',
+          title: 'Сповіщення',
+          subtitle: 'Показувати сповіщення',
           value: _browserNotifications,
           onChanged: (value) => setState(() => _browserNotifications = value),
         ),
@@ -340,12 +340,6 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     return _buildSection(
       title: '👁️ Приватність',
       children: [
-        _buildToggleItem(
-          title: 'Читання повідомлень',
-          subtitle: 'Показувати коли повідомлення прочитане',
-          value: _readReceipts,
-          onChanged: (value) => setState(() => _readReceipts = value),
-        ),
         _buildToggleItem(
           title: 'Статус онлайн',
           subtitle: 'Показувати коли ви онлайн',
@@ -625,5 +619,3 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 }
-
-// getSettings

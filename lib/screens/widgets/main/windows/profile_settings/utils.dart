@@ -2,6 +2,8 @@ import '../../../../../services/chat/socket_service.dart';
 import 'dart:async';
 import 'dart:convert';
 import '../../../../../utils/crypto/crypto_auto.dart';
+import '../../../../../models/storage_user.dart';
+import '../../../../../models/interface/user.dart';
 
 Future<Map<String, dynamic>> getSelf() async {
   final completer = Completer<Map<String, dynamic>>();
@@ -105,4 +107,10 @@ Future<Map<String, dynamic>> getSelfWithRetry({int maxRetries = 3}) async {
   }
   
   throw lastException ?? Exception('Невідома помилка');
+}
+
+void saveProfile(Map<String, dynamic> data) async {
+  final UserModel? user = await getUserStorage();
+
+  socket!.emit('save_profile', await encrypt_auto({'data': data, 'id': user?.id}));
 }

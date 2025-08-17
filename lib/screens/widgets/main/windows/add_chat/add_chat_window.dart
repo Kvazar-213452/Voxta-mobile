@@ -5,7 +5,7 @@ import 'header.dart';
 import 'footer.dart';
 import 'server_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
-import 'dart:convert';
+import '../../../../../utils/getImageBase64.dart';
 import '../../../../../models/offline_chat.dart';
 
 class AddChatScreen extends StatefulWidget {
@@ -89,36 +89,6 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     }
   }
 
-  String? _getImageBase64() {
-    if (_selectedImage == null) return null;
-    
-    try {
-      final bytes = _selectedImage!.readAsBytesSync();
-      final extension = _selectedImage!.path.split('.').last.toLowerCase();
-      
-      String mimeType;
-      switch (extension) {
-        case 'jpg':
-        case 'jpeg':
-          mimeType = 'image/jpeg';
-          break;
-        case 'png':
-          mimeType = 'image/png';
-          break;
-        case 'gif':
-          mimeType = 'image/gif';
-          break;
-        default:
-          mimeType = 'image/jpeg';
-      }
-      
-      return 'data:$mimeType;base64,${base64Encode(bytes)}';
-    } catch (e) {
-      print('Error converting image to base64: $e');
-      return null;
-    }
-  }
-
   void _selectPrivacy(String privacy) {
     setState(() {
       _selectedPrivacy = privacy;
@@ -132,7 +102,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
   }
 
   void _showServerModal() {
-    final avatarBase64 = _getImageBase64();
+    final avatarBase64 = getImageBase64(_selectedImage);
 
     showDialog(
       context: context,
@@ -169,7 +139,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       if (_selectedPrivacy == "server") {
         _showServerModal();
       } else {
-        final avatarBase64 = _getImageBase64();
+        final avatarBase64 = getImageBase64(_selectedImage);
 
         if (_selectedPrivacy == "offline") {
           await ChatDB.createChat(_chatNameController.text);
@@ -575,3 +545,5 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     );
   }
 }
+
+// create

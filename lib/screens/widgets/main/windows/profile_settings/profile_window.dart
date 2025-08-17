@@ -4,6 +4,7 @@ import 'dart:io';
 import 'header.dart';
 import 'footer.dart';
 import 'utils.dart';
+import '../../../../../utils/getImageBase64.dart';
 
 class ProfileScreenWidget extends StatefulWidget {
   const ProfileScreenWidget({super.key});
@@ -88,7 +89,6 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
           _isDataLoading = false;
         });
         
-        // Показати повідомлення про помилку з кращим текстом
         String errorMessage = 'Невідома помилка';
         
         if (e.toString().contains('secure_storage') || 
@@ -153,43 +153,27 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       _isLoading = true;
     });
 
-    // Симуляція збереження
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Показати повідомлення про успіх
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Профіль успішно збережено!'),
-        backgroundColor: Color(0xFF58ff7f),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _resetProfile() async {
     try {
+      String? avatarData = getImageBase64(_selectedImage);
+
+      Map<String, dynamic> profileData = {
+        'name': _nameController.text.trim(),
+        'avatar': avatarData,
+        'desc': _descriptionController.text.trim(),
+      };
+
+      saveProfile(profileData);
+
       setState(() {
-        _isDataLoading = true;
+        _isLoading = false;
       });
 
-      await _loadProfileData();
-      
-      if (mounted) {
-        setState(() {
-          _selectedImage = null;
-        });
-      }
+      _closeProfile();
     } catch (e) {
-      // Помилка вже оброблена в _loadProfileData
-      if (mounted) {
-        setState(() {
-          _isDataLoading = false;
-        });
-      }
+      print("Error saving profile: $e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -239,7 +223,6 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                             ),
                           ),
                           ProfileFooterWidget(
-                            onReset: _resetProfile,
                             onSave: _saveProfile,
                             isLoading: _isLoading,
                           ),
@@ -634,3 +617,5 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     );
   }
 }
+
+// close

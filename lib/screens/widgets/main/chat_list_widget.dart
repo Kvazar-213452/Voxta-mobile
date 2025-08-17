@@ -52,9 +52,9 @@ class ChatListWidget extends StatelessWidget {
                           children: [
                             _buildHeaderButton(Icons.manage_accounts, onProfileSettingsTap),
                             const SizedBox(width: 8),
-                            _buildHeaderButton(Icons.settings, onSettingsTap),
-                            const SizedBox(width: 8),
                             _buildHeaderButton(Icons.add, onAddChatTap),
+                            const SizedBox(width: 8),
+                            _buildHeaderButton(Icons.settings, onSettingsTap),
                           ],
                         ),
                       ],

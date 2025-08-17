@@ -81,4 +81,3 @@ class MainStart extends StatelessWidget {
     );
   }
 }
-
