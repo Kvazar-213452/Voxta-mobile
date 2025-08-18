@@ -85,7 +85,6 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
         ),
       );
     } else {
-      // Fallback для не-URL випадків
       return CircleAvatar(
         radius: 20,
         backgroundColor: Colors.transparent,
@@ -184,6 +183,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                             type: widget.type,
                             id: widget.id,
                             chatAvatar: _buildChatAvatar(),
+                            onBackPressed: widget.onBackPressed,
                           )),
                         ],
                       ),
@@ -324,3 +324,5 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     }
   }
 }
+
+// widget.onBackPressed

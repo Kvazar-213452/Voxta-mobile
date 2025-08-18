@@ -1,5 +1,6 @@
 import '../../../../../services/chat/socket_service.dart';
 import 'dart:async';
+import '../../../../../utils/crypto/crypto_auto.dart';
 
 // ! ============ server func ============
 void getInfoUsers({
@@ -138,4 +139,8 @@ Future<String> generateRandomCode(String id) async {
   }
 
   return completer.future;
+}
+
+Future<void> delSelfInChat(String id, String type) async {
+  socket!.emit('del_user_in_chat_self', await encrypt_auto({'id': id, 'typeChat': type}));
 }

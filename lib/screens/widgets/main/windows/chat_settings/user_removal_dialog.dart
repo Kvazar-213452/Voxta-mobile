@@ -162,7 +162,7 @@ class UserRemovalDialog extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: onConfirm, // Тепер викликаємо callback безпосередньо
+                    onPressed: onConfirm,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       backgroundColor: AppColors.warningRed,

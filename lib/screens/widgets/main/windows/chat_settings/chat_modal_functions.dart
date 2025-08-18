@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
 import 'utils.dart';
+import '../../../../../services/chat/socket_service.dart';
 
 class ChatModalFunctions {
   static void showChatOptionsModal(
@@ -9,6 +10,7 @@ class ChatModalFunctions {
     required String id,
     required String type,
     required Widget chatAvatar,
+    required VoidCallback onBackPressed
   }) {
     showDialog(
       context: context,
@@ -32,7 +34,8 @@ class ChatModalFunctions {
           id: id, 
           type: type, 
           chatName: chatName, 
-          chatAvatar: chatAvatar
+          chatAvatar: chatAvatar,
+          onBackPressed: onBackPressed,
         );
       },
       onError: (String error) {
@@ -53,6 +56,7 @@ class ChatModalFunctions {
     required String type,
     required String chatName,
     required Widget chatAvatar,
+    required VoidCallback onBackPressed,
   }) {
     showModalBottomSheet(
       context: context,
@@ -133,11 +137,11 @@ class ChatModalFunctions {
               ),
               
               _buildModalOption(
-                icon: Icons.block,
-                title: 'Заблокувати',
+                icon: Icons.exit_to_app,
+                title: 'Вийти',
                 onTap: () {
                   Navigator.pop(context);
-                  showBlockDialog(context, chatName: chatName);
+                  showBlockDialog(onBackPressed, id, type, context, chatName: chatName);
                 },
                 isDestructive: true,
               ),
@@ -195,7 +199,7 @@ class ChatModalFunctions {
     );
   }
 
-  static void showBlockDialog(BuildContext context, {required String chatName}) {
+  static void showBlockDialog(VoidCallback onBackPressed, String id, String type, BuildContext context, {required String chatName}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -205,11 +209,11 @@ class ChatModalFunctions {
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
-            'Заблокувати $chatName?',
+            'Вийти $chatName?',
             style: TextStyle(color: AppColors.whiteText),
           ),
           content: Text(
-            'Ви не зможете отримувати повідомлення від цього користувача.',
+            'Ви вийдете з цього чату',
             style: TextStyle(color: AppColors.white70),
           ),
           actions: [
@@ -221,11 +225,14 @@ class ChatModalFunctions {
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
+                await delSelfInChat(id, type);
+                await loadChats();
+                onBackPressed();
               },
               child: Text(
-                'Заблокувати',
+                'Вийти',
                 style: TextStyle(color: AppColors.destructiveRed),
               ),
             ),
@@ -342,3 +349,5 @@ class ChatModalFunctions {
     );
   }
 }
+
+// close

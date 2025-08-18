@@ -64,7 +64,6 @@ class ChatItemWidget extends StatelessWidget {
         ),
       );
     } else {
-      // Якщо аватар - це емодзі
       return CircleAvatar(
         radius: 22,
         backgroundColor: Colors.transparent,
