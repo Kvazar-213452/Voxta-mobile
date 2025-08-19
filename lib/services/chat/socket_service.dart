@@ -1,12 +1,10 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../../models/storage_user.dart';
-import '../../models/offline_chat.dart';
 import '../../models/interface/user.dart';
 import '../../models/interface/chat_models.dart';
 import '../../config.dart';
 import 'utils.dart';
 import '../../utils/crypto/crypto_auto.dart';
-import '../../models/interface/offlne_msg.dart';
 
 IO.Socket? socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -66,23 +64,7 @@ void connectSocket(
     socket!.on('load_chat_content_return', (data) async {
       data = await decrypted_auto(data);
 
-      if (data["code"] == 1) {
-        if (data["type"] == "offline") {
-          final msg = await ChatDB.getMessagesByChatId(data["chatId"]);
-
-          final Map<String, dynamic> data_send = {
-            "messages": msg.map((m) => m.toJson()).toList(),
-            "chatId": data["chatId"],
-            "participants": data["participants"],
-            "type": "offline",
-            "code": 1
-          };
-
-          _onChatContentReceived!(data_send);
-        } else {
-          _onChatContentReceived!(data as Map<String, dynamic>);
-        }
-      }
+      _onChatContentReceived!(data as Map<String, dynamic>);
     });
 
     socket!.on('create_new_chat', (data) async {
@@ -153,30 +135,17 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
 }
 
 void sendMessage(String text, String userId, String chatId, String type) async {
-  if (type == "offline") {
-    final msg = await ChatDB.addMessage(
-      chatId,
-      MsgToDb(
-        sender: userId,
-        content: text,
-        time: DateTime.now().toIso8601String(),
-      ),
-    );
+  final dataToEncrypt = {
+    'message': {
+      'content': text,
+      'sender': userId,
+      'time': DateTime.now().toIso8601String()
+    },
+    'chatId': chatId,
+    'typeChat': type
+  };
 
-    _onMessageReceived!(msg.toJson());
-  } else {
-    final dataToEncrypt = {
-      'message': {
-        'content': text,
-        'sender': userId,
-        'time': DateTime.now().toIso8601String()
-      },
-      'chatId': chatId,
-      'typeChat': type
-    };
-
-    socket!.emit('send_message', await encrypt_auto(dataToEncrypt));
-  }
+  socket!.emit('send_message', await encrypt_auto(dataToEncrypt));
 }
 
 void loadChatContent(String chatId, String type) async {

@@ -209,7 +209,6 @@ class _MainScreenState extends State<MainScreen> {
 
   void _processChatContent(Map<String, dynamic> chatContent) {
     if (chatContent["code"] == 1 && chatContent.containsKey('messages') && chatContent.containsKey('participants')) {
-      print(chatContent);
       List<dynamic> messagesData = chatContent['messages'] ?? [];
       Map<String, dynamic> participants = chatContent['participants'] ?? {};
       
@@ -283,7 +282,6 @@ class _MainScreenState extends State<MainScreen> {
         _scrollToBottom();
       });
       
-      print('✅ Завантажено ${parsedMessages.length} повідомлень');
     } else {
       print('Не можу завантажити чат');
     }
@@ -338,4 +336,4 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// AddChatScreen
+// print

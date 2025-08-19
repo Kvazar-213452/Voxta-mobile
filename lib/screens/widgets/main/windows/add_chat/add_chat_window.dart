@@ -6,7 +6,6 @@ import 'footer.dart';
 import 'server_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../utils/getImageBase64.dart';
-import '../../../../../models/offline_chat.dart';
 import '../../../../../app_colors.dart';
 
 class AddChatScreen extends StatefulWidget {
@@ -22,7 +21,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
   final TextEditingController _chatDescriptionController = TextEditingController();
   
   File? _selectedImage;
-  String _selectedPrivacy = 'offline';
+  String _selectedPrivacy = 'online';
   bool _isFormValid = false;
   
   late AnimationController _animationController;
@@ -141,10 +140,6 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         _showServerModal();
       } else {
         final avatarBase64 = getImageBase64(_selectedImage);
-
-        if (_selectedPrivacy == "offline") {
-          await ChatDB.createChat(_chatNameController.text);
-        }
 
         createChat(
           _chatNameController.text,
@@ -458,8 +453,6 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 12),
         Column(
           children: [
-            _buildPrivacyOption('offline', '🔒', 'Приватний', 'Чат видимий тільки вам'),
-            const SizedBox(height: 12),
             _buildPrivacyOption('online', '🌐', 'Публічний', 'Всі можуть приєднатися до чату'),
             const SizedBox(height: 12),
             _buildPrivacyOption('server', '⚙️', 'Серверний', 'Контролюється адміністратором'),
