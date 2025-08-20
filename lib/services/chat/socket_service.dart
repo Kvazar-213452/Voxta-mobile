@@ -8,6 +8,7 @@ import '../../utils/crypto/crypto_auto.dart';
 
 IO.Socket? socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
+Function()? _onReloadChatContent;
 Function(List<ChatItem>)? _onChatsReceived;
 Function(Map<String, dynamic>)? _onChatContentReceived;
 
@@ -15,10 +16,12 @@ void connectSocket(
   UserModel user, 
   String token, 
   Function(Map<String, dynamic>) onMessageReceived,
+  Function() onReloadChatContent,
   {Function(List<ChatItem>)? onChatsReceived,
    Function(Map<String, dynamic>)? onChatContentReceived}
 ) {
   _onMessageReceived = onMessageReceived;
+  _onReloadChatContent = onReloadChatContent;
   _onChatsReceived = onChatsReceived;
   _onChatContentReceived = onChatContentReceived;
   saveUserStorage(user);
@@ -41,6 +44,10 @@ void connectSocket(
       data = await decrypted_auto(data);
 
       _onMessageReceived!(data as Map<String, dynamic>);
+    });
+
+    socket!.on('del_msg', (data) async {
+      _onReloadChatContent!();
     });
 
     socket!.on('authenticated', (data) async {

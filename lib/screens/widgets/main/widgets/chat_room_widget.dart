@@ -257,13 +257,18 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                         itemCount: widget.messages.length,
                         itemBuilder: (context, index) {
                           final message = widget.messages[index];
-                          
-                          // Перевіряємо тип повідомлення
+
                           if (message.type == "file") {
-                            return FileMessageBuilder.buildFileMessage(message);
+                            return FileMessageBuilder.buildFileMessage(
+                              message, 
+                              chatId: widget.id,
+                              context: context,
+                            );
                           } else {
-                            // Звичайне текстове повідомлення
-                            return MessageWidget(message: message);
+                            return MessageWidget(
+                              message: message,
+                              chatId: widget.id,
+                            );
                           }
                         },
                       ),

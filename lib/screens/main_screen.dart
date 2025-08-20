@@ -104,6 +104,12 @@ class _MainScreenState extends State<MainScreen> {
           }
         },
 
+        () async {
+          if (mounted) {
+            loadChatContent(selectedChatId!, currentChatType!);
+          }
+        },
+
         onChatsReceived: (List<ChatItem> receivedChats) {
           if (mounted) {
             setState(() {
@@ -117,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
           if (mounted) {
             _processChatContent(chatContent);
           }
-        }
+        },
       );
     } catch (e) {
       print("error init: $e");

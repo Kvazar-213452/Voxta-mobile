@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../../../../../models/interface/chat_models.dart';
 import '../../../../../app_colors.dart';
 import '../utils/chat_room.dart';
+import 'delete_message_dialog.dart';
 
 class FileMessageBuilder {
   static bool _isImageFile(String fileName) {
@@ -10,7 +11,7 @@ class FileMessageBuilder {
     return imageExtensions.any((ext) => fileName.toLowerCase().endsWith(ext));
   }
 
-  static Widget buildFileMessage(Message message) {
+  static Widget buildFileMessage(Message message, {String? chatId, BuildContext? context}) {
     Map<String, dynamic> fileData;
     
     try {
@@ -30,7 +31,7 @@ class FileMessageBuilder {
     final String size = fileData['size']?.toString() ?? '0';
     final bool isImage = _isImageFile(name);
 
-    return Container(
+    Widget messageContent = Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -57,6 +58,19 @@ class FileMessageBuilder {
         ],
       ),
     );
+
+    if (message.isOwn) {
+      return GestureDetector(
+        onLongPress: () => DeleteMessageDialog.show(
+          context: context!,
+          message: message,
+          chatId: chatId!,
+        ),
+        child: messageContent,
+      );
+    }
+
+    return messageContent;
   }
 
   static Widget _buildErrorMessage() {

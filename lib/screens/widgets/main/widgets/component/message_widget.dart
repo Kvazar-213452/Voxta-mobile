@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../../../../models/interface/chat_models.dart';
 import '../../../../../app_colors.dart';
+import 'delete_message_dialog.dart';
 
 class MessageWidget extends StatelessWidget {
   final Message message;
+  final String? chatId;
 
   const MessageWidget({
     super.key,
     required this.message,
+    this.chatId,
   });
 
   bool _isUrl(String? avatar) {
@@ -88,9 +91,11 @@ class MessageWidget extends StatelessWidget {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder(
+    Widget messageContent = TweenAnimationBuilder(
       duration: const Duration(milliseconds: 300),
       tween: Tween<double>(begin: 0, end: 1),
       builder: (context, double value, child) {
@@ -179,5 +184,18 @@ class MessageWidget extends StatelessWidget {
         );
       },
     );
+
+    if (message.isOwn) {
+      return GestureDetector(
+        onLongPress: () => DeleteMessageDialog.show(
+          context: context,
+          message: message,
+          chatId: chatId!,
+        ),
+        child: messageContent,
+      );
+    }
+
+    return messageContent;
   }
 }
