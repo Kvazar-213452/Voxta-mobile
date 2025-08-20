@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../app_colors.dart';
-import '../../../utils/getImageBase64.dart';
+import '../../../../../app_colors.dart';
+import '../../../../../utils/getBase64.dart';
 
 class FilePickerService {
   static final ImagePicker _imagePicker = ImagePicker();

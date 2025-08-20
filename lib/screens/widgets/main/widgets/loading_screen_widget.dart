@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../app_colors.dart';
+import '../../../../app_colors.dart';
 
-class EmptyStateWidget extends StatelessWidget {
-  final IconData icon;
+class LoadingScreenWidget extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const EmptyStateWidget({
+  const LoadingScreenWidget({
     super.key,
-    required this.icon,
     required this.title,
     required this.subtitle,
   });
@@ -19,29 +17,28 @@ class EmptyStateWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 64,
-            color: AppColors.white54,
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
           ),
           const SizedBox(height: 16),
           Text(
             title,
             style: TextStyle(
               color: AppColors.white70,
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+              fontSize: 16,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: AppColors.white54,
-              fontSize: 14,
+          if (subtitle.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: AppColors.white54,
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
+          ],
         ],
       ),
     );

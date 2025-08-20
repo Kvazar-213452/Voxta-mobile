@@ -4,7 +4,7 @@ import 'dart:io';
 import 'header.dart';
 import 'footer.dart';
 import 'utils.dart';
-import '../../../../../utils/getImageBase64.dart';
+import '../../../../../utils/getBase64.dart';
 import '../../../../../app_colors.dart';
 
 class ProfileScreenWidget extends StatefulWidget {

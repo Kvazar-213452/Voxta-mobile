@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/interface/chat_models.dart';
-import 'widgets/main/chat_list_widget.dart';
-import 'widgets/main/chat_room_widget.dart';
-import 'widgets/main/loading_screen_widget.dart';
-import 'widgets/main/empty_state_widget.dart';
-import 'widgets/main/app_background.dart';
+import 'widgets/main/widgets/chat_list_widget.dart';
+import 'widgets/main/widgets/chat_room_widget.dart';
+import 'widgets/main/widgets/loading_screen_widget.dart';
+import 'widgets/main/widgets/empty_state_widget.dart';
+import 'widgets/main/widgets/app_background.dart';
 import 'widgets/main/windows/settings/settings_window.dart';
 import 'widgets/main/windows/profile_settings/profile_window.dart';
 import '../services/chat/socket_service.dart';

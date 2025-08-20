@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../models/interface/chat_models.dart';
+import '../../../../models/interface/chat_models.dart';
 import 'chat_item_widget.dart';
-import '../../../app_colors.dart';
+import '../../../../app_colors.dart';
 
 class ChatListWidget extends StatelessWidget {
   final List<ChatItem> chats;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../models/interface/chat_models.dart';
-import '../../../app_colors.dart';
+import '../../../../models/interface/chat_models.dart';
+import '../../../../app_colors.dart';
 
 class ChatItemWidget extends StatelessWidget {
   final ChatItem chat;

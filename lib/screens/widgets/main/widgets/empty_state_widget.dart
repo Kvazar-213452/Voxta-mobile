@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../../app_colors.dart';
+import '../../../../app_colors.dart';
 
-class LoadingScreenWidget extends StatelessWidget {
+class EmptyStateWidget extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String subtitle;
 
-  const LoadingScreenWidget({
+  const EmptyStateWidget({
     super.key,
+    required this.icon,
     required this.title,
     required this.subtitle,
   });
@@ -17,28 +19,29 @@ class LoadingScreenWidget extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.whiteText),
+          Icon(
+            icon,
+            size: 64,
+            color: AppColors.white54,
           ),
           const SizedBox(height: 16),
           Text(
             title,
             style: TextStyle(
               color: AppColors.white70,
-              fontSize: 16,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          if (subtitle.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: AppColors.white54,
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: AppColors.white54,
+              fontSize: 14,
             ),
-          ],
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../models/interface/chat_models.dart';
-import '../../../app_colors.dart';
+import '../../../../../models/interface/chat_models.dart';
+import '../../../../../app_colors.dart';
 
 class MessageWidget extends StatelessWidget {
   final Message message;
@@ -15,7 +15,6 @@ class MessageWidget extends StatelessWidget {
     return avatar.startsWith('http://') || avatar.startsWith('https://');
   }
 
-  // Метод для безпечного отримання тексту повідомлення
   String _getMessageText() {
     if (message.text is String) {
       return message.text as String;
@@ -74,7 +73,6 @@ class MessageWidget extends StatelessWidget {
         ),
       );
     } else {
-      // Fallback аватар для не-URL випадків
       return CircleAvatar(
         radius: 16,
         backgroundColor: Colors.transparent,
@@ -120,7 +118,6 @@ class MessageWidget extends StatelessWidget {
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
-                        // Показуємо ім'я відправника для не власних повідомлень
                         if (!message.isOwn && message.senderName != null) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 4, bottom: 4),

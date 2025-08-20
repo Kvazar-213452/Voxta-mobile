@@ -5,7 +5,7 @@ import 'header.dart';
 import 'footer.dart';
 import 'server_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
-import '../../../../../utils/getImageBase64.dart';
+import '../../../../../utils/getBase64.dart';
 import '../../../../../app_colors.dart';
 
 class AddChatScreen extends StatefulWidget {
