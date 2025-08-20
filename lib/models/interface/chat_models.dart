@@ -18,12 +18,13 @@ class ChatItem {
 
 class Message {
   final String id;
-  final String text;
+  final Object text;
   final bool isOwn;
   final String time;
   final String? senderName;
   final String? senderAvatar;
   final String? senderId;
+  final String? type;
 
   Message({
     required this.id,
@@ -33,5 +34,6 @@ class Message {
     this.senderName,
     this.senderAvatar,
     this.senderId,
+    this.type,
   });
 }

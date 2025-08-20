@@ -63,9 +63,10 @@ class _MainScreenState extends State<MainScreen> {
               Map<String, dynamic> chatData = data;
               
               String messageId = chatData['_id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
-              String content = chatData['content'] ?? '';
+              Object content = chatData['content'] ?? '';
               String senderId = chatData['sender'] ?? '';
               String time = chatData['time'] ?? '';
+              String type = chatData['type'] ?? '';
               
               String displayTime = _formatMessageTime(time);
               
@@ -88,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
                 senderName: senderName,
                 senderAvatar: senderAvatar,
                 senderId: senderId,
+                type: type
               );
               
               setState(() {
@@ -220,8 +222,9 @@ class _MainScreenState extends State<MainScreen> {
         try {
           String senderId = messageData['sender'].toString();
           String messageId = messageData['_id'] ?? '';
-          String content = messageData['content'] ?? '';
+          Object content = messageData['content'] ?? '';
           String time = messageData['time'] ?? '';
+          String type = messageData['type'] ?? 'text';
           
           String displayTime = _formatMessageTime(time);
           
@@ -244,6 +247,7 @@ class _MainScreenState extends State<MainScreen> {
             senderName: senderName,
             senderAvatar: senderAvatar,
             senderId: senderId,
+            type: type
           );
           
           parsedMessages.add(message);
@@ -305,8 +309,24 @@ class _MainScreenState extends State<MainScreen> {
     loadChatContent(chatId, type);
   }
 
-  void _onMessageSent(String messageText) {
-    sendMessage(messageText, currentUserId ?? 'unknown', selectedChatId ?? '', currentChatType  ?? '');
+  void _onMessageSent(String messageText, {Map<String, dynamic>? fileData}) {
+    if (fileData != null) {
+      sendMessage(
+        fileData, 
+        currentUserId ?? 'unknown', 
+        selectedChatId ?? '', 
+        currentChatType ?? '', 
+        "file"
+      );
+    } else if (messageText.isNotEmpty) {
+      sendMessage(
+        messageText, 
+        currentUserId ?? 'unknown', 
+        selectedChatId ?? '', 
+        currentChatType ?? '', 
+        "text"
+      );
+    }
     
     messageController.clear();
   }
@@ -335,5 +355,3 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
-
-// print

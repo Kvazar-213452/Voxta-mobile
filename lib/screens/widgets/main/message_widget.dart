@@ -15,6 +15,15 @@ class MessageWidget extends StatelessWidget {
     return avatar.startsWith('http://') || avatar.startsWith('https://');
   }
 
+  // Метод для безпечного отримання тексту повідомлення
+  String _getMessageText() {
+    if (message.text is String) {
+      return message.text as String;
+    } else {
+      return message.text.toString();
+    }
+  }
+
   Widget _buildAvatar() {
     if (message.isOwn) {
       return const SizedBox.shrink();
@@ -144,7 +153,7 @@ class MessageWidget extends StatelessWidget {
                               color: AppColors.whiteText,
                               fontSize: 14,
                             ),
-                            child: Text(message.text),
+                            child: Text(_getMessageText()),
                           ),
                         ),
                         const SizedBox(height: 4),

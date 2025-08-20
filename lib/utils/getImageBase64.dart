@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 String? getImageBase64(_selectedImage) {
   if (_selectedImage == null) return null;
@@ -28,4 +29,12 @@ String? getImageBase64(_selectedImage) {
     print('Error converting image to base64: $e');
     return null;
   }
+}
+
+String getFileBase64(File file) {
+  final bytes = file.readAsBytesSync();
+  
+  String mimeType = "text/plain";
+
+  return 'data:$mimeType;base64,${base64Encode(bytes)}';
 }

@@ -134,11 +134,12 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
   return chatsList;
 }
 
-void sendMessage(String text, String userId, String chatId, String type) async {
+void sendMessage(Object text, String userId, String chatId, String type, String typeMsg) async {
   final dataToEncrypt = {
     'message': {
       'content': text,
       'sender': userId,
+      'type': typeMsg,
       'time': DateTime.now().toIso8601String()
     },
     'chatId': chatId,
