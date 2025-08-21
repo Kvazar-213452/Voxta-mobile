@@ -3,11 +3,13 @@ import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
 import 'utils.dart';
 import '../../../../../services/chat/socket_service.dart';
+import '../../../../../models/storage_user.dart';
 
 class ChatModalFunctions {
   static void showChatOptionsModal(
     BuildContext context, {
     required String id,
+    required String owner,
     required String type,
     required Widget chatAvatar,
     required VoidCallback onBackPressed
@@ -36,6 +38,7 @@ class ChatModalFunctions {
           chatName: chatName, 
           chatAvatar: chatAvatar,
           onBackPressed: onBackPressed,
+          owner: owner,
         );
       },
       onError: (String error) {
@@ -53,6 +56,7 @@ class ChatModalFunctions {
   static void _showOptionsModal(
     BuildContext context, {
     required String id,
+    required String owner,
     required String type,
     required String chatName,
     required Widget chatAvatar,
@@ -63,92 +67,110 @@ class ChatModalFunctions {
       backgroundColor: AppColors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.modalBackground,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            border: Border.all(
-              color: AppColors.modalBorder,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.modalHandle,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
+        return FutureBuilder(
+          future: getUserStorage(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      child: chatAvatar,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            chatName,
-                            style: TextStyle(
-                              color: AppColors.whiteText,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            type,
-                            style: TextStyle(
-                              color: AppColors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+            final user = snapshot.data;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.modalBackground,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                border: Border.all(
+                  color: AppColors.modalBorder,
                 ),
               ),
-              
-              Container(
-                height: 1,
-                color: AppColors.modalDivider,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.modalHandle,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          child: chatAvatar,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                chatName,
+                                style: TextStyle(
+                                  color: AppColors.whiteText,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                type,
+                                style: TextStyle(
+                                  color: AppColors.white70,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  Container(
+                    height: 1,
+                    color: AppColors.modalDivider,
+                  ),
+
+                  if (user != null && owner == user.id)
+                    _buildModalOption(
+                      icon: Icons.settings,
+                      title: 'Налаштування',
+                      onTap: () {
+                        Navigator.pop(context);
+                        _loadAndShowChatSettings(context, id: id, type: type);
+                      },
+                    ),
+
+                  _buildModalOption(
+                    icon: Icons.exit_to_app,
+                    title: 'Вийти',
+                    onTap: () {
+                      Navigator.pop(context);
+                      showBlockDialog(
+                        onBackPressed,
+                        id,
+                        type,
+                        context,
+                        chatName: chatName,
+                      );
+                    },
+                    isDestructive: true,
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
-              
-              _buildModalOption(
-                icon: Icons.settings,
-                title: 'Налаштування',
-                onTap: () {
-                  Navigator.pop(context);
-                  _loadAndShowChatSettings(context, id: id, type: type);
-                },
-              ),
-              
-              _buildModalOption(
-                icon: Icons.exit_to_app,
-                title: 'Вийти',
-                onTap: () {
-                  Navigator.pop(context);
-                  showBlockDialog(onBackPressed, id, type, context, chatName: chatName);
-                },
-                isDestructive: true,
-              ),
-              
-              const SizedBox(height: 20),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -350,4 +372,4 @@ class ChatModalFunctions {
   }
 }
 
-// close
+// налаштування

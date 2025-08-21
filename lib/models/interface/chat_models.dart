@@ -5,6 +5,7 @@ class ChatItem {
   final String time;
   final String avatar;
   final String type;
+  final String owner;
 
   ChatItem({
     required this.id,
@@ -13,6 +14,7 @@ class ChatItem {
     required this.time,
     required this.avatar,
     required this.type,
+    required this.owner,
   });
 }
 

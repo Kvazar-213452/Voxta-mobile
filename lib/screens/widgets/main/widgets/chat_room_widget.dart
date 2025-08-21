@@ -16,6 +16,7 @@ class ChatRoomWidget extends StatefulWidget {
   final String chatAvatar;
   final String type;
   final String id;
+  final String owner;
 
   const ChatRoomWidget({
     super.key,
@@ -28,6 +29,7 @@ class ChatRoomWidget extends StatefulWidget {
     required this.chatAvatar,
     required this.type,
     required this.id,
+    required this.owner,
   });
 
   @override
@@ -220,7 +222,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                                     color: AppColors.whiteText.withOpacity(0.7),
                                     fontSize: 12,
                                   ),
-                                  child: const Text('онлайн'),
+                                  child: Text(widget.type),
                                 ),
                               ],
                             ),
@@ -231,6 +233,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                             id: widget.id,
                             chatAvatar: _buildChatAvatar(),
                             onBackPressed: widget.onBackPressed,
+                            owner: widget.owner,
                           )),
                         ],
                       ),
@@ -240,8 +243,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
               },
             ),
             const SizedBox(height: 16),
-            
-            // Messages
+
             Expanded(
               child: TweenAnimationBuilder(
                 duration: const Duration(milliseconds: 500),
@@ -347,9 +349,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                                 textInputAction: TextInputAction.newline,
                                 keyboardType: TextInputType.multiline,
                                 decoration: InputDecoration(
-                                  hintText: _selectedFileData != null 
-                                      ? 'Додайте опис до файлу...' 
-                                      : 'Повідомлення...',
+                                  hintText: 'Повідомлення...',
                                   hintStyle: TextStyle(
                                     color: AppColors.whiteText.withOpacity(0.6),
                                   ),

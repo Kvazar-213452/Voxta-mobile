@@ -32,6 +32,7 @@ class _MainScreenState extends State<MainScreen> {
   bool isLoadingChats = true;
   String? selectedChatId;
   String? currentChatType;
+  String? currentChatOwner;
   String? currentUserId;
   Map<String, dynamic> currentChatParticipants = {};
 
@@ -212,6 +213,7 @@ class _MainScreenState extends State<MainScreen> {
       chatAvatar: currentChatAvatar,
       type: currentChatType ?? '',
       id: selectedChatId ?? '',
+      owner: currentChatOwner!
     );
   }
 
@@ -304,6 +306,7 @@ class _MainScreenState extends State<MainScreen> {
       currentChatAvatar = chat.avatar;
       selectedChatId = chat.id;
       currentChatType = chat.type;
+      currentChatOwner = chat.owner;
       messages = [];
       currentChatParticipants = {};
     });

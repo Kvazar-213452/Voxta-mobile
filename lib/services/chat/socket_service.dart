@@ -117,6 +117,7 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
       String avatar = chatInfo['avatar'] ?? '';
       String type = chatInfo['type'] ?? '';
       String desc = chatInfo['desc'] ?? '';
+      String owner = chatInfo['owner'] ?? '';
       String createdAt = chatInfo['createdAt'] ?? '';
 
       String displayAvatar = avatar.isNotEmpty ? avatar : "";
@@ -127,7 +128,8 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
         lastMessage: desc.isNotEmpty ? desc : 'Немає повідомлень',
         time: formatTime(createdAt),
         avatar: displayAvatar,
-        type: type, 
+        type: type,
+        owner: owner,
       );
       
       chatsList.add(chatItem);
