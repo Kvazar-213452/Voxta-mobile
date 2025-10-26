@@ -1,0 +1,10 @@
+dist
+node_modules
+.env
+target
+
+servises/authentication/private_key.pem
+servises/authentication/public_key.pem
+
+servises/chat/private_key.pem
+servises/chat/public_key.pem
