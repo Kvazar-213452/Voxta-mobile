@@ -3,27 +3,30 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'header.dart';
 import 'footer.dart';
-import 'server_chat_modal.dart';
+import 'temporary_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../utils/getBase64.dart';
 import '../../../../../app_colors.dart';
 
 class AddChatScreen extends StatefulWidget {
-  static final GlobalKey<_AddChatScreenState> addChatScreenKey = GlobalKey<_AddChatScreenState>();
+  static final GlobalKey<_AddChatScreenState> addChatScreenKey =
+      GlobalKey<_AddChatScreenState>();
   const AddChatScreen({Key? key}) : super(key: key);
 
   @override
   State<AddChatScreen> createState() => _AddChatScreenState();
 }
 
-class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateMixin {
+class _AddChatScreenState extends State<AddChatScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _chatNameController = TextEditingController();
-  final TextEditingController _chatDescriptionController = TextEditingController();
-  
+  final TextEditingController _chatDescriptionController =
+      TextEditingController();
+
   File? _selectedImage;
   String _selectedPrivacy = 'online';
   bool _isFormValid = false;
-  
+
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -31,30 +34,22 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _slideAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
+
+    _slideAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
     _animationController.forward();
-    
+
     _chatNameController.addListener(_validateForm);
     _chatDescriptionController.addListener(_validateForm);
   }
@@ -81,7 +76,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       maxHeight: 512,
       imageQuality: 80,
     );
-    
+
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
@@ -101,26 +96,33 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
     });
   }
 
-  void _showServerModal() {
+  void _showTemporaryModal() {
     final avatarBase64 = getImageBase64(_selectedImage);
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return ServerChatModal(
+        return TemporaryChatModal(
           chatName: _chatNameController.text,
           chatDescription: _chatDescriptionController.text,
           privacy: _selectedPrivacy,
           avatarBase64: avatarBase64 ?? '',
-          onCreateServer: (chatName, privacy, avatarBase64, chatDescription, idServer, codeServer) {
-            createChatServer(
+          onCreateTemporary: (
+            chatName,
+            privacy,
+            avatarBase64,
+            chatDescription,
+            expirationHours,
+            password,
+          ) {
+            createTemporaryChat(
               chatName,
               privacy,
               avatarBase64,
               chatDescription,
-              idServer,
-              codeServer,
+              expirationHours,
+              password,
             );
             closeScreen();
           },
@@ -136,8 +138,8 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
       print('Privacy: $_selectedPrivacy');
       print('Has avatar: ${_selectedImage != null}');
 
-      if (_selectedPrivacy == "server") {
-        _showServerModal();
+      if (_selectedPrivacy == "temporary") {
+        _showTemporaryModal();
       } else {
         final avatarBase64 = getImageBase64(_selectedImage);
 
@@ -147,7 +149,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
           avatarBase64 ?? '',
           _chatDescriptionController.text,
         );
-        
+
         closeScreen();
       }
     }
@@ -161,7 +163,10 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         return Scaffold(
           backgroundColor: AppColors.darkBackground,
           body: Transform.translate(
-            offset: Offset(MediaQuery.of(context).size.width * _slideAnimation.value, 0),
+            offset: Offset(
+              MediaQuery.of(context).size.width * _slideAnimation.value,
+              0,
+            ),
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: Container(
@@ -180,9 +185,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                   child: Column(
                     children: [
                       ChatHeader(onBack: closeScreen),
-                      Expanded(
-                        child: _buildBody(),
-                      ),
+                      Expanded(child: _buildBody()),
                       ChatFooter(
                         onJoinChat: null,
                         onCreate: _createChat,
@@ -239,9 +242,10 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
             decoration: BoxDecoration(
               color: AppColors.transparentWhite,
               border: Border.all(
-                color: _selectedImage != null 
-                    ? AppColors.brandGreen 
-                    : AppColors.white54,
+                color:
+                    _selectedImage != null
+                        ? AppColors.brandGreen
+                        : AppColors.white54,
                 width: 2,
                 style: BorderStyle.solid,
               ),
@@ -275,10 +279,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                     decoration: BoxDecoration(
                       color: AppColors.transparentWhite,
                       borderRadius: BorderRadius.circular(40),
-                      border: Border.all(
-                        color: AppColors.white54,
-                        width: 2,
-                      ),
+                      border: Border.all(color: AppColors.white54, width: 2),
                     ),
                     child: Icon(
                       Icons.add_a_photo,
@@ -289,10 +290,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                   const SizedBox(height: 12),
                   Text(
                     'Оберіть зображення для аватару',
-                    style: TextStyle(
-                      color: AppColors.white70,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: AppColors.white70, fontSize: 16),
                   ),
                 ],
               ],
@@ -302,10 +300,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 8),
         Text(
           'Підтримуються формати: JPG, PNG, GIF (макс. 5MB)',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade400,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
         ),
       ],
     );
@@ -326,35 +321,23 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 12),
         TextField(
           controller: _chatNameController,
-          style: TextStyle(
-            color: AppColors.lightGray,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: AppColors.lightGray, fontSize: 16),
           decoration: InputDecoration(
             hintText: 'Введіть назву чату...',
-            hintStyle: TextStyle(
-              color: AppColors.white54,
-            ),
+            hintStyle: TextStyle(color: AppColors.white54),
             filled: true,
             fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.white54,
-              ),
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.white54,
-              ),
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.brandGreen,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppColors.brandGreen, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -365,10 +348,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 8),
         Text(
           'Оберіть зрозумілу назву для вашого чату',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade400,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
         ),
       ],
     );
@@ -390,35 +370,23 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         TextField(
           controller: _chatDescriptionController,
           maxLines: 4,
-          style: TextStyle(
-            color: AppColors.lightGray,
-            fontSize: 16,
-          ),
+          style: TextStyle(color: AppColors.lightGray, fontSize: 16),
           decoration: InputDecoration(
             hintText: 'Опишіть тему або мету чату...',
-            hintStyle: TextStyle(
-              color: AppColors.white54,
-            ),
+            hintStyle: TextStyle(color: AppColors.white54),
             filled: true,
             fillColor: AppColors.transparentWhite,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.white54,
-              ),
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.white54,
-              ),
+              borderSide: BorderSide(color: AppColors.white54),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: AppColors.brandGreen,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppColors.brandGreen, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -429,10 +397,7 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 8),
         Text(
           'Короткий опис допоможе іншим зрозуміти тему чату',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade400,
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
         ),
       ],
     );
@@ -453,18 +418,33 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         const SizedBox(height: 12),
         Column(
           children: [
-            _buildPrivacyOption('online', '🌐', 'Публічний', 'Всі можуть приєднатися до чату'),
+            _buildPrivacyOption(
+              'online',
+              '🌐',
+              'Публічний',
+              'Всі можуть приєднатися до чату',
+            ),
             const SizedBox(height: 12),
-            _buildPrivacyOption('server', '⚙️', 'Серверний', 'Контролюється адміністратором'),
+            _buildPrivacyOption(
+              'temporary',
+              '⏱️',
+              'Тимчасовий',
+              'Чат з обмеженим часом існування',
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildPrivacyOption(String value, String icon, String name, String description) {
+  Widget _buildPrivacyOption(
+    String value,
+    String icon,
+    String name,
+    String description,
+  ) {
     final isSelected = _selectedPrivacy == value;
-    
+
     return GestureDetector(
       onTap: () => _selectPrivacy(value),
       child: AnimatedContainer(
@@ -472,13 +452,12 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.brandGreen.withOpacity(0.1)
-              : AppColors.transparentWhite,
+          color:
+              isSelected
+                  ? AppColors.brandGreen.withOpacity(0.1)
+                  : AppColors.transparentWhite,
           border: Border.all(
-            color: isSelected 
-                ? AppColors.brandGreen
-                : AppColors.white54,
+            color: isSelected ? AppColors.brandGreen : AppColors.white54,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(16),
@@ -489,16 +468,14 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: isSelected 
-                    ? AppColors.brandGreen.withOpacity(0.2)
-                    : AppColors.transparentWhite,
+                color:
+                    isSelected
+                        ? AppColors.brandGreen.withOpacity(0.2)
+                        : AppColors.transparentWhite,
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Center(
-                child: Text(
-                  icon,
-                  style: const TextStyle(fontSize: 20),
-                ),
+                child: Text(icon, style: const TextStyle(fontSize: 20)),
               ),
             ),
             const SizedBox(width: 16),
@@ -511,28 +488,22 @@ class _AddChatScreenState extends State<AddChatScreen> with TickerProviderStateM
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isSelected 
-                          ? AppColors.brandGreen
-                          : AppColors.lightGray,
+                      color:
+                          isSelected
+                              ? AppColors.brandGreen
+                              : AppColors.lightGray,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.white70,
-                    ),
+                    style: TextStyle(fontSize: 13, color: AppColors.white70),
                   ),
                 ],
               ),
             ),
             if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: AppColors.brandGreen,
-                size: 24,
-              ),
+              Icon(Icons.check_circle, color: AppColors.brandGreen, size: 24),
           ],
         ),
       ),

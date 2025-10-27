@@ -13,15 +13,4 @@ router.get('/public_key_mobile', async (_req: Request, res: Response) => {
     }
 });
 
-router.get('/public_key_pc', async (_req: Request, res: Response) => {
-    try {
-        const response = await axios.get(`http://192.168.68.101:3000/public_key_pc`);
-        res.send(response.data);
-    } catch (error) {
-        console.error('Error fetching public_key_pc:', error);
-        res.status(500).send('Failed to fetch public key for PC');
-    }
-});
-
-
 export default router;

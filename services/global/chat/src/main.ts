@@ -20,6 +20,8 @@ import { onNewChatCreateServer } from './socketEvents/chat/onNewChatCreateServer
 import { onUpdataChatServer } from './socketEvents/server/onUpdataChatServer';
 import { onGetSelf } from './socketEvents/user/onGetSelf';
 import { onSaveProfile } from './socketEvents/user/onSaveProfile';
+import { onCreateTemporaryChat } from './socketEvents/chat/onCreateTemporaryChat';
+import { onGetInfoChatFix } from './socketEvents/chat/onGetInfoChatFix';
 
 import { onDelSelfInChat } from './socketEvents/chat/onDelSelfInChat';
 import { onDelMsg } from './socketEvents/chat/onDelMsg';
@@ -58,6 +60,8 @@ const io = new Server(socketServer, {
 io.on('connection', (socket: Socket) => {
   console.log(`conect client: ${socket.id}`);
 
+  onGetInfoChatFix(socket);
+  onCreateTemporaryChat(socket);
   onDelMsg(socket);
   onDelSelfInChat(socket);
   onSaveProfile(socket);

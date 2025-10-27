@@ -10,9 +10,8 @@ class EncryptionServer {
   late AsymmetricKeyPair keyPair;
   late String publicKeyPem;
   late String privateKeyPem;
-  
-  // Максимальний розмір запиту (в байтах)
-  static const int maxRequestSize = 10 * 1024 * 1024; // 10MB
+
+  static const int maxRequestSize = 10 * 1024 * 1024;
 
   void generateKey() {
     keyPair = EncryptionService.generateRSAKeyPair();
@@ -27,7 +26,6 @@ class EncryptionServer {
     return EncryptionService.decryptMessage(encryptedData);
   }
 
-  // Middleware для перевірки розміру запиту
   Middleware requestSizeLimit() {
     return (Handler innerHandler) {
       return (Request request) async {
@@ -47,7 +45,6 @@ class EncryptionServer {
     };
   }
 
-  // Безпечне читання body з обмеженням розміру
   Future<String> safeReadBody(Request request) async {
     final buffer = <int>[];
     int totalBytes = 0;
@@ -83,15 +80,13 @@ class EncryptionServer {
 
     app.post('/encryption', (Request request) async {
       try {
-        // Використовуємо безпечне читання body
         final body = await safeReadBody(request);
         final data = json.decode(body);
 
         final publicKey = data['key'] as String;
         final message = data['data'] as String;
 
-        // Додаткова перевірка розміру даних
-        if (message.length > 1024 * 1024) { // 1MB для повідомлення
+        if (message.length > 1024 * 1024) {
           return Response.badRequest(
             body: json.encode({'error': 'Повідомлення занадто велике'}),
             headers: {'Content-Type': 'application/json'},
@@ -114,7 +109,6 @@ class EncryptionServer {
 
     app.post('/decrypt', (Request request) async {
       try {
-        // Використовуємо безпечне читання body
         final body = await safeReadBody(request);
         final data = json.decode(body);
 
@@ -138,7 +132,7 @@ class EncryptionServer {
     });
 
     final handler = Pipeline()
-        .addMiddleware(requestSizeLimit()) // Додаємо middleware для перевірки розміру
+        .addMiddleware(requestSizeLimit())
         .addMiddleware((handler) {
           return (request) async {
             final response = await handler(request);
@@ -153,7 +147,7 @@ class EncryptionServer {
         .addMiddleware(logRequests())
         .addHandler(app);
 
-    final server = await serve(handler, '0.0.0.0', 4002);
+    await serve(handler, '0.0.0.0', 4002);
     print('Сервер запущено на http://0.0.0.0:4002');
     print('Максимальний розмір запиту: ${maxRequestSize ~/ (1024 * 1024)}MB');
   }

@@ -33,8 +33,6 @@ class EncryptionService {
 
     File('private_key.pem').writeAsStringSync(privateKeyPem);
     File('public_key.pem').writeAsStringSync(publicKeyPem);
-    
-    print('RSA ключі згенеровано та збережено');
   }
 
   static Map<String, String> encryptMessage(String publicRsaKey, String message) {
@@ -66,8 +64,7 @@ class EncryptionService {
     final encryptedKey = rsaCipher.process(aesKey);
 
     final data = '${base64.encode(nonce)}.${base64.encode(authTag)}.${base64.encode(encryptedData)}';
-    
-    print('Повідомлення зашифровано');
+
     return {
       'key': base64.encode(encryptedKey),
       'data': data,
@@ -100,7 +97,6 @@ class EncryptionService {
     final encryptedWithTag = Uint8List.fromList([...encryptedMessage, ...authTag]);
     final decryptedBytes = cipher.process(encryptedWithTag);
     
-    print('Повідомлення розшифровано');
     return utf8.decode(decryptedBytes);
   }
 }

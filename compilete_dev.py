@@ -1,7 +1,5 @@
 import subprocess
 
-# git.py
-
 type = int(input("Type: "))
 
 # ⣾⡇⣿⣿⡇⣾⣿⣿⣿⣿⣿⣿⣿⣿⣄⢻⣦⡀⠁⢸⡌⠻⣿⣿⣿⡽⣿⣿

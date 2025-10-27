@@ -19,10 +19,17 @@ class ChatItemWidget extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
+    // Тимчасово всім ставимо одну аватарку для тестування
+    String avatarUrl = 'https://icon-library.com/images/none-icon/none-icon-13.jpg';
+    
     if (_isUrl(chat.avatar)) {
-      return CircleAvatar(
-        radius: 22,
-        backgroundColor: Colors.transparent,
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.chatItemBackground,
+          shape: BoxShape.circle,
+        ),
         child: ClipOval(
           child: Image.network(
             chat.avatar,
@@ -51,12 +58,19 @@ class ChatItemWidget extends StatelessWidget {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              return ClipOval(
-                child: Image.network(
-                  'https://cdn-icons-png.flaticon.com/512/5519/5519614.png',
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.person,
+                    size: 24,
+                    color: AppColors.whiteText.withOpacity(0.6),
+                  ),
                 ),
               );
             },
@@ -64,12 +78,58 @@ class ChatItemWidget extends StatelessWidget {
         ),
       );
     } else {
-      return CircleAvatar(
-        radius: 22,
-        backgroundColor: Colors.transparent,
-        child: Text(
-          chat.avatar,
-          style: const TextStyle(fontSize: 18),
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: AppColors.chatItemBackground,
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.network(
+            avatarUrl,
+            width: 44,
+            height: 44,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
+                    ),
+                  ),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.chatItemBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.person,
+                    size: 24,
+                    color: AppColors.whiteText.withOpacity(0.6),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       );
     }

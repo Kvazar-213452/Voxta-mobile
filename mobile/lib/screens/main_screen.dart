@@ -10,6 +10,7 @@ import 'widgets/main/windows/profile_settings/profile_window.dart';
 import '../services/chat/socket_service.dart';
 import '../../models/storage_user.dart';
 import 'widgets/main/windows/add_chat/add_chat_window.dart';
+import 'widgets/main/windows/modal/temporary_password_modal.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -26,9 +27,9 @@ class _MainScreenState extends State<MainScreen> {
   TextEditingController messageController = TextEditingController();
   TextEditingController searchController = TextEditingController();
   ScrollController scrollController = ScrollController();
-  
+
   List<ChatItem> chats = [];
-  
+
   bool isLoadingChats = true;
   String? selectedChatId;
   String? currentChatType;
@@ -51,37 +52,39 @@ class _MainScreenState extends State<MainScreen> {
         print('User or JWT not found!');
         return;
       }
-      
+
       currentUserId = userModel.id;
 
       connectSocket(
-        userModel, 
+        userModel,
         jwt,
         (data) {
           if (mounted) {
             // Перевіряємо успішність і отримуємо дані повідомлення
             if (data.containsKey('_id')) {
               Map<String, dynamic> chatData = data;
-              
-              String messageId = chatData['_id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+              String messageId =
+                  chatData['_id'] ??
+                  DateTime.now().millisecondsSinceEpoch.toString();
               Object content = chatData['content'] ?? '';
               String senderId = chatData['sender'] ?? '';
               String time = chatData['time'] ?? '';
               String type = chatData['type'] ?? '';
-              
+
               String displayTime = _formatMessageTime(time);
-              
+
               bool isOwnMessage = senderId == currentUserId;
-              
+
               String? senderName;
               String? senderAvatar;
-              
+
               if (currentChatParticipants.containsKey(senderId)) {
                 var senderData = currentChatParticipants[senderId];
                 senderName = senderData['name'] ?? 'Невідомий';
                 senderAvatar = senderData['avatar'] ?? '';
               }
-              
+
               final newMessage = Message(
                 id: messageId,
                 text: content,
@@ -90,15 +93,14 @@ class _MainScreenState extends State<MainScreen> {
                 senderName: senderName,
                 senderAvatar: senderAvatar,
                 senderId: senderId,
-                type: type
+                type: type,
               );
-              
+
               setState(() {
                 messages.add(newMessage);
               });
-              
+
               _scrollToBottom();
-              
             } else {
               print('error msg');
             }
@@ -169,9 +171,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppBackground(
-        child: currentIndex == 0 
-          ? _buildChatListScreen()
-          : _buildChatRoomScreen(),
+        child:
+            currentIndex == 0 ? _buildChatListScreen() : _buildChatRoomScreen(),
       ),
     );
   }
@@ -213,19 +214,21 @@ class _MainScreenState extends State<MainScreen> {
       chatAvatar: currentChatAvatar,
       type: currentChatType ?? '',
       id: selectedChatId ?? '',
-      owner: currentChatOwner!
+      owner: currentChatOwner!,
     );
   }
 
   void _processChatContent(Map<String, dynamic> chatContent) {
-    if (chatContent["code"] == 1 && chatContent.containsKey('messages') && chatContent.containsKey('participants')) {
+    if (chatContent["code"] == 1 &&
+        chatContent.containsKey('messages') &&
+        chatContent.containsKey('participants')) {
       List<dynamic> messagesData = chatContent['messages'] ?? [];
       Map<String, dynamic> participants = chatContent['participants'] ?? {};
-      
+
       currentChatParticipants = participants;
-      
+
       List<Message> parsedMessages = [];
-      
+
       for (var messageData in messagesData) {
         try {
           String senderId = messageData['sender'].toString();
@@ -233,20 +236,20 @@ class _MainScreenState extends State<MainScreen> {
           Object content = messageData['content'] ?? '';
           String time = messageData['time'] ?? '';
           String type = messageData['type'] ?? 'text';
-          
+
           String displayTime = _formatMessageTime(time);
-          
+
           bool isOwnMessage = senderId == currentUserId;
-          
+
           String? senderName;
           String? senderAvatar;
-          
+
           if (participants.containsKey(senderId)) {
             var senderData = participants[senderId];
             senderName = senderData['name'] ?? 'Невідомий';
             senderAvatar = senderData['avatar'] ?? '';
           }
-          
+
           Message message = Message(
             id: messageId,
             text: content,
@@ -255,63 +258,81 @@ class _MainScreenState extends State<MainScreen> {
             senderName: senderName,
             senderAvatar: senderAvatar,
             senderId: senderId,
-            type: type
+            type: type,
           );
-          
+
           parsedMessages.add(message);
         } catch (e) {
           print('Помилка парсингу повідомлення: $e');
         }
       }
-      
+
       parsedMessages.sort((a, b) {
         try {
-          var aData = messagesData.firstWhere((msg) => msg['_id'] == a.id, orElse: () => null);
-          var bData = messagesData.firstWhere((msg) => msg['_id'] == b.id, orElse: () => null);
-          
+          var aData = messagesData.firstWhere(
+            (msg) => msg['_id'] == a.id,
+            orElse: () => null,
+          );
+          var bData = messagesData.firstWhere(
+            (msg) => msg['_id'] == b.id,
+            orElse: () => null,
+          );
+
           if (aData != null && bData != null) {
             String aTime = aData['time'] ?? '';
             String bTime = bData['time'] ?? '';
-            
+
             DateTime aDateTime = DateTime.parse(aTime);
             DateTime bDateTime = DateTime.parse(bTime);
-            
+
             return aDateTime.compareTo(bDateTime);
           }
         } catch (e) {
           print('Помилка сортування повідомлень: $e');
         }
-        
+
         return 0;
       });
-      
+
       setState(() {
         messages = parsedMessages;
       });
-      
+
       // Прокручуємо вниз після завантаження історії чату
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToBottom();
       });
-      
     } else {
       print('Не можу завантажити чат');
     }
   }
 
-  void _onChatTap(ChatItem chat) {
-    setState(() {
-      currentIndex = 1;
-      currentChatName = chat.name;
-      currentChatAvatar = chat.avatar;
-      selectedChatId = chat.id;
-      currentChatType = chat.type;
-      currentChatOwner = chat.owner;
-      messages = [];
-      currentChatParticipants = {};
-    });
-
-    _loadChatMessages(chat.id, chat.type);
+  void _onChatTap(chat) {
+    if (chat.type == "temporary") {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => TemporaryPasswordModal(
+              chatId: chat.id,
+              onClose: () {
+                print('Password submitted:');
+              },
+            ),
+      );
+    } else {
+      setState(() {
+        currentIndex = 1;
+        currentChatName = chat.name;
+        currentChatAvatar = chat.avatar;
+        selectedChatId = chat.id;
+        currentChatType = chat.type;
+        currentChatOwner = chat.owner;
+        messages = [];
+        currentChatParticipants = {};
+      });
+      _loadChatMessages(chat.id, chat.type);
+    }
   }
 
   void _loadChatMessages(String chatId, String type) {
@@ -321,22 +342,22 @@ class _MainScreenState extends State<MainScreen> {
   void _onMessageSent(String messageText, {Map<String, dynamic>? fileData}) {
     if (fileData != null) {
       sendMessage(
-        fileData, 
-        currentUserId ?? 'unknown', 
-        selectedChatId ?? '', 
-        currentChatType ?? '', 
-        "file"
+        fileData,
+        currentUserId ?? 'unknown',
+        selectedChatId ?? '',
+        currentChatType ?? '',
+        "file",
       );
     } else if (messageText.isNotEmpty) {
       sendMessage(
-        messageText, 
-        currentUserId ?? 'unknown', 
-        selectedChatId ?? '', 
-        currentChatType ?? '', 
-        "text"
+        messageText,
+        currentUserId ?? 'unknown',
+        selectedChatId ?? '',
+        currentChatType ?? '',
+        "text",
       );
     }
-    
+
     messageController.clear();
   }
 
@@ -355,7 +376,7 @@ class _MainScreenState extends State<MainScreen> {
       builder: (context) => AddChatScreen(key: AddChatScreen.addChatScreenKey),
     );
   }
-  
+
   void _openProfileSettings() {
     showDialog(
       context: context,

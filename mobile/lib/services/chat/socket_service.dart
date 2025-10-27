@@ -13,25 +13,23 @@ Function(List<ChatItem>)? _onChatsReceived;
 Function(Map<String, dynamic>)? _onChatContentReceived;
 
 void connectSocket(
-  UserModel user, 
-  String token, 
+  UserModel user,
+  String token,
   Function(Map<String, dynamic>) onMessageReceived,
-  Function() onReloadChatContent,
-  {Function(List<ChatItem>)? onChatsReceived,
-   Function(Map<String, dynamic>)? onChatContentReceived}
-) {
+  Function() onReloadChatContent, {
+  Function(List<ChatItem>)? onChatsReceived,
+  Function(Map<String, dynamic>)? onChatContentReceived,
+}) {
   _onMessageReceived = onMessageReceived;
   _onReloadChatContent = onReloadChatContent;
   _onChatsReceived = onChatsReceived;
   _onChatContentReceived = onChatContentReceived;
   saveUserStorage(user);
-  
+
   try {
-    socket = IO.io(Config.URL_SERVICES_CHAT, 
-      IO.OptionBuilder()
-        .setTransports(['websocket'])
-        .setTimeout(10000)
-        .build()
+    socket = IO.io(
+      Config.URL_SERVICES_CHAT,
+      IO.OptionBuilder().setTransports(['websocket']).setTimeout(10000).build(),
     );
 
     socket!.onConnect((_) async {
@@ -63,7 +61,7 @@ void connectSocket(
 
       if (data["code"] == 1) {
         List<ChatItem> parsedChats = _parseChatsFromServer(data["chats"]);
-        
+
         _onChatsReceived!(parsedChats);
       }
     });
@@ -77,7 +75,7 @@ void connectSocket(
     socket!.on('create_new_chat', (data) async {
       await loadChats();
     });
-    
+
     socket!.on('get_info_self', (data) async {
       data = await decrypted_auto(data);
 
@@ -87,7 +85,10 @@ void connectSocket(
           UserModel user = UserModel.fromJson(userMap);
           await saveUserStorage(user);
 
-          socket!.emit('getInfoChats', await encrypt_auto({'chats': user.chats}));
+          socket!.emit(
+            'getInfoChats',
+            await encrypt_auto({'chats': user.chats}),
+          );
         } else {
           print("user is null");
         }
@@ -110,7 +111,7 @@ Future<void> loadChats() async {
 
 List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
   List<ChatItem> chatsList = [];
-  
+
   chatsData.forEach((chatId, chatInfo) {
     try {
       String name = chatInfo['name'] ?? 'Невідомий чат';
@@ -121,7 +122,7 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
       String createdAt = chatInfo['createdAt'] ?? '';
 
       String displayAvatar = avatar.isNotEmpty ? avatar : "";
-      
+
       ChatItem chatItem = ChatItem(
         id: chatId,
         name: name,
@@ -131,38 +132,54 @@ List<ChatItem> _parseChatsFromServer(Map<String, dynamic> chatsData) {
         type: type,
         owner: owner,
       );
-      
+
       chatsList.add(chatItem);
     } catch (e) {
       print('Помилка парсингу чату $chatId: $e');
     }
   });
-  
+
   chatsList.sort((a, b) => b.time.compareTo(a.time));
-  
+
   return chatsList;
 }
 
-void sendMessage(Object text, String userId, String chatId, String type, String typeMsg) async {
+void sendMessage(
+  Object text,
+  String userId,
+  String chatId,
+  String type,
+  String typeMsg,
+) async {
   final dataToEncrypt = {
     'message': {
       'content': text,
       'sender': userId,
       'type': typeMsg,
-      'time': DateTime.now().toIso8601String()
+      'time': DateTime.now().toIso8601String(),
     },
     'chatId': chatId,
-    'typeChat': type
+    'typeChat': type,
   };
 
   socket!.emit('send_message', await encrypt_auto(dataToEncrypt));
 }
 
 void loadChatContent(String chatId, String type) async {
-  socket!.emit('load_chat_content', await encrypt_auto({'chatId': chatId, 'type': type,}));
+  socket!.emit(
+    'load_chat_content',
+    await encrypt_auto({'chatId': chatId, 'type': type}),
+  );
 }
 
-void createChatServer(String name, String type, String avatar, String desc, String idServer, String codeServer) {
+void createChatServer(
+  String name,
+  String type,
+  String avatar,
+  String desc,
+  String idServer,
+  String codeServer,
+) {
   socket!.emit('create_chat_server', {
     'chat': {
       'name': name,
@@ -171,7 +188,7 @@ void createChatServer(String name, String type, String avatar, String desc, Stri
       'avatar': avatar,
       'createdAt': DateTime.now().toIso8601String(),
       'idServer': idServer,
-    }
+    },
   });
 }
 
@@ -182,8 +199,8 @@ void createChat(String name, String type, String avatar, String desc) async {
       'description': desc,
       'privacy': type,
       'avatar': avatar,
-      'createdAt': DateTime.now().toIso8601String()
-    }
+      'createdAt': DateTime.now().toIso8601String(),
+    },
   };
 
   socket!.emit('create_chat', await encrypt_auto(dataCrypto));
@@ -195,6 +212,29 @@ void disconnectSocket() {
   socket = null;
 }
 
-bool get isSocketConnected => socket?.connected ?? false;
+void createTemporaryChat(
+  String chatName,
+  String privacy,
+  String avatarBase64,
+  String chatDescription,
+  int expirationHours,
+  String password,
+) async {
+  final expirationDate = DateTime.now().add(Duration(hours: expirationHours)).toIso8601String();
 
-// getInfoChats
+  final chatData = {
+    'chat': {
+      'name': chatName,
+      'privacy': privacy,
+      'avatar': avatarBase64,
+      'desc': chatDescription,
+      'expirationHours': expirationDate,
+      'password': password,
+      'createdAt': DateTime.now().toIso8601String(),
+    },
+  };
+
+  socket!.emit('create_temporary_chat', await encrypt_auto(chatData));
+}
+
+bool get isSocketConnected => socket?.connected ?? false;

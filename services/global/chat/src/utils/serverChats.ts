@@ -25,7 +25,7 @@ export function addServer(id: string, chats: ChatData[]): void {
 
 export function getChatsServer(chatIds: string[]): { [chatId: string]: ChatData } {
   const result: { [chatId: string]: ChatData } = {};
-
+  
   for (const chatId of chatIds) {
     for (const serverId in ChatsServers) {
       if (ChatsServers[serverId][chatId]) {
