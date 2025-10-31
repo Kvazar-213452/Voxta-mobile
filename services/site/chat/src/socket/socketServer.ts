@@ -3,6 +3,7 @@ import { getMongoClient } from '../utils/getMongoClient';
 import fs from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
+import { GET_CHATS } from '../utils/chats';
 
 let io: any = null;
 let CHATS: string[] = [];
@@ -25,7 +26,7 @@ export function initSocketServer(server: any) {
     // Генеруємо унікальний ID для кожного користувача при підключенні
     const userId = generateUserId();
     socket.userId = userId;
-    
+
     console.log(`Нове підключення: ${socket.id}, userId: ${userId}`);
 
     // Відправляємо userId клієнту
@@ -34,16 +35,16 @@ export function initSocketServer(server: any) {
     // Завантаження інформації про чат
     socket.on('load_chat_info', async (chatId: string) => {
       try {
+        if (!GET_CHATS().includes(chatId)) {
+          socket.emit('error', { message: 'Чат не знайдено' });
+        }
+
         const client = await getMongoClient();
         const db = client.db("chats");
         const collection = db.collection(chatId);
         const chatConfig = await collection.findOne({ _id: "config" as any });
-        
+
         if (chatConfig) {
-          if (!CHATS.includes(chatId)) {
-            CHATS.push(chatId);
-          }
-          
           socket.emit('load_chat', chatConfig);
         } else {
           socket.emit('error', { message: 'Чат не знайдено' });
@@ -57,20 +58,24 @@ export function initSocketServer(server: any) {
     // Завантаження контенту чату
     socket.on('load_chat_content', async (chatId: string) => {
       try {
+        if (!GET_CHATS().includes(chatId)) {
+          socket.emit('error', { message: 'Чат не знайдено' });
+        }
+
         let messages = messageCache.get(chatId) || [];
-        
+
         const chatDataPath = path.join(process.cwd(), 'data', chatId);
-        
+
         try {
           await fs.access(chatDataPath);
           const files = await fs.readdir(chatDataPath);
-          
+
           for (const file of files) {
             if (file.endsWith('.json')) {
               const filePath = path.join(chatDataPath, file);
               const fileContent = await fs.readFile(filePath, 'utf-8');
               const fileMessage = JSON.parse(fileContent);
-              
+
               const existsInCache = messages.some(m => m.id === fileMessage.id);
               if (!existsInCache) {
                 messages.push(fileMessage);
@@ -80,11 +85,11 @@ export function initSocketServer(server: any) {
         } catch (err) {
           console.log(`Папка ${chatDataPath} не існує або порожня`);
         }
-        
+
         messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-        
+
         messageCache.set(chatId, messages);
-        
+
         socket.emit('chat_content', { chatId, messages });
       } catch (error) {
         console.error('Помилка завантаження контенту чату:', error);
@@ -96,8 +101,12 @@ export function initSocketServer(server: any) {
     socket.on('message', async (msg: any) => {
       try {
         const { chatId, type, content, userId, username, id, timestamp } = msg;
-        
-        if (!CHATS.includes(chatId)) {
+
+        if (!GET_CHATS().includes(chatId)) {
+          socket.emit('error', { message: 'Чат не знайдено' });
+        }
+
+        if (!GET_CHATS().includes(chatId)) {
           socket.emit('error', { message: 'Чат не знайдено в доступних' });
           return;
         }
@@ -120,9 +129,9 @@ export function initSocketServer(server: any) {
         // Якщо це файл або зображення - зберігаємо БЕЗ userId
         if (type === "file" || type === "img") {
           const chatDataPath = path.join(process.cwd(), 'data', chatId);
-          
+
           await fs.mkdir(chatDataPath, { recursive: true });
-          
+
           // Створюємо копію повідомлення БЕЗ userId для збереження
           const messageToSave = {
             id: message.id,
@@ -133,17 +142,17 @@ export function initSocketServer(server: any) {
             timestamp: message.timestamp
             // userId НЕ зберігаємо!
           };
-          
+
           const fileName = `${message.id}.json`;
           const filePath = path.join(chatDataPath, fileName);
           await fs.writeFile(filePath, JSON.stringify(messageToSave, null, 2), 'utf-8');
-          
+
           console.log(`Файл збережено БЕЗ userId: ${filePath}`);
         }
 
         // Відправляємо повідомлення всім клієнтам (з userId для правильного відображення)
         io.emit('new_message', message);
-        
+
       } catch (error) {
         console.error('Помилка обробки повідомлення:', error);
         socket.emit('error', { message: 'Помилка відправки повідомлення' });

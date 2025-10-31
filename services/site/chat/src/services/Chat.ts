@@ -1,19 +1,21 @@
 import { Request, Response } from 'express';
+import { ADD_CHAT } from '../utils/chats';
 
 export default class Chat {
-  async chatGet(req: Request, res: Response): Promise<void> {
-    const { data, key, type } = req.body;
+  async loadChats(req: Request, res: Response): Promise<void> {
+    const { chat, createdAt, expirationHours } = req.body;
 
     try {
-      if (!data || !key || !type) {
+      if (!chat || !createdAt || typeof expirationHours !== 'number') {
         res.status(400).json({ code: 0, error: 'error_params' });
         return;
       }
 
+      ADD_CHAT(chat, createdAt, expirationHours);
 
       res.json({ code: 1 });
     } catch (err) {
-      console.error('register Error:', err);
+      console.error('loadChats Error:', err);
       res.status(500).json({ code: 0, error: 'error_server' });
     }
   }

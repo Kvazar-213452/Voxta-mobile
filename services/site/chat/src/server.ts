@@ -1,10 +1,10 @@
 import express from 'express';
 import http from 'http';
 import dotenv from 'dotenv';
-import router from './routes/router.js';
-import CONFIG from './config.js';
+import router from './router';
+import CONFIG from './config';
 import os from 'os';
-import { initSocketServer } from './socket/socketServer.js';
+import { initSocketServer } from './socket/socketServer';
 
 dotenv.config();
 

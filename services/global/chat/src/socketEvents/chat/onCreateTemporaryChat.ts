@@ -7,6 +7,8 @@ import { getMongoClient } from "../../models/mongoClient";
 import { uploadAvatar } from "../../utils/uploadData";
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
+import CONFIG from "../../config";
+import axios from "axios";
 
 export function onCreateTemporaryChat(socket: Socket): void {
   socket.on("create_temporary_chat", async (data: { data: any, type: string, key: string }) => {
@@ -55,7 +57,17 @@ export function onCreateTemporaryChat(socket: Socket): void {
         { $addToSet: { chats: chatId, type: dataDec.chat.privacy } }
       );
 
-      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({data: dataConfig}), data.type)), chatId);
+      await axios.post(`${CONFIG.SERVIS_DATA}/set_chats`, {
+        chat: chatId,
+        createdAt: new Date().toISOString(),
+        expirationHours: dataDec.chat.expirationHours,
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({ data: dataConfig }), data.type)), chatId);
     } catch (error: unknown) {
       console.log("CONFIG DOC:", error);
       let errorMessage = "Unknown error";
