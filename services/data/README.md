@@ -1,5 +1,7 @@
 # data_service
 
 ```
-go run main.go
+mvn compile exec:java
+mvn clean install
+mvn clean package
 ```
