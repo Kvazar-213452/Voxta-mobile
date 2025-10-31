@@ -1,11 +1,5 @@
 package com.example;
 
-import com.google.gson.Gson;
-import io.github.cdimascio.dotenv.Dotenv;
-import io.javalin.Javalin;
-import io.javalin.http.Context;
-import io.javalin.http.staticfiles.Location;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,24 +9,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.google.gson.Gson;
+
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+import io.javalin.http.staticfiles.Location;
+
 public class Main {
+
     private static final Gson gson = new Gson();
 
     public static void main(String[] args) {
-        Dotenv dotenv = Dotenv.configure()
-                .ignoreIfMissing()
-                .load();
+        ConfigLoader.LoadCfg();
 
-        String portStr = dotenv.get("PORT", "8080");
-        int port;
-        try {
-            port = Integer.parseInt(portStr);
-        } catch (NumberFormatException e) {
-            System.err.println("Неверный порт в переменной PORT");
-            return;
+        String hostname = (String) ConfigLoader.CONFIG.get("API");
+        Object portObj = ConfigLoader.CONFIG.get("PORT");
+
+        if (hostname == null || portObj == null) {
+            throw new RuntimeException("API or PORT not found in config");
         }
 
-        // Створюємо директорію data перед запуском сервера
+        int port = portObj instanceof Integer ? (Integer) portObj : Integer.parseInt(portObj.toString());
+
         Path dataDir = Paths.get("data");
         try {
             Files.createDirectories(dataDir);
@@ -42,16 +40,17 @@ public class Main {
             return;
         }
 
-        Javalin app = Javalin.create(config -> {
-            // Використовуємо абсолютний шлях для EXTERNAL location
+       Javalin app = Javalin.create(config -> {
             String absoluteDataPath = dataDir.toAbsolutePath().toString();
+
             config.staticFiles.add(absoluteDataPath, Location.EXTERNAL);
+
             config.plugins.enableCors(cors -> {
                 cors.add(it -> {
                     it.anyHost();
                 });
             });
-        }).start(port);
+        }).start(hostname, port);
 
         app.get("/", ctx -> {
             ctx.result("Hello, Microservice on Java!");
@@ -235,10 +234,12 @@ public class Main {
     }
 
     static class AvatarRequest {
+
         String avatar;
     }
 
     static class FileRequest {
+
         String file;
         String name;
     }
