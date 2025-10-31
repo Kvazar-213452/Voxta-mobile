@@ -49,5 +49,10 @@ app.*.map.json
 
 dist
 node_modules
-.env
 target
+
+
+
+services/global/crypto/public_key.pem
+services/global/crypto/private_key.pem
+requirements.txt

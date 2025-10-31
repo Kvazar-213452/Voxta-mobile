@@ -1,0 +1,29 @@
+{
+  "PORT": "8000",
+  "API": "localhost",
+  "GLOBAL_URL": {
+    "MICROSERVICES_DATA": "http://localhost:3003/",
+    "MICROSERVICES_CHAT": "http://localhost:3010/",
+    "MICROSERVICES_CRYPTO": "http://localhost:3005/",
+    "API_LOCAL": "http://localhost:3007/"
+  },
+  "GLOBAL_DB": {
+    "DB_MONGODB_URI": "mongodb://localhost:27017/messenger"
+  },
+  "GLOBAL_KEY": {
+    "SECRET_KEY": "your_secret_key"
+  },
+  "API_CHAT": {
+    "PORT": "3010",
+    "API": "localhost"
+  },
+  "API_CRYPTO": {
+    "PORT": "3005",
+    "API": "localhost"
+  },
+  "API_DATA": {
+    "PORT": "3003",
+    "API": "localhost",
+    "API_GLOBAL": "http://localhost:3007/data/"
+  }
+}

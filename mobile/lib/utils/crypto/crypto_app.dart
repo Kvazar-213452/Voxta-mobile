@@ -26,6 +26,37 @@ RSAPublicKey parsePublicKeyFromPem(String pem) {
   return RSAPublicKey(modulus, exponent);
 }
 
+RSAPrivateKey parsePrivateKeyFromPem(String pem) {
+  String keyData = pem
+      .replaceAll('-----BEGIN PRIVATE KEY-----', '')
+      .replaceAll('-----END PRIVATE KEY-----', '')
+      .replaceAll('-----BEGIN RSA PRIVATE KEY-----', '')
+      .replaceAll('-----END RSA PRIVATE KEY-----', '')
+      .replaceAll('\n', '')
+      .replaceAll('\r', '')
+      .replaceAll(' ', '');
+
+  final keyBytes = base64.decode(keyData);
+  final asn1Parser = ASN1Parser(keyBytes);
+  final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
+  
+  if (topLevelSeq.elements!.length >= 3) {
+    // PKCS8 format
+    final privateKeyOctet = topLevelSeq.elements![2] as ASN1OctetString;
+    final rsaParser = ASN1Parser(privateKeyOctet.octets!);
+    final rsaSeq = rsaParser.nextObject() as ASN1Sequence;
+    
+    final modulus = (rsaSeq.elements![1] as ASN1Integer).integer!;
+    final privateExponent = (rsaSeq.elements![3] as ASN1Integer).integer!;
+    final p = (rsaSeq.elements![4] as ASN1Integer).integer!;
+    final q = (rsaSeq.elements![5] as ASN1Integer).integer!;
+    
+    return RSAPrivateKey(modulus, privateExponent, p, q);
+  }
+  
+  throw Exception('Неправильний формат приватного ключа');
+}
+
 String encodePublicKeyToPemPKCS1(RSAPublicKey publicKey) {
   final sequence = ASN1Sequence();
   sequence.add(ASN1Integer(publicKey.modulus!));
@@ -58,14 +89,16 @@ Map<String, Uint8List> aesEncrypt(Uint8List key, Uint8List nonce, Uint8List data
   };
 }
 
+// RSA шифрування з SHA-1 OAEP (для сумісності з Node.js)
 Uint8List rsaEncrypt(RSAPublicKey publicKey, Uint8List data) {
-  final encryptor = OAEPEncoding(RSAEngine());
+  final encryptor = OAEPEncoding.withSHA1(RSAEngine());
   encryptor.init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
   return encryptor.process(data);
 }
 
+// RSA розшифрування з SHA-1 OAEP (для сумісності з Node.js)
 Uint8List rsaDecrypt(RSAPrivateKey privateKey, Uint8List encrypted) {
-  final decryptor = OAEPEncoding(RSAEngine());
+  final decryptor = OAEPEncoding.withSHA1(RSAEngine());
   decryptor.init(false, PrivateKeyParameter<RSAPrivateKey>(privateKey));
   return decryptor.process(encrypted);
 }
@@ -83,7 +116,6 @@ Future<Map<String, String>> encryptMessage(String message, String serverPublicKe
   final serverPublicKey = parsePublicKeyFromPem(serverPublicKeyPem);
   
   final aesKey = generateRandomBytes(32);
-  
   final nonce = generateRandomBytes(12);
   
   final messageBytes = utf8.encode(message);
@@ -93,9 +125,7 @@ Future<Map<String, String>> encryptMessage(String message, String serverPublicKe
   
   final encryptedKey = rsaEncrypt(serverPublicKey, aesKey);
   
-  final dataString = base64.encode(nonce) + '.' + 
-                    base64.encode(authTag) + '.' + 
-                    base64.encode(encryptedData);
+  final dataString = '${base64.encode(nonce)}.${base64.encode(authTag)}.${base64.encode(encryptedData)}';
   
   return {
     'key': base64.encode(encryptedKey),
@@ -118,22 +148,37 @@ Future<String> decryptServerResponse(
   Map<String, dynamic> responseJson,
   RSAPrivateKey privateKey,
 ) async {
-  final encryptedKeyBase64 = responseJson['data']['key'] as String;
-  final encryptedDataStr = responseJson['data']['data'] as String;
+  try {
+    final encryptedKeyBase64 = responseJson['data']['key'] as String;
+    final encryptedDataStr = responseJson['data']['data'] as String;
 
-  final encryptedKey = base64Decode(encryptedKeyBase64);
-  final aesKey = rsaDecrypt(privateKey, encryptedKey);
+    final encryptedKey = base64Decode(encryptedKeyBase64);
 
-  final parts = encryptedDataStr.split('.');
-  if (parts.length != 3) {
-    throw Exception('Неправильний формат зашифрованих даних');
+    final aesKey = rsaDecrypt(privateKey, encryptedKey);
+
+    final parts = encryptedDataStr.split('.');
+    if (parts.length != 3) {
+      throw Exception('Неправильний формат зашифрованих даних: очікується 3 частини, отримано ${parts.length}');
+    }
+
+    final nonce = base64Decode(parts[0]);
+    final authTag = base64Decode(parts[1]);
+    final encryptedData = base64Decode(parts[2]);
+
+    if (nonce.length != 12) {
+      throw Exception('Неправильний розмір nonce: ${nonce.length} (очікується 12)');
+    }
+    if (authTag.length != 16) {
+      throw Exception('Неправильний розмір authTag: ${authTag.length} (очікується 16)');
+    }
+
+    final decryptedBytes = aesDecrypt(aesKey, nonce, encryptedData, authTag);
+    
+    final result = utf8.decode(decryptedBytes);
+    
+    return result;
+  } catch (e) {
+    print('Помилка розшифрування: $e');
+    rethrow;
   }
-
-  final nonce = base64Decode(parts[0]);
-  final authTag = base64Decode(parts[1]);
-  final encryptedData = base64Decode(parts[2]);
-
-  final decryptedBytes = aesDecrypt(aesKey, nonce, encryptedData, authTag);
-
-  return utf8.decode(decryptedBytes);
 }
