@@ -1,16 +1,11 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import axios from 'axios';
 import { Db, Collection } from "mongodb";
 import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
 import { getMongoClient } from '../models/getMongoClient';
 import { generateId, generateSixDigitCode, transforUser } from '../utils/utils';
-import CONFIG from '../config';
-
-dotenv.config();
-
-const SECRET_KEY = process.env.SECRET_KEY ?? 'default_secret';
+import { CONFIG } from "../config";
 
 export async function registerHandler(req: Request, res: Response): Promise<void> {
   const { data, key, type } = req.body;
@@ -29,11 +24,11 @@ export async function registerHandler(req: Request, res: Response): Promise<void
     const gmail = parsed.gmail;
     const code = generateSixDigitCode();
 
-    await axios.post(`${CONFIG.SERVIS_NOTIFICATION}/send_gmail`, {
+    await axios.post(`${CONFIG.MICROSERVICES_NOTIFICATION}send_gmail`, {
       data: [code, gmail]
     });
 
-    const tempToken = jwt.sign({ name, password, gmail, code }, SECRET_KEY, { expiresIn: '5m' });
+    const tempToken = jwt.sign({ name, password, gmail, code }, CONFIG.SECRET_KEY, { expiresIn: '5m' });
 
     const responsePayload = JSON.stringify({
         tempToken: tempToken
@@ -62,7 +57,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
     const inputCode = parsed.code;
     const tempTokenVal = parsed.tempToken;
 
-    const decoded = jwt.verify(tempTokenVal, SECRET_KEY) as {
+    const decoded = jwt.verify(tempTokenVal, CONFIG.SECRET_KEY) as {
       name: string;
       password: string;
       gmail: string;
@@ -98,7 +93,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
 
       await chatCollection.insertOne(dataConfig);
 
-      const userToken = jwt.sign({ id_user: userID }, SECRET_KEY, { expiresIn: '1d' });
+      const userToken = jwt.sign({ id_user: userID }, CONFIG.SECRET_KEY, { expiresIn: '1d' });
 
       const jwtCollection = db.collection<{ _id: string; token: string[] }>(userID);
       const jwtDoc = await jwtCollection.findOne({ _id: 'jwt' });

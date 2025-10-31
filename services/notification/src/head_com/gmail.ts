@@ -1,30 +1,28 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import { CONFIG } from '../config';
 
-dotenv.config();
-
-if (!process.env.SENDER_EMAIL || !process.env.SENDER_PASSWORD) {
-    throw new Error('Missing SENDER_EMAIL or SENDER_PASSWORD in environment variables.');
-}
-
-export const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.SENDER_EMAIL,
-        pass: process.env.SENDER_PASSWORD
-    }
-});
+export let transporter: any = null;
 
 export async function send_gmail(recipient: string, code: string): Promise<void> {
-    const subject = "Notification";
-    const message = `Code: ${code}`;
+  if (transporter == null) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: CONFIG.SENDER_EMAIL,
+        pass: CONFIG.SENDER_PASSWORD
+      }
+    });
+  }
 
-    const mailOptions = {
-        from: process.env.SENDER_EMAIL,
-        to: recipient,
-        subject,
-        text: message
-    };
+  const subject = "Notification";
+  const message = `Code: ${code}`;
 
-    await transporter.sendMail(mailOptions);
+  const mailOptions = {
+    from: CONFIG.SENDER_EMAIL,
+    to: recipient,
+    subject,
+    text: message
+  };
+
+  await transporter.sendMail(mailOptions);
 }

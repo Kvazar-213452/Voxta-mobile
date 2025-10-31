@@ -1,13 +1,9 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
 import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
 import { getMongoClient } from '../models/getMongoClient';
 import { transforUser, safeParseJSON } from '../utils/utils'
-
-dotenv.config();
-
-const SECRET_KEY = process.env.SECRET_KEY ?? '';
+import { CONFIG } from "../config";
 
 export async function getInfoToJwtHandler(req: Request, res: Response): Promise<void> {
   const { data, key, type } = req.body;
@@ -28,7 +24,7 @@ export async function getInfoToJwtHandler(req: Request, res: Response): Promise<
       return;
     }
 
-    const decoded = jwt.verify(jwtToken, SECRET_KEY) as { userId: string };
+    const decoded = jwt.verify(jwtToken, CONFIG.SECRET_KEY) as { userId: string };
 
     if (decoded.userId !== id) {
       res.json({ code: 0, data: 'error jwt no user' });

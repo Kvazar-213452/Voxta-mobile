@@ -5,7 +5,9 @@
     "MICROSERVICES_DATA": "http://localhost:3003/",
     "MICROSERVICES_CHAT": "http://localhost:3010/",
     "MICROSERVICES_CRYPTO": "http://localhost:3005/",
-    "API_LOCAL": "http://localhost:3007/"
+    "MICROSERVICES_NOTIFICATION": "http://localhost:3006/",
+    "MICROSERVICES_AUTHENTICATION": "http://localhost:3007/",
+    "API_LOCAL": "http://localhost:8000/"
   },
   "GLOBAL_DB": {
     "DB_MONGODB_URI": "mongodb://localhost:27017/messenger"
@@ -15,15 +17,29 @@
   },
   "API_CHAT": {
     "PORT": "3010",
-    "API": "localhost"
+    "API": "localhost",
+    "SECRET_KEY": "your_secret_key"
   },
   "API_CRYPTO": {
     "PORT": "3005",
     "API": "localhost"
   },
+  "API_NOTIFICATION": {
+    "PORT": "3006",
+    "API": "localhost",
+    "SENDER_EMAIL": "articlestudio6@gmail.com",
+    "SENDER_PASSWORD": "ramxedxyqubhvqjx"
+  },
+  "API_AUTHENTICATION": {
+    "PORT": "3007",
+    "API": "localhost",
+    "ID_CHAT_MAIN": "0TGcAEgtSFpuPs",
+    "AVATAR": "http://localhost:3004/avatars/306d4102-f22b-452c-9f3b-c14b7661b0f8.jpg",
+    "SECRET_KEY": "your_secret_key"
+  },
   "API_DATA": {
     "PORT": "3003",
     "API": "localhost",
-    "API_GLOBAL": "http://localhost:3007/data/"
+    "API_GLOBAL": "http://localhost:3003/data/"
   }
 }
