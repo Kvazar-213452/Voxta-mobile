@@ -16,9 +16,7 @@ import { onGetInfoChat } from './socketEvents/chat/onGetInfoChat';
 import { onAddUserInChat } from './socketEvents/chat/onAddUserInChat';
 import { onDelMemberInChat } from './socketEvents/chat/onDelMemberInChat';
 import { onSaveSettingsChat } from './socketEvents/chat/onSaveSettingsChat';
-import { onCreateChatServer } from './socketEvents/chat/onCreateChatServer';
 import { onNewChatCreateServer } from './socketEvents/chat/onNewChatCreateServer';
-import { onUpdataChatServer } from './socketEvents/server/onUpdataChatServer';
 import { onGetSelf } from './socketEvents/user/onGetSelf';
 import { onSaveProfile } from './socketEvents/user/onSaveProfile';
 import { onCreateTemporaryChat } from './socketEvents/chat/onCreateTemporaryChat';
@@ -62,8 +60,6 @@ async function startServer() {
     onDelKeyChat(socket);
     onGetKeyChat(socket);
     onGetSelf(socket);
-    onUpdataChatServer(socket);
-    onCreateChatServer(socket);
     onNewChatCreateServer(socket);
     onAuthenticate(socket);
     onGetInfoChats(socket);

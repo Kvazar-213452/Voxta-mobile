@@ -6,7 +6,6 @@ import { generateId } from "../../utils/generateId";
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 import { getIO } from "../../utils/config/io";
-import { getServerIdToChat } from "../../utils/serverChats";
 import { onSendMessage as onSendMessage1 } from "../../utils/sendCreateChat";
 import axios from "axios";
 import { CONFIG } from "../../utils/config/config";
@@ -20,50 +19,39 @@ export function onSendMessage(socket: Socket): void {
       let dataDec: any = await decryptionMsg(data.data, data.type);
       dataDec = safeParseJSON(dataDec);
 
-      if (dataDec.typeChat === 'server') {
-        let idServer = getServerIdToChat(dataDec.chatId);
+      const client = await getMongoClient();
+      const db: Db = client.db("chats");
+      let messageToInsert = {};
+      const collection = db.collection<any>(dataDec.chatId);
 
-        getIO().to(String(idServer)).emit("send_msg", {
-          idChat: dataDec.chatId,
-          from: socket.data.userId,
-          idUserServer: socket.id,
-          pubKey: dataDec.pubKey,
-          message: dataDec.message
-        });
-      } else if (dataDec.typeChat === 'online') {
-        const client = await getMongoClient();
-        const db: Db = client.db("chats");
-        let messageToInsert = {};
-        const collection = db.collection<any>(dataDec.chatId);
+      if (dataDec.message.type == "file") {
+        let url = await uploadfile(dataDec.message.content["base64Data"], dataDec.message.content["fileName"]);
 
-        if (dataDec.message.type == "file") {
-          let url = await uploadfile(dataDec.message.content["base64Data"], dataDec.message.content["fileName"]);
-
-          messageToInsert = {
-            _id: generateId(12),
-            sender: dataDec.message.sender,
-            content: {
-              name: dataDec.message.content["fileName"],
-              size: dataDec.message.content["fileSize"],
-              url: url
-            },
-            time: dataDec.message.time,
-            type: dataDec.message.type
-          };
-        } else {
-          messageToInsert = {
-            _id: generateId(12),
-            sender: dataDec.message.sender,
-            content: dataDec.message.content,
-            time: dataDec.message.time,
-            type: dataDec.message.type
-          };
-        }
-
-        await collection.insertOne(messageToInsert);
-
-        onSendMessage1(await encryptionMsg(data.key, JSON.stringify(messageToInsert), data.type));
+        messageToInsert = {
+          _id: generateId(12),
+          sender: dataDec.message.sender,
+          content: {
+            name: dataDec.message.content["fileName"],
+            size: dataDec.message.content["fileSize"],
+            url: url
+          },
+          time: dataDec.message.time,
+          type: dataDec.message.type
+        };
+      } else {
+        messageToInsert = {
+          _id: generateId(12),
+          sender: dataDec.message.sender,
+          content: dataDec.message.content,
+          time: dataDec.message.time,
+          type: dataDec.message.type
+        };
       }
+
+      await collection.insertOne(messageToInsert);
+
+      onSendMessage1(await encryptionMsg(data.key, JSON.stringify(messageToInsert), data.type));
+
     } catch (error) {
       console.error("send_message error:", error);
       socket.emit("send_message_return", { code: 0, error: "server_error" });

@@ -4,7 +4,7 @@ export async function decryptionMsg(dataToSend: { encrypted: string }, type: str
   try {
     let url;
     if (type == "mobile") {
-      url = "http://localhost:3062";
+      url = "http://localhost:8000/crypto";
     }
 
     const response: any = await axios.post(`${url}/decrypt`, { data: dataToSend }, {
@@ -21,7 +21,7 @@ export async function encryptionMsg(key: string, dataToSend: string, type: strin
   try {
     let url;
     if (type == "mobile") {
-      url = "http://localhost:3062";
+      url = "http://localhost:8000/crypto";
     }
     
     const response: any = await axios.post(`${url}/encryption`, { key: key, data: dataToSend }, {

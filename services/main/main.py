@@ -113,7 +113,8 @@ async def create_app() -> FastAPI:
     global_url = config["GLOBAL_URL"]
     proxy_map = {
         "/data": global_url["MICROSERVICES_DATA"],
-        "/chat": global_url["MICROSERVICES_CHAT"],
+        "/crypto": global_url["MICROSERVICES_CRYPTO"],
+        "/authentication": global_url["MICROSERVICES_AUTHENTICATION"]
     }
 
     for route_prefix, target_url in proxy_map.items():

@@ -2,8 +2,6 @@ import { Socket } from "socket.io";
 import { getMongoClient } from "../../models/mongoClient";
 import { Db } from "mongodb";
 import { verifyAuth } from "../../utils/verifyAuth";
-import { getServerIdToChat } from "../../utils/serverChats";
-import { getIO } from '../../utils/config/io';
 import { decryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 
@@ -18,23 +16,14 @@ export function onDelSelfInChat(socket: Socket): void {
 
       const client = await getMongoClient();
 
-      if (dataDec.typeChat === 'server') {
-        let idServer = getServerIdToChat(dataDec.id);
 
-        getIO().to(String(idServer)).emit("del_user_in_chat", {
-          idChat: dataDec.id,
-          from: socket.data.userId,
-          userId: socket.data.userId
-        });
-      } else {
-        const db: Db = client.db("chats");
-        const collection = db.collection<any>(String(dataDec.id));
+      const db: Db = client.db("chats");
+      const collection = db.collection<any>(String(dataDec.id));
 
-        await collection.updateOne(
-          { _id: "config" },
-          { $pull: { participants: String(socket.data.userId) as any } }
-        );
-      }
+      await collection.updateOne(
+        { _id: "config" },
+        { $pull: { participants: String(socket.data.userId) as any } }
+      );
 
       const usersDb: Db = client.db("users");
       const usersCollection = usersDb.collection<any>(String(socket.data.userId));

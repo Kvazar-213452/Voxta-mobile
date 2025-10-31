@@ -1,7 +1,6 @@
 import { Socket } from "socket.io";
 import { getMongoClient } from "../../models/mongoClient";
 import { verifyAuth } from "../../utils/verifyAuth";
-import { getChatsServer } from "../../utils/serverChats";
 import { Db } from "mongodb";
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
@@ -19,12 +18,6 @@ export function onGetInfoChats(socket: Socket): void {
       const db: Db = client.db("chats");
 
       const result: Record<string, any> = {};
-
-      const cachedChats = getChatsServer(dataDec.chats);
-
-      for (const [chatId, chatData] of Object.entries(cachedChats)) {
-        result[chatId] = chatData;
-      }
 
       const remainingChats = dataDec.chats.filter(chatId => !result.hasOwnProperty(chatId));
       
@@ -49,4 +42,3 @@ export function onGetInfoChats(socket: Socket): void {
     }
   });
 }
-

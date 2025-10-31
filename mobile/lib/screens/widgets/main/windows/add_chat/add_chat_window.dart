@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'header.dart';
 import 'footer.dart';
-import 'server_chat_modal.dart';
 import 'temporary_chat_modal.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../utils/getBase64.dart';
@@ -97,35 +96,6 @@ class _AddChatScreenState extends State<AddChatScreen>
     });
   }
 
-  void _showServerModal() {
-    final avatarBase64 = getImageBase64(_selectedImage);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return ServerChatModal(
-          chatName: _chatNameController.text,
-          chatDescription: _chatDescriptionController.text,
-          privacy: _selectedPrivacy,
-          avatarBase64: avatarBase64 ?? '',
-          onCreateServer: (chatName, privacy, avatarBase64, chatDescription,
-              idServer, codeServer) {
-            createChatServer(
-              chatName,
-              privacy,
-              avatarBase64,
-              chatDescription,
-              idServer,
-              codeServer,
-            );
-            closeScreen();
-          },
-        );
-      },
-    );
-  }
-
   void _showTemporaryModal() {
     final avatarBase64 = getImageBase64(_selectedImage);
 
@@ -168,9 +138,7 @@ class _AddChatScreenState extends State<AddChatScreen>
       print('Privacy: $_selectedPrivacy');
       print('Has avatar: ${_selectedImage != null}');
 
-      if (_selectedPrivacy == "server") {
-        _showServerModal();
-      } else if (_selectedPrivacy == "temporary") {
+      if (_selectedPrivacy == "temporary") {
         _showTemporaryModal();
       } else {
         final avatarBase64 = getImageBase64(_selectedImage);
@@ -455,13 +423,6 @@ class _AddChatScreenState extends State<AddChatScreen>
               '🌐',
               'Публічний',
               'Всі можуть приєднатися до чату',
-            ),
-            const SizedBox(height: 12),
-            _buildPrivacyOption(
-              'server',
-              '⚙️',
-              'Серверний',
-              'Контролюється адміністратором',
             ),
             const SizedBox(height: 12),
             _buildPrivacyOption(

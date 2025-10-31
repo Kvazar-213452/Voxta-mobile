@@ -6,6 +6,7 @@ import 'models/storage_user.dart';
 import 'utils/init_settings_func.dart';
 import 'models/storage_service.dart';
 import 'models/storage_pasw.dart';
+import 'models/storage_chat_key.dart';
 import 'models/interface/user.dart';
 import 'services/authentication.dart';
 
@@ -14,6 +15,8 @@ void main() async {
 
   initSecureStorage();
   initSettingsTheme();
+  ChatKeysDB.initDatabase();
+
   final UserModel? user = await getUserStorage();
   final String? jwt = await getJWTStorage();
   final int? pasw = await getPaswStorage();

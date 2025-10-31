@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
+import 'set_key_modal.dart';
 import 'utils.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../models/storage_user.dart';
@@ -12,7 +13,7 @@ class ChatModalFunctions {
     required String owner,
     required String type,
     required Widget chatAvatar,
-    required VoidCallback onBackPressed
+    required VoidCallback onBackPressed,
   }) {
     showDialog(
       context: context,
@@ -29,13 +30,18 @@ class ChatModalFunctions {
     getInfoChat(
       id: id,
       type: type,
-      onSuccess: (String chatName, String description, Map<String, dynamic> data) {
+      onSuccess: (
+        String chatName,
+        String description,
+        Map<String, dynamic> data,
+      ) {
         Navigator.pop(context);
-        
-        _showOptionsModal(context, 
-          id: id, 
-          type: type, 
-          chatName: chatName, 
+
+        _showOptionsModal(
+          context,
+          id: id,
+          type: type,
+          chatName: chatName,
           chatAvatar: chatAvatar,
           onBackPressed: onBackPressed,
           owner: owner,
@@ -83,9 +89,7 @@ class ChatModalFunctions {
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
                 ),
-                border: Border.all(
-                  color: AppColors.modalBorder,
-                ),
+                border: Border.all(color: AppColors.modalBorder),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -104,10 +108,7 @@ class ChatModalFunctions {
                     padding: const EdgeInsets.all(20),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 20,
-                          child: chatAvatar,
-                        ),
+                        CircleAvatar(radius: 20, child: chatAvatar),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -135,10 +136,7 @@ class ChatModalFunctions {
                     ),
                   ),
 
-                  Container(
-                    height: 1,
-                    color: AppColors.modalDivider,
-                  ),
+                  Container(height: 1, color: AppColors.modalDivider),
 
                   if (user != null && owner == user.id)
                     _buildModalOption(
@@ -149,6 +147,20 @@ class ChatModalFunctions {
                         _loadAndShowChatSettings(context, id: id, type: type);
                       },
                     ),
+
+                  _buildModalOption(
+                    icon: Icons.key,
+                    title: 'Встановити ключ',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showSetKeyModal(
+                        context,
+                        chatId: id,
+                        chatName: chatName,
+                      );
+                    },
+                    isDestructive: false,
+                  ),
 
                   _buildModalOption(
                     icon: Icons.exit_to_app,
@@ -192,28 +204,26 @@ class ChatModalFunctions {
             children: [
               Icon(
                 icon,
-                color: isDestructive 
-                  ? AppColors.destructiveRed
-                  : AppColors.white70,
+                color:
+                    isDestructive
+                        ? AppColors.destructiveRed
+                        : AppColors.white70,
                 size: 24,
               ),
               const SizedBox(width: 16),
               Text(
                 title,
                 style: TextStyle(
-                  color: isDestructive 
-                    ? AppColors.destructiveRed
-                    : AppColors.whiteText,
+                  color:
+                      isDestructive
+                          ? AppColors.destructiveRed
+                          : AppColors.whiteText,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const Spacer(),
-              Icon(
-                Icons.chevron_right,
-                color: AppColors.white54,
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: AppColors.white54, size: 20),
             ],
           ),
         ),
@@ -221,7 +231,31 @@ class ChatModalFunctions {
     );
   }
 
-  static void showBlockDialog(VoidCallback onBackPressed, String id, String type, BuildContext context, {required String chatName}) {
+  static void _showSetKeyModal(
+    BuildContext context, {
+    required String chatId,
+    required String chatName,
+  }) {
+    showDialog(
+      context: context,
+      barrierColor: AppColors.overlayBackground,
+      builder: (BuildContext context) {
+        return SetKeyModal(
+          chatId: chatId,
+          chatName: chatName,
+          onClose: () {},
+        );
+      },
+    );
+  }
+
+  static void showBlockDialog(
+    VoidCallback onBackPressed,
+    String id,
+    String type,
+    BuildContext context, {
+    required String chatName,
+  }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -286,7 +320,7 @@ class ChatModalFunctions {
       type: type,
       onSuccess: (String name, String description, Map<String, dynamic> data) {
         Navigator.pop(context);
-        
+
         showChatSettingsModal(
           context,
           chatName: name,
@@ -301,7 +335,7 @@ class ChatModalFunctions {
       },
       onError: (String error) {
         Navigator.pop(context);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
@@ -329,10 +363,7 @@ class ChatModalFunctions {
         avatarUrl,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
-          return Icon(
-            Icons.group,
-            color: AppColors.brandGreen,
-          );
+          return Icon(Icons.group, color: AppColors.brandGreen);
         },
       );
     }
@@ -359,11 +390,15 @@ class ChatModalFunctions {
           owner: owner,
           chatId: id,
           currentInviteCode: keyChat,
-          onSave: (String newName, String newDescription, String? avatarBase64) {
+          onSave: (
+            String newName,
+            String newDescription,
+            String? avatarBase64,
+          ) {
             saveSettingsChat(id, type, {
               "name": newName,
               "desc": newDescription,
-              "avatar": avatarBase64
+              "avatar": avatarBase64,
             });
           },
         );
@@ -371,5 +406,3 @@ class ChatModalFunctions {
     );
   }
 }
-
-// налаштування

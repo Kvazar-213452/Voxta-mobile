@@ -4,7 +4,7 @@ export async function decryptionMsg(dataToSend: { encrypted: string }, type: str
   try {
     let url;
     if (type == "mobile") {
-      url = "http://localhost:3062";
+      url = "http://localhost:8000/crypto";
     } else {
       url = "http://localhost:4001";
     }
@@ -23,7 +23,7 @@ export async function encryptionMsg(key: string, dataToSend: string, type: strin
   try {
     let url;
     if (type == "mobile") {
-      url = "http://localhost:3062";
+      url = "http://localhost:8000/crypto";
     } else {
       url = "http://localhost:4001";
     }

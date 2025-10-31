@@ -9,7 +9,6 @@ export function onGetInfoChatFix(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-
       const client = await getMongoClient();
       const db: Db = client.db("chats");
 

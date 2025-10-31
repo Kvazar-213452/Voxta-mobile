@@ -5,6 +5,8 @@ import '../../models/interface/chat_models.dart';
 import '../../config.dart';
 import 'utils.dart';
 import '../../utils/crypto/crypto_auto.dart';
+import '../../models/storage_chat_key.dart';
+import '../../utils/crypto/crypto_msg.dart';
 
 IO.Socket? socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -26,6 +28,8 @@ void connectSocket(
   _onChatContentReceived = onChatContentReceived;
   saveUserStorage(user);
 
+  String CAHT_ID = "";
+
   try {
     socket = IO.io(
       Config.URL_SERVICES_CHAT,
@@ -40,6 +44,7 @@ void connectSocket(
 
     socket!.on('send_message_return', (data) async {
       data = await decrypted_auto(data);
+      data = await decryptMessage(data, CAHT_ID);
 
       _onMessageReceived!(data as Map<String, dynamic>);
     });
@@ -68,6 +73,9 @@ void connectSocket(
 
     socket!.on('load_chat_content_return', (data) async {
       data = await decrypted_auto(data);
+      data = await decryptMessages(data);
+
+      CAHT_ID = data["chatId"];
 
       _onChatContentReceived!(data as Map<String, dynamic>);
     });
@@ -151,6 +159,12 @@ void sendMessage(
   String type,
   String typeMsg,
 ) async {
+  String keyChat = await ChatKeysDB.getKey(chatId);
+
+  if (keyChat != "") {
+    text = encryptText(text.toString(), keyChat);
+  }
+
   final dataToEncrypt = {
     'message': {
       'content': text,

@@ -2,8 +2,6 @@ import { Socket } from "socket.io";
 import { getMongoClient } from "../../models/mongoClient";
 import { Db, ObjectId } from "mongodb";
 import { verifyAuth } from "../../utils/verifyAuth";
-import { getServerIdToChat } from "../../utils/serverChats";
-import { getIO } from '../../utils/config/io';
 import { decryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 
@@ -18,27 +16,17 @@ export function onDelMsg(socket: Socket): void {
 
       const client = await getMongoClient();
 
-      if (dataDec.typeChat === 'server') {
-        let idServer = getServerIdToChat(dataDec.id);
+      const db: Db = client.db("chats");
+      const collection = db.collection<any>(String(dataDec.idChat));
 
-        getIO().to(String(idServer)).emit("del_user_in_chat", {
-          idChat: dataDec.id,
-          from: socket.data.userId,
-          userId: socket.data.userId
-        });
+      const result = await collection.deleteOne({
+        _id: ObjectId.isValid(dataDec.idMsg) ? new ObjectId(dataDec.idMsg) : dataDec.idMsg
+      });
+
+      if (result.deletedCount > 0) {
+        console.log(`Документ з _id=${dataDec.idMsg} видалено`);
       } else {
-        const db: Db = client.db("chats");
-        const collection = db.collection<any>(String(dataDec.idChat));
-
-        const result = await collection.deleteOne({
-          _id: ObjectId.isValid(dataDec.idMsg) ? new ObjectId(dataDec.idMsg) : dataDec.idMsg
-        });
-
-        if (result.deletedCount > 0) {
-          console.log(`Документ з _id=${dataDec.idMsg} видалено`);
-        } else {
-          console.log(`Документ з _id=${dataDec.idMsg} не знайдено`);
-        }
+        console.log(`Документ з _id=${dataDec.idMsg} не знайдено`);
       }
 
       socket.emit("del_msg", { code: 1 });

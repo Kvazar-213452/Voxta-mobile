@@ -14,7 +14,6 @@ Future<void> downloadFile(String url, String fileName) async {
       final file = File(filePath);
       await file.writeAsBytes(response.bodyBytes);
 
-      // _showSuccessSnackBar('Файл $fileName завантажено в $filePath');
     } else {
       print('Помилка при вигзузці на сервер');
     }

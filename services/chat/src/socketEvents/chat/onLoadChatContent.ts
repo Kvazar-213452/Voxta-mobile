@@ -1,9 +1,7 @@
 import { Socket } from "socket.io";
 import { getMongoClient } from "../../models/mongoClient";
 import { verifyAuth } from "../../utils/verifyAuth";
-import { getServerIdToChat } from "../../utils/serverChats";
 import { Db } from "mongodb";
-import { getIO } from '../../utils/config/io';
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 
@@ -16,15 +14,7 @@ export async function onLoadChatContent(socket: Socket): Promise<void> {
       let dataDec: any = await decryptionMsg(data.data, data.type);
       dataDec = safeParseJSON(dataDec);
 
-      if (dataDec.type === "server") {
-        let idServer = getServerIdToChat(dataDec.chatId);
-        
-        getIO().to(String(idServer)).emit("load_chat", {
-          idChat: dataDec.chatId,
-          from: socket.data.userId,
-          idUserServer: socket.id
-        });
-      } else {
+
         const client = await getMongoClient();
         const db: Db = client.db("chats");
 
@@ -81,7 +71,7 @@ export async function onLoadChatContent(socket: Socket): Promise<void> {
             data: await encryptionMsg(data.key, JSON.stringify(messageToInsert), data.type)
           });
         }
-      }
+      
     } catch (err) {
       console.log(`Error loading chat content:`, err);
       socket.emit("load_chat_content_return", {

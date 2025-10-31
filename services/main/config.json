@@ -2,7 +2,7 @@
   "PORT": "8000",
   "API": "localhost",
   "GLOBAL_URL": {
-    "MICROSERVICES_DATA": "http://localhost:3003/",
+    "MICROSERVICES_DATA": "http://localhost:3004/",
     "MICROSERVICES_CHAT": "http://localhost:3010/",
     "MICROSERVICES_CRYPTO": "http://localhost:3005/",
     "MICROSERVICES_NOTIFICATION": "http://localhost:3006/",
@@ -38,8 +38,8 @@
     "SECRET_KEY": "your_secret_key"
   },
   "API_DATA": {
-    "PORT": "3003",
+    "PORT": "3004",
     "API": "localhost",
-    "API_GLOBAL": "http://localhost:3003/data/"
+    "API_GLOBAL": "http://localhost:3004/data/"
   }
 }
