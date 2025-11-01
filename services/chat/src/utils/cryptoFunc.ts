@@ -1,13 +1,8 @@
 import axios from 'axios';
 
-export async function decryptionMsg(dataToSend: { encrypted: string }, type: string): Promise<any> {
+export async function decryptionMsg(dataToSend: { encrypted: string }): Promise<any> {
   try {
-    let url;
-    if (type == "mobile") {
-      url = "http://localhost:8000/crypto";
-    }
-
-    const response: any = await axios.post(`${url}/decrypt`, { data: dataToSend }, {
+    const response: any = await axios.post(`http://localhost:8000/crypto/decrypt`, { data: dataToSend }, {
       headers: {'Content-Type': 'application/json'}
     });
 
@@ -17,14 +12,9 @@ export async function decryptionMsg(dataToSend: { encrypted: string }, type: str
   }
 }
 
-export async function encryptionMsg(key: string, dataToSend: string, type: string ): Promise<any> {
+export async function encryptionMsg(key: string, dataToSend: string ): Promise<any> {
   try {
-    let url;
-    if (type == "mobile") {
-      url = "http://localhost:8000/crypto";
-    }
-    
-    const response: any = await axios.post(`${url}/encryption`, { key: key, data: dataToSend }, {
+    const response: any = await axios.post(`http://localhost:8000/crypto/encryption`, { key: key, data: dataToSend }, {
       headers: {'Content-Type': 'application/json'}
     });
 

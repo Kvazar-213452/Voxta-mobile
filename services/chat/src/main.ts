@@ -21,6 +21,7 @@ import { onGetSelf } from './socketEvents/user/onGetSelf';
 import { onSaveProfile } from './socketEvents/user/onSaveProfile';
 import { onCreateTemporaryChat } from './socketEvents/chat/onCreateTemporaryChat';
 import { onGetInfoChatFix } from './socketEvents/chat/onGetInfoChatFix';
+import { onDelChat } from './socketEvents/chat/onDelChat';
 
 import { onDelSelfInChat } from './socketEvents/chat/onDelSelfInChat';
 import { onDelMsg } from './socketEvents/chat/onDelMsg';
@@ -50,6 +51,7 @@ async function startServer() {
   io.on('connection', (socket: Socket) => {
     console.log(`connect client: ${socket.id}`);
 
+    onDelChat(socket);
     onGetInfoChatFix(socket);
     onCreateTemporaryChat(socket);
     onDelMsg(socket);

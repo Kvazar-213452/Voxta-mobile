@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../../../../app_colors.dart';
 import 'utils.dart';
+import '../../../../../config.dart';
 
 class TemporaryPasswordModal extends StatefulWidget {
   final String chatId;
@@ -16,11 +18,12 @@ class TemporaryPasswordModal extends StatefulWidget {
   State<TemporaryPasswordModal> createState() => _TemporaryPasswordModalState();
 }
 
-class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with TickerProviderStateMixin {
+class _TemporaryPasswordModalState extends State<TemporaryPasswordModal>
+    with TickerProviderStateMixin {
   bool _showPassword = false;
   bool _isLoading = true;
   String? _error;
-  
+
   Map<String, dynamic>? _chatData;
 
   late AnimationController _animationController;
@@ -30,28 +33,20 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _scaleAnimation = Tween<double>(
-      begin: 0.7,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutBack,
-    ));
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
+
+    _scaleAnimation = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
     _animationController.forward();
     _loadChatData();
   }
@@ -91,6 +86,23 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
     });
   }
 
+  void _deleteChat() {
+    delChat(
+      idChat: widget.chatId,
+      onSuccess: () {
+        _closeModal();
+      },
+      onError: (error) {
+        if (mounted) {
+          setState(() {
+            _error = error;
+            _isLoading = false;
+          });
+        }
+      },
+    );
+  }
+
   String _formatDateTime(String? dateTimeString) {
     if (dateTimeString == null) return 'Невідомо';
     try {
@@ -103,7 +115,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
 
   int _calculateRemainingHours(String? expiresAt) {
     if (expiresAt == null) return 0;
-    
+
     try {
       final expirationDate = DateTime.parse(expiresAt);
       final now = DateTime.now();
@@ -114,13 +126,28 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
     }
   }
 
+  void _copyToClipboard(String text, String label) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$label скопійовано'),
+        duration: const Duration(seconds: 2),
+        backgroundColor: AppColors.brandGreen,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
         return Material(
-          color: Color.lerp(AppColors.transparent, AppColors.blackTransparent50, _fadeAnimation.value),
+          color: Color.lerp(
+            AppColors.transparent,
+            AppColors.blackTransparent50,
+            _fadeAnimation.value,
+          ),
           child: Center(
             child: Transform.scale(
               scale: _scaleAnimation.value,
@@ -149,22 +176,23 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
                       width: 1,
                     ),
                   ),
-                  child: _isLoading 
-                    ? _buildLoadingState()
-                    : _error != null
-                      ? _buildErrorState()
-                      : Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            _buildHeader(),
-                            Flexible(
-                              child: SingleChildScrollView(
-                                child: _buildBody(),
+                  child:
+                      _isLoading
+                          ? _buildLoadingState()
+                          : _error != null
+                          ? _buildErrorState()
+                          : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildHeader(),
+                              Flexible(
+                                child: SingleChildScrollView(
+                                  child: _buildBody(),
+                                ),
                               ),
-                            ),
-                            _buildFooter(),
-                          ],
-                        ),
+                              _buildFooter(),
+                            ],
+                          ),
                 ),
               ),
             ),
@@ -180,16 +208,11 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(
-            color: AppColors.brandGreen,
-          ),
+          CircularProgressIndicator(color: AppColors.brandGreen),
           const SizedBox(height: 20),
           Text(
             'Завантаження даних...',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.lightGray,
-            ),
+            style: TextStyle(fontSize: 16, color: AppColors.lightGray),
           ),
         ],
       ),
@@ -202,11 +225,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.error_outline,
-            color: AppColors.brandGreen,
-            size: 48,
-          ),
+          Icon(Icons.error_outline, color: AppColors.brandGreen, size: 48),
           const SizedBox(height: 16),
           Text(
             'Помилка',
@@ -219,10 +238,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
           const SizedBox(height: 8),
           Text(
             _error ?? 'Невідома помилка',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.whiteTransparent50,
-            ),
+            style: TextStyle(fontSize: 14, color: AppColors.whiteTransparent50),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -238,10 +254,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
             ),
             child: const Text(
               'Закрити',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -254,10 +267,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.whiteTransparent10,
-            width: 1,
-          ),
+          bottom: BorderSide(color: AppColors.whiteTransparent10, width: 1),
         ),
       ),
       child: Row(
@@ -328,19 +338,12 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: AppColors.brandGreen,
-                  size: 20,
-                ),
+                Icon(Icons.info_outline, color: AppColors.brandGreen, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Збережіть цю інформацію. Пароль потрібен для входу в чат.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.lightGray,
-                    ),
+                    style: TextStyle(fontSize: 13, color: AppColors.lightGray),
                   ),
                 ),
               ],
@@ -353,7 +356,12 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
           const SizedBox(height: 12),
           _buildInfoRow('Опис', _chatData?['description'] ?? 'Без опису'),
           const SizedBox(height: 12),
-          _buildInfoRow('Діє ще', '$remainingHours ${_getHoursWord(remainingHours)}'),
+          _buildInfoRow(
+            'Діє ще',
+            '$remainingHours ${_getHoursWord(remainingHours)}',
+          ),
+          const SizedBox(height: 12),
+          _buildUrlRow(),
           const SizedBox(height: 12),
           _buildInfoRow('Створено', _formatDateTime(_chatData?['createdAt'])),
           const SizedBox(height: 12),
@@ -366,7 +374,9 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
   String _getHoursWord(int hours) {
     if (hours % 10 == 1 && hours % 100 != 11) {
       return 'година';
-    } else if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) {
+    } else if (hours % 10 >= 2 &&
+        hours % 10 <= 4 &&
+        (hours % 100 < 10 || hours % 100 >= 20)) {
       return 'години';
     } else {
       return 'годин';
@@ -392,9 +402,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
           decoration: BoxDecoration(
             color: AppColors.transparentWhite,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: AppColors.whiteTransparent20,
-            ),
+            border: Border.all(color: AppColors.whiteTransparent20),
           ),
           child: Text(
             value,
@@ -409,9 +417,57 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
     );
   }
 
+  Widget _buildUrlRow() {
+    final chatUrl = '${Config.URL_SERVICES_CHAT_SITE}chat/${widget.chatId}';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'URL чату',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.whiteTransparent50,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.transparentWhite,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppColors.whiteTransparent20),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  chatUrl,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: AppColors.lightGray,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.copy, color: AppColors.brandGreen, size: 20),
+                onPressed: () => _copyToClipboard(chatUrl, 'URL'),
+                tooltip: 'Копіювати',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPasswordRow() {
     final password = _chatData?['password'] ?? '••••••••';
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -437,11 +493,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.lock,
-                color: AppColors.brandGreen,
-                size: 18,
-              ),
+              Icon(Icons.lock, color: AppColors.brandGreen, size: 18),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -478,41 +530,60 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal> with Ti
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: AppColors.whiteTransparent10,
-            width: 1,
-          ),
+          top: BorderSide(color: AppColors.whiteTransparent10, width: 1),
         ),
       ),
-      child: ElevatedButton(
-        onPressed: _closeModal,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.brandGreen,
-          foregroundColor: AppColors.blackText,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 4,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle,
-              size: 20,
+      child: Column(
+        children: [
+          ElevatedButton(
+            onPressed: _closeModal,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.brandGreen,
+              foregroundColor: AppColors.blackText,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 4,
             ),
-            const SizedBox(width: 8),
-            Text(
-              'Зрозуміло',
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.check_circle, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Зрозуміло',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: _deleteChat,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: BorderSide(color: Colors.red, width: 1.5),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.delete_outline, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Видалити чат',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+// Видалення чату з ID

@@ -14,7 +14,7 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    const decrypted: any = await decryptionMsg(data, type);
+    const decrypted: any = await decryptionMsg(data);
     const parsed: LoginData = safeParseJSON(decrypted);
     const name = parsed.name;
     const password = parsed.password;
@@ -63,7 +63,7 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
 
     console.log("ddddddddd")
 
-    const encrypted = await encryptionMsg(key, responsePayload, type);
+    const encrypted = await encryptionMsg(key, responsePayload);
     res.json({ code: 1, data: encrypted });
   } catch (err) {
     console.log(err)

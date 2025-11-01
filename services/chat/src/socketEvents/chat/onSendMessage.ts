@@ -5,7 +5,6 @@ import { verifyAuth } from "../../utils/verifyAuth";
 import { generateId } from "../../utils/generateId";
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
-import { getIO } from "../../utils/config/io";
 import { onSendMessage as onSendMessage1 } from "../../utils/sendCreateChat";
 import axios from "axios";
 import { CONFIG } from "../../utils/config/config";
@@ -16,7 +15,7 @@ export function onSendMessage(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data, data.type);
+      let dataDec: any = await decryptionMsg(data.data);
       dataDec = safeParseJSON(dataDec);
 
       const client = await getMongoClient();
@@ -50,7 +49,7 @@ export function onSendMessage(socket: Socket): void {
 
       await collection.insertOne(messageToInsert);
 
-      onSendMessage1(await encryptionMsg(data.key, JSON.stringify(messageToInsert), data.type));
+      onSendMessage1(await encryptionMsg(data.key, JSON.stringify(messageToInsert)));
 
     } catch (error) {
       console.error("send_message error:", error);

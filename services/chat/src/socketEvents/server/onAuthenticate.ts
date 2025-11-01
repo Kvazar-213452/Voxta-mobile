@@ -12,7 +12,7 @@ export function onAuthenticate(socket: Socket): void {
 
     let dataDec: any;
 
-    dataDec = await decryptionMsg(data.data, data.type);
+    dataDec = await decryptionMsg(data.data);
     dataDec = safeParseJSON(dataDec);
 
     try {
@@ -43,7 +43,7 @@ export function onAuthenticate(socket: Socket): void {
       };
 
       socket.emit('authenticated', {
-        data: await encryptionMsg(data.key, JSON.stringify(dataCtypto), data.type)
+        data: await encryptionMsg(data.key, JSON.stringify(dataCtypto))
       });
 
     } catch (error) {

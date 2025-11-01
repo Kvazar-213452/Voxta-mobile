@@ -4,9 +4,8 @@ import { ADD_CHAT } from '../utils/chats';
 export default class Chat {
   static async loadChats(req: Request, res: Response): Promise<void> {
     const { chat, createdAt, expirationHours } = req.body;
-
     try {
-      if (!chat || !createdAt || typeof expirationHours !== 'number') {
+      if (!chat || !createdAt || !expirationHours) {
         res.status(400).json({ code: 0, error: 'error_params' });
         return;
       }

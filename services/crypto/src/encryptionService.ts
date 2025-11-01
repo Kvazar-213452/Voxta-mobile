@@ -6,7 +6,6 @@ interface EncryptedData {
   data: string;
 }
 
-// Генерація RSA ключів
 export const generateKeyPair = (): void => {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
     modulusLength: 4096,
@@ -24,7 +23,6 @@ export const generateKeyPair = (): void => {
   fs.writeFileSync('private_key.pem', privateKey);
 };
 
-// Парсинг PEM ключа
 const parsePublicKey = (pemKey: string): crypto.KeyObject => {
   const cleanKey = pemKey
     .replace(/-----BEGIN RSA PUBLIC KEY-----/g, '')
@@ -35,11 +33,9 @@ const parsePublicKey = (pemKey: string): crypto.KeyObject => {
     .replace(/\r/g, '')
     .replace(/\s/g, '');
 
-  // Спроба декодувати base64
   try {
     const keyBuffer = Buffer.from(cleanKey, 'base64');
     
-    // Спроба створити ключ як PKCS1
     try {
       return crypto.createPublicKey({
         key: Buffer.concat([
@@ -51,7 +47,6 @@ const parsePublicKey = (pemKey: string): crypto.KeyObject => {
         type: 'pkcs1'
       });
     } catch {
-      // Якщо не вийшло PKCS1, спробувати SPKI
       return crypto.createPublicKey({
         key: Buffer.concat([
           Buffer.from('-----BEGIN PUBLIC KEY-----\n'),
@@ -63,7 +58,6 @@ const parsePublicKey = (pemKey: string): crypto.KeyObject => {
       });
     }
   } catch (error) {
-    // Якщо вже в правильному форматі
     try {
       return crypto.createPublicKey({
         key: pemKey,
@@ -75,15 +69,10 @@ const parsePublicKey = (pemKey: string): crypto.KeyObject => {
   }
 };
 
-// Шифрування повідомлення
 export const encryptMessage = (publicRsaKey: string, message: string): EncryptedData => {
-  // Генерація AES ключа (256 біт)
   const aesKey = crypto.randomBytes(32);
-  
-  // Генерація nonce (12 байт для GCM)
   const nonce = crypto.randomBytes(12);
-  
-  // Шифрування повідомлення за допомогою AES-256-GCM
+
   const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, nonce);
   
   const encryptedMessage = Buffer.concat([
@@ -93,7 +82,7 @@ export const encryptMessage = (publicRsaKey: string, message: string): Encrypted
   
   const authTag = cipher.getAuthTag();
   
-  // Шифрування AES ключа за допомогою RSA-OAEP
+
   const publicKey = parsePublicKey(publicRsaKey);
   
   const encryptedKey = crypto.publicEncrypt(
@@ -105,7 +94,6 @@ export const encryptMessage = (publicRsaKey: string, message: string): Encrypted
     aesKey
   );
   
-  // Формування результату
   const data = `${nonce.toString('base64')}.${authTag.toString('base64')}.${encryptedMessage.toString('base64')}`;
   
   return {
@@ -114,10 +102,8 @@ export const encryptMessage = (publicRsaKey: string, message: string): Encrypted
   };
 };
 
-// Розшифрування повідомлення
 export const decryptMessage = (encryptedData: EncryptedData): string => {
   try {
-    // Читання приватного ключа
     const privateKeyPem = fs.readFileSync('private_key.pem', 'utf-8');
     const privateKey = crypto.createPrivateKey({
       key: privateKeyPem,
@@ -125,12 +111,10 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
       type: 'pkcs8'
     });
     
-    // Розшифрування AES ключа за допомогою RSA-OAEP
     const encryptedKeyBuffer = Buffer.from(encryptedData.key, 'base64');
     
     let aesKey: Buffer;
     try {
-      // Спроба з SHA-256
       aesKey = crypto.privateDecrypt(
         {
           key: privateKey,
@@ -140,7 +124,6 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
         encryptedKeyBuffer
       );
     } catch {
-      // Якщо не вийшло, спробувати SHA-1
       aesKey = crypto.privateDecrypt(
         {
           key: privateKey,
@@ -151,7 +134,6 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
       );
     }
     
-    // Розбір зашифрованих даних
     const parts = encryptedData.data.split('.');
     if (parts.length !== 3) {
       throw new Error('Неправильний формат зашифрованих даних');
@@ -160,8 +142,7 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
     const nonce = Buffer.from(parts[0], 'base64');
     const authTag = Buffer.from(parts[1], 'base64');
     const encryptedMessage = Buffer.from(parts[2], 'base64');
-    
-    // Перевірка розмірів
+
     if (nonce.length !== 12) {
       throw new Error('Неправильний розмір nonce');
     }
@@ -169,7 +150,6 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
       throw new Error('Неправильний розмір auth tag');
     }
     
-    // Розшифрування повідомлення за допомогою AES-256-GCM
     const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, nonce);
     decipher.setAuthTag(authTag);
     

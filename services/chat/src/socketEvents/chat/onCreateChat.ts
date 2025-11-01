@@ -14,7 +14,7 @@ export function onCreateChat(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data, data.type);
+      let dataDec: any = await decryptionMsg(data.data);
       dataDec = safeParseJSON(dataDec);
 
       if (dataDec.chat.avatar) {
@@ -53,7 +53,7 @@ export function onCreateChat(socket: Socket): void {
         { $addToSet: { chats: chatId, type: dataDec.chat.privacy } }
       );
 
-      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({data: dataConfig}), data.type)), chatId);
+      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({data: dataConfig}))), chatId);
     } catch (error: unknown) {
       console.log("CONFIG DOC:", error);
       let errorMessage = "Unknown error";

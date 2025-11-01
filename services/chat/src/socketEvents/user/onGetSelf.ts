@@ -11,7 +11,7 @@ export function onGetSelf(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data, data.type);
+      let dataDec: any = await decryptionMsg(data.data);
       dataDec = safeParseJSON(dataDec);
 
       const client = await getMongoClient();
@@ -36,7 +36,7 @@ export function onGetSelf(socket: Socket): void {
 
       socket.emit('get_info_self', {
         code: 1,
-        data: await encryptionMsg(data.key, JSON.stringify(messageToInsert), data.type)
+        data: await encryptionMsg(data.key, JSON.stringify(messageToInsert))
       });
 
     } catch (error) {

@@ -14,7 +14,7 @@ export async function getInfoToJwtHandler(req: Request, res: Response): Promise<
       return;
     }
 
-    const decrypted = await decryptionMsg(data, type);
+    const decrypted = await decryptionMsg(data);
     const parsed = safeParseJSON(decrypted);
     const jwtToken = parsed.jwt;
     const id = parsed.id;
@@ -55,7 +55,7 @@ export async function getInfoToJwtHandler(req: Request, res: Response): Promise<
     }
 
     const dataToEncrypt = JSON.stringify(transforUser(foundUser));
-    const json = await encryptionMsg(key, dataToEncrypt, type);
+    const json = await encryptionMsg(key, dataToEncrypt);
 
     res.json({ code: 1, data: json });
   } catch (e) {

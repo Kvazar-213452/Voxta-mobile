@@ -18,16 +18,30 @@ export function initSocketServer(server: any) {
   io = new SocketIOServer(server, {
     cors: {
       origin: "*",
-      methods: ["GET", "POST"]
-    }
+      methods: ["GET", "POST"],
+      credentials: true
+    },
+    // Налаштування транспорту
+    transports: ['websocket', 'polling'],
+    // Налаштування ping/pong
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    // Дозволити upgrade з polling на websocket
+    allowUpgrades: true,
+    // Налаштування з'єднання
+    connectTimeout: 45000,
+    // Максимальний розмір буфера
+    maxHttpBufferSize: 1e8, // 100 MB
+    // Додаткові налаштування
+    allowEIO3: true,
+    serveClient: false
   });
 
   io.on('connection', (socket: any) => {
-    // Генеруємо унікальний ID для кожного користувача при підключенні
     const userId = generateUserId();
     socket.userId = userId;
 
-    console.log(`Нове підключення: ${socket.id}, userId: ${userId}`);
+    console.log(`✅ Нове підключення: ${socket.id}, userId: ${userId}`);
 
     // Відправляємо userId клієнту
     socket.emit('user_id_assigned', { userId });
@@ -35,8 +49,11 @@ export function initSocketServer(server: any) {
     // Завантаження інформації про чат
     socket.on('load_chat_info', async (chatId: string) => {
       try {
+        console.log(`📥 Завантаження інфо чату: ${chatId}`);
+        
         if (!GET_CHATS().includes(chatId)) {
           socket.emit('error', { message: 'Чат не знайдено' });
+          return;
         }
 
         const client = await getMongoClient();
@@ -50,7 +67,7 @@ export function initSocketServer(server: any) {
           socket.emit('error', { message: 'Чат не знайдено' });
         }
       } catch (error) {
-        console.error('Помилка завантаження інформації чату:', error);
+        console.error('❌ Помилка завантаження інформації чату:', error);
         socket.emit('error', { message: 'Помилка завантаження чату' });
       }
     });
@@ -58,8 +75,11 @@ export function initSocketServer(server: any) {
     // Завантаження контенту чату
     socket.on('load_chat_content', async (chatId: string) => {
       try {
+        console.log(`📥 Завантаження контенту чату: ${chatId}`);
+        
         if (!GET_CHATS().includes(chatId)) {
           socket.emit('error', { message: 'Чат не знайдено' });
+          return;
         }
 
         let messages = messageCache.get(chatId) || [];
@@ -83,7 +103,7 @@ export function initSocketServer(server: any) {
             }
           }
         } catch (err) {
-          console.log(`Папка ${chatDataPath} не існує або порожня`);
+          console.log(`📁 Папка ${chatDataPath} не існує або порожня`);
         }
 
         messages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
@@ -91,8 +111,9 @@ export function initSocketServer(server: any) {
         messageCache.set(chatId, messages);
 
         socket.emit('chat_content', { chatId, messages });
+        console.log(`✅ Відправлено ${messages.length} повідомлень для чату ${chatId}`);
       } catch (error) {
-        console.error('Помилка завантаження контенту чату:', error);
+        console.error('❌ Помилка завантаження контенту чату:', error);
         socket.emit('error', { message: 'Помилка завантаження контенту' });
       }
     });
@@ -102,9 +123,7 @@ export function initSocketServer(server: any) {
       try {
         const { chatId, type, content, userId, username, id, timestamp } = msg;
 
-        if (!GET_CHATS().includes(chatId)) {
-          socket.emit('error', { message: 'Чат не знайдено' });
-        }
+        console.log(`📨 Нове повідомлення в чат ${chatId} від ${username}`);
 
         if (!GET_CHATS().includes(chatId)) {
           socket.emit('error', { message: 'Чат не знайдено в доступних' });
@@ -116,7 +135,7 @@ export function initSocketServer(server: any) {
           chatId,
           type,
           content,
-          userId, // Тимчасово зберігаємо для відправки клієнтам
+          userId,
           username,
           timestamp: timestamp || new Date().toISOString()
         };
@@ -132,7 +151,6 @@ export function initSocketServer(server: any) {
 
           await fs.mkdir(chatDataPath, { recursive: true });
 
-          // Створюємо копію повідомлення БЕЗ userId для збереження
           const messageToSave = {
             id: message.id,
             chatId: message.chatId,
@@ -140,31 +158,41 @@ export function initSocketServer(server: any) {
             content: message.content,
             username: message.username,
             timestamp: message.timestamp
-            // userId НЕ зберігаємо!
           };
 
           const fileName = `${message.id}.json`;
           const filePath = path.join(chatDataPath, fileName);
           await fs.writeFile(filePath, JSON.stringify(messageToSave, null, 2), 'utf-8');
 
-          console.log(`Файл збережено БЕЗ userId: ${filePath}`);
+          console.log(`💾 Файл збережено: ${filePath}`);
         }
 
-        // Відправляємо повідомлення всім клієнтам (з userId для правильного відображення)
+        // Відправляємо повідомлення всім клієнтам
         io.emit('new_message', message);
+        console.log(`✅ Повідомлення відправлено всім клієнтам`);
 
       } catch (error) {
-        console.error('Помилка обробки повідомлення:', error);
+        console.error('❌ Помилка обробки повідомлення:', error);
         socket.emit('error', { message: 'Помилка відправки повідомлення' });
       }
     });
 
-    socket.on('disconnect', () => {
-      console.log(`Клієнт відключився: ${socket.id}, userId: ${userId}`);
+    // Обробка помилок сокета
+    socket.on('error', (error: any) => {
+      console.error(`❌ Помилка сокета ${socket.id}:`, error);
+    });
+
+    socket.on('disconnect', (reason: string) => {
+      console.log(`❌ Клієнт відключився: ${socket.id}, userId: ${userId}, причина: ${reason}`);
     });
   });
 
-  console.log('Socket.IO сервер ініціалізовано');
+  // Обробка помилок Socket.IO сервера
+  io.engine.on('connection_error', (err: any) => {
+    console.error('❌ Помилка з\'єднання Socket.IO:', err);
+  });
+
+  console.log('✅ Socket.IO сервер ініціалізовано');
   return io;
 }
 

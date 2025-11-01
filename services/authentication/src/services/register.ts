@@ -16,7 +16,7 @@ export async function registerHandler(req: Request, res: Response): Promise<void
       return;
     }
 
-    const decrypted = await decryptionMsg(data, type);
+    const decrypted = await decryptionMsg(data);
     const parsed: RegisterData = JSON.parse(decrypted);
 
     const name = parsed.name;
@@ -34,7 +34,7 @@ export async function registerHandler(req: Request, res: Response): Promise<void
         tempToken: tempToken
     });
 
-    const encrypted = encryptionMsg(key, responsePayload, type);
+    const encrypted = encryptionMsg(key, responsePayload);
 
     res.json({ code: 1, data: encrypted });
   } catch (err) {
@@ -52,7 +52,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
       return;
     }
 
-    const decrypted = await decryptionMsg(data, type);
+    const decrypted = await decryptionMsg(data);
     const parsed = JSON.parse(decrypted);
     const inputCode = parsed.code;
     const tempTokenVal = parsed.tempToken;
@@ -109,7 +109,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
         user: JSON.stringify(transforUser(dataConfig), null, 2)
       });
 
-      const encrypted = await encryptionMsg(key, responsePayload, type);
+      const encrypted = await encryptionMsg(key, responsePayload);
 
       res.json({ code: 1, data: encrypted });
     } else {

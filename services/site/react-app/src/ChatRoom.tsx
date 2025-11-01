@@ -26,7 +26,7 @@ const ChatRoom: React.FC = () => {
   const chatDuration: number = 60;
 
   useEffect(() => {
-    const newSocket: any = io('http://192.168.68.100:3008', {
+    const newSocket: any = io('http://localhost:3011', {
       transports: ['websocket', 'polling'],
       reconnection: true,
     });
@@ -223,9 +223,7 @@ const ChatRoom: React.FC = () => {
         ) : (
           messages.map((msg: any) => (
             <div key={msg.id} className={`message ${msg.userId === userId ? 'sent' : 'received'}`}>
-              <div className="message-bubble">
-                <div className="message-username">{msg.username}</div>
-                
+              <div className="message-bubble">                
                 {msg.type === 'text' && (
                   <div className="message-text">{msg.content}</div>
                 )}

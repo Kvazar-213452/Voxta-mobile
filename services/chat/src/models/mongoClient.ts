@@ -1,13 +1,12 @@
 import { MongoClient } from "mongodb";
+import { CONFIG } from "../utils/config/config";
 
-const uri: string = process.env.MONGODB_URI ?? "mongodb://localhost:27017";
-const client: MongoClient = new MongoClient(uri);
-let connected: boolean = false;
+let client: MongoClient | null = null;
 
 export async function getMongoClient(): Promise<MongoClient> {
-  if (!connected) {
+  if (!client) {
+    client = new MongoClient(CONFIG.DB_MONGODB_URI);
     await client.connect();
-    connected = true;
     console.log("MongoDB connected");
   }
   return client;

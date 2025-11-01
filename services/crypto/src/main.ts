@@ -23,9 +23,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 const initializeKeys = () => {
   if (!fs.existsSync('public_key.pem') || !fs.existsSync('private_key.pem')) {
-    console.log('Генерація нових ключів...');
     generateKeyPair();
-    console.log('Ключі згенеровано успішно');
   } else {
     console.log('Використовуються існуючі ключі');
   }
@@ -51,7 +49,6 @@ app.post('/encryption', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Повідомлення занадто велике' });
 
     const result = encryptMessage(publicKey, message);
-    console.log(result);
 
     res.json({ code: 1, message: result });
   } catch (error) {
@@ -67,7 +64,6 @@ app.post('/decrypt', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Відсутні необхідні параметри' });
 
     const result = decryptMessage({ key: data.key, data: data.data });
-    console.log(result);
 
     res.json({ code: 1, message: result });
   } catch (error) {

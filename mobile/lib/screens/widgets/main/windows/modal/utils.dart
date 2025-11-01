@@ -1,7 +1,4 @@
 import '../../../../../../../services/chat/socket_service.dart';
-import 'dart:async';
-import 'dart:convert';
-import '../../../../../../../utils/crypto/crypto_auto.dart';
 
 void getChat({
   required String idChat,
@@ -26,6 +23,37 @@ void getChat({
       } catch (e) {
         onError('Помилка обробки даних чату');
         socket!.off('get_info_chat_fix_return');
+      }
+    });
+  } catch (e) {
+    print('Помилка відправлення запиту: $e');
+  }
+}
+
+void delChat({
+  required String idChat,
+  required Function() onSuccess,
+  required Function(String error) onError,
+}) {
+  try {
+    socket!.emit('del_chat', {
+      'chatId': idChat
+    });
+
+    socket!.off('del_chat_return');
+
+    socket!.on('del_chat_return', (data) async {
+      try {
+        if (data['code'] == 1) {
+          await loadChats();
+          onSuccess();
+        } else {
+          onError('Помилка отримання даних користувачів');
+        }
+        
+      } catch (e) {
+        onError('Помилка обробки даних чату');
+        socket!.off('del_chat_return');
       }
     });
   } catch (e) {

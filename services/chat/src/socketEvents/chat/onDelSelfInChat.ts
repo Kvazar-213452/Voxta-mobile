@@ -11,11 +11,10 @@ export function onDelSelfInChat(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data, data.type);
+      let dataDec: any = await decryptionMsg(data.data);
       dataDec = safeParseJSON(dataDec);
 
       const client = await getMongoClient();
-
 
       const db: Db = client.db("chats");
       const collection = db.collection<any>(String(dataDec.id));

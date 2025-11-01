@@ -16,7 +16,7 @@ export function onCreateTemporaryChat(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data, data.type);
+      let dataDec: any = await decryptionMsg(data.data);
       dataDec = safeParseJSON(dataDec);
 
       if (dataDec.chat.avatar) {
@@ -56,8 +56,8 @@ export function onCreateTemporaryChat(socket: Socket): void {
         { _id: "config" as any },
         { $addToSet: { chats: chatId, type: dataDec.chat.privacy } }
       );
-
-      await axios.post(`${CONFIG.MICROSERVICES_SITE}/set_chat`, {
+      console.log(dataDec.chat)
+      await axios.post(`${CONFIG.MICROSERVICES_SITE}set_chat`, {
         chat: chatId,
         createdAt: new Date().toISOString(),
         expirationHours: dataDec.chat.expirationHours,
@@ -67,9 +67,9 @@ export function onCreateTemporaryChat(socket: Socket): void {
         }
       });
 
-      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({ data: dataConfig }), data.type)), chatId);
+      sendCreateChat(socket.data.userId, JSON.stringify(await encryptionMsg(data.key, JSON.stringify({ data: dataConfig }))), chatId);
     } catch (error: unknown) {
-      console.log("CONFIG DOC:", error);
+      console.log("CONFIG DOC:");
       let errorMessage = "Unknown error";
       if (error instanceof Error) {
         errorMessage = error.message;

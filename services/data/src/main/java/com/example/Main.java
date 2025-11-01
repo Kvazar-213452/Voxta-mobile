@@ -1,5 +1,8 @@
 package com.example;
 
+import io.javalin.json.JsonMapper;
+import java.lang.reflect.Type;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,7 +43,7 @@ public class Main {
             return;
         }
 
-       Javalin app = Javalin.create(config -> {
+        Javalin app = Javalin.create(config -> {
             String absoluteDataPath = dataDir.toAbsolutePath().toString();
 
             config.staticFiles.add(absoluteDataPath, Location.EXTERNAL);
@@ -49,6 +52,19 @@ public class Main {
                 cors.add(it -> {
                     it.anyHost();
                 });
+            });
+            
+            // Налаштування Gson як JSON mapper
+            config.jsonMapper(new JsonMapper() {
+                @Override
+                public String toJsonString(Object obj, Type type) {
+                    return gson.toJson(obj);
+                }
+                
+                @Override
+                public <T> T fromJsonString(String json, Type targetType) {
+                    return gson.fromJson(json, targetType);
+                }
             });
         }).start(hostname, port);
 
@@ -234,12 +250,10 @@ public class Main {
     }
 
     static class AvatarRequest {
-
         String avatar;
     }
 
     static class FileRequest {
-
         String file;
         String name;
     }
