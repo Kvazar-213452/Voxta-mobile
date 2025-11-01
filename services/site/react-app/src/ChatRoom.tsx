@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Send, Paperclip, User, Sun, Moon, Info, X, FileText, Image as ImageIcon } from 'lucide-react';
+import { Send, Paperclip, Sun, Moon, Info, X, FileText, Image as ImageIcon, Lock, Eye, EyeOff } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
 import './main.css';
@@ -13,19 +13,37 @@ const ChatRoom: React.FC = () => {
   const [chatInfo, setChatInfo] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
-  const [userId, setUserId] = useState<string>(''); // Тепер отримуємо від сервера
+  const [userId, setUserId] = useState<string>('');
   const [username] = useState<string>('User');
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(60);
+  const [password, setPassword] = useState<string>('');
+  const [isPasswordPromptOpen, setIsPasswordPromptOpen] = useState<boolean>(true);
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [passwordError, setPasswordError] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const messagesEndRef = useRef<any>(null);
   const fileInputRef = useRef<any>(null);
   const imageInputRef = useRef<any>(null);
   const chatStartTime = useRef<Date>(new Date());
   const chatDuration: number = 60;
 
+  // Перевірка кешованого пароля при завантаженні
   useEffect(() => {
+    const cachedPassword = localStorage.getItem(`chat_password_${chatId}`);
+    if (cachedPassword) {
+      setPassword(cachedPassword);
+      setPasswordInput(cachedPassword);
+      setIsPasswordPromptOpen(false);
+    }
+  }, [chatId]);
+
+  useEffect(() => {
+    if (!password) return;
+
     const newSocket: any = io('http://localhost:3011', {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -39,20 +57,20 @@ const ChatRoom: React.FC = () => {
     newSocket.on('disconnect', () => {
       console.log('🔴 Відключено від сервера');
       setIsConnected(false);
+      setIsAuthenticated(false);
     });
 
-    // Отримуємо унікальний userId від сервера
     newSocket.on('user_id_assigned', (data: any) => {
       console.log('Отримано userId:', data.userId);
       setUserId(data.userId);
-      // Завантажуємо дані чату після отримання userId
-      newSocket.emit('load_chat_info', chatId);
-      newSocket.emit('load_chat_content', chatId);
+      newSocket.emit('load_chat_info', chatId, password);
+      newSocket.emit('load_chat_content', chatId, password);
     });
 
     newSocket.on('load_chat', (config: any) => {
       console.log('Отримано конфіг чату:', config);
       setChatInfo(config);
+      setIsAuthenticated(true);
     });
 
     newSocket.on('chat_content', (data: any) => {
@@ -67,7 +85,16 @@ const ChatRoom: React.FC = () => {
 
     newSocket.on('error', (error: any) => {
       console.error('Помилка:', error);
-      alert(error.message);
+      if (error.message === 'Невірний пароль' || error.message === 'Чат не знайдено') {
+        localStorage.removeItem(`chat_password_${chatId}`);
+        setPassword('');
+        setIsPasswordPromptOpen(true);
+        setPasswordError(error.message);
+        setIsAuthenticated(false);
+        newSocket.disconnect();
+      } else {
+        alert(error.message);
+      }
     });
 
     setSocket(newSocket);
@@ -75,7 +102,7 @@ const ChatRoom: React.FC = () => {
     return () => {
       newSocket.disconnect();
     };
-  }, [chatId]);
+  }, [chatId, password]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,12 +119,31 @@ const ChatRoom: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const handlePasswordSubmit = (): void => {
+    if (!passwordInput.trim()) {
+      setPasswordError('Введіть пароль');
+      return;
+    }
+
+    localStorage.setItem(`chat_password_${chatId}`, passwordInput);
+    setPassword(passwordInput);
+    setPasswordError('');
+    setIsPasswordPromptOpen(false);
+  };
+
+  const handlePasswordKeyPress = (e: any): void => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handlePasswordSubmit();
+    }
+  };
+
   const toggleTheme = (): void => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
 
   const handleSendMessage = (): void => {
-    if (!newMessage.trim() || !socket || !isConnected || !userId) return;
+    if (!newMessage.trim() || !socket || !isConnected || !userId || !isAuthenticated) return;
 
     const message: any = {
       id: Date.now().toString(),
@@ -109,7 +155,7 @@ const ChatRoom: React.FC = () => {
       timestamp: new Date().toISOString()
     };
 
-    socket.emit('message', message);
+    socket.emit('message', message, password);
     setNewMessage('');
   };
 
@@ -122,7 +168,7 @@ const ChatRoom: React.FC = () => {
 
   const handleImageUpload = (e: any): void => {
     const file: any = e.target.files[0];
-    if (!file || !socket || !isConnected || !userId) return;
+    if (!file || !socket || !isConnected || !userId || !isAuthenticated) return;
 
     const reader: any = new FileReader();
     reader.onload = (event: any): void => {
@@ -141,7 +187,7 @@ const ChatRoom: React.FC = () => {
         timestamp: new Date().toISOString()
       };
 
-      socket.emit('message', message);
+      socket.emit('message', message, password);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -149,7 +195,7 @@ const ChatRoom: React.FC = () => {
 
   const handleFileUpload = (e: any): void => {
     const file: any = e.target.files[0];
-    if (!file || !socket || !isConnected || !userId) return;
+    if (!file || !socket || !isConnected || !userId || !isAuthenticated) return;
 
     const reader: any = new FileReader();
     reader.onload = (event: any): void => {
@@ -168,7 +214,7 @@ const ChatRoom: React.FC = () => {
         timestamp: new Date().toISOString()
       };
 
-      socket.emit('message', message);
+      socket.emit('message', message, password);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -192,6 +238,73 @@ const ChatRoom: React.FC = () => {
     hour: '2-digit',
     minute: '2-digit'
   });
+
+  // Password Prompt Modal
+  if (isPasswordPromptOpen) {
+    return (
+      <div className={`chat-container ${theme}`}>
+        <div className="password-modal">
+          <div className="password-modal-content">
+            <div className="password-lock-icon">
+              <Lock size={64} />
+            </div>
+            
+            <h2 className="password-title">Захищений чат</h2>
+            <p className="password-subtitle">Введіть пароль для доступу до чату</p>
+            
+            <div className="password-chat-id">
+              <span>ID чату:</span>
+              <code>{chatId}</code>
+            </div>
+
+            <div className="password-input-wrapper">
+              <div className="password-input-container">
+                <Lock size={20} className="password-input-icon" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={passwordInput}
+                  onChange={(e: any) => {
+                    setPasswordInput(e.target.value);
+                    setPasswordError('');
+                  }}
+                  onKeyPress={handlePasswordKeyPress}
+                  placeholder="Введіть пароль..."
+                  className="password-input-field"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="password-toggle-btn"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              
+              {passwordError && (
+                <div className="password-error">
+                  <X size={16} />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+            </div>
+
+            <button
+              onClick={handlePasswordSubmit}
+              className="password-submit-btn"
+              disabled={!passwordInput.trim()}
+            >
+              Підключитись до чату
+            </button>
+
+            <div className="password-footer">
+              <p>🔒 Ваші дані захищені</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`chat-container ${theme}`}>
@@ -284,7 +397,7 @@ const ChatRoom: React.FC = () => {
           onClick={() => fileInputRef.current?.click()}
           className="file-btn"
           title="Прикріпити файл"
-          disabled={!isConnected || !userId}
+          disabled={!isConnected || !userId || !isAuthenticated}
         >
           <Paperclip size={18} />
         </button>
@@ -296,14 +409,14 @@ const ChatRoom: React.FC = () => {
           onKeyPress={handleKeyPress}
           placeholder="Напишіть повідомлення..."
           className="message-input"
-          disabled={!isConnected || !userId}
+          disabled={!isConnected || !userId || !isAuthenticated}
         />
         
         <button 
           onClick={handleSendMessage} 
           className="send-btn" 
           title="Надіслати"
-          disabled={!newMessage.trim() || !isConnected || !userId}
+          disabled={!newMessage.trim() || !isConnected || !userId || !isAuthenticated}
         >
           <Send size={18} />
         </button>

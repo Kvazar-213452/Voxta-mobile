@@ -447,5 +447,3 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     }
   }
 }
-
-// Налаштування

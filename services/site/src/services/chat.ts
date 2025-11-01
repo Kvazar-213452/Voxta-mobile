@@ -3,14 +3,14 @@ import { ADD_CHAT } from '../utils/chats';
 
 export default class Chat {
   static async loadChats(req: Request, res: Response): Promise<void> {
-    const { chat, createdAt, expirationHours } = req.body;
+    const { chat, createdAt, expirationHours, pasw } = req.body;
     try {
-      if (!chat || !createdAt || !expirationHours) {
+      if (!chat || !createdAt || !expirationHours || !pasw) {
         res.status(400).json({ code: 0, error: 'error_params' });
         return;
       }
 
-      ADD_CHAT(chat, createdAt, expirationHours);
+      ADD_CHAT(chat, createdAt, expirationHours, pasw);
 
       res.json({ code: 1 });
     } catch (err) {

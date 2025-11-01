@@ -3,7 +3,7 @@ import { getMongoClient } from '../utils/getMongoClient';
 import fs from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
-import { GET_CHATS } from '../utils/chats';
+import { GET_CHATS, CHECK_CHAT_PASSWORD } from '../utils/chats';
 
 let io: any = null;
 let CHATS: string[] = [];
@@ -21,18 +21,12 @@ export function initSocketServer(server: any) {
       methods: ["GET", "POST"],
       credentials: true
     },
-    // Налаштування транспорту
     transports: ['websocket', 'polling'],
-    // Налаштування ping/pong
     pingTimeout: 60000,
     pingInterval: 25000,
-    // Дозволити upgrade з polling на websocket
     allowUpgrades: true,
-    // Налаштування з'єднання
     connectTimeout: 45000,
-    // Максимальний розмір буфера
-    maxHttpBufferSize: 1e8, // 100 MB
-    // Додаткові налаштування
+    maxHttpBufferSize: 1e8,
     allowEIO3: true,
     serveClient: false
   });
@@ -47,12 +41,23 @@ export function initSocketServer(server: any) {
     socket.emit('user_id_assigned', { userId });
 
     // Завантаження інформації про чат
-    socket.on('load_chat_info', async (chatId: string) => {
+    socket.on('load_chat_info', async (chatId: string, pasw: string) => {
       try {
-        console.log(`📥 Завантаження інфо чату: ${chatId}`);
-        
-        if (!GET_CHATS().includes(chatId)) {
+        console.log(`📥 Завантаження інфо чату: ${chatId}, пароль: ${pasw ? '****' : 'відсутній'}`);
+
+        const chats = await GET_CHATS();
+        if (!chats.includes(chatId)) {
+          console.log(`❌ Чат ${chatId} не знайдено`);
           socket.emit('error', { message: 'Чат не знайдено' });
+          return;
+        }
+
+        // Перевірка пароля
+        const isPasswordValid = CHECK_CHAT_PASSWORD(chatId, pasw);
+        console.log(`🔐 Перевірка пароля для чату ${chatId}: ${isPasswordValid ? '✅ Успішно' : '❌ Невірний'}`);
+        
+        if (!isPasswordValid) {
+          socket.emit('error', { message: 'Невірний пароль' });
           return;
         }
 
@@ -63,6 +68,7 @@ export function initSocketServer(server: any) {
 
         if (chatConfig) {
           socket.emit('load_chat', chatConfig);
+          console.log(`✅ Конфіг чату ${chatId} відправлено`);
         } else {
           socket.emit('error', { message: 'Чат не знайдено' });
         }
@@ -73,12 +79,23 @@ export function initSocketServer(server: any) {
     });
 
     // Завантаження контенту чату
-    socket.on('load_chat_content', async (chatId: string) => {
+    socket.on('load_chat_content', async (chatId: string, pasw: string) => {
       try {
-        console.log(`📥 Завантаження контенту чату: ${chatId}`);
-        
-        if (!GET_CHATS().includes(chatId)) {
+        console.log(`📥 Завантаження контенту чату: ${chatId}, пароль: ${pasw ? '****' : 'відсутній'}`);
+
+        const chats = await GET_CHATS();
+        if (!chats.includes(chatId)) {
+          console.log(`❌ Чат ${chatId} не знайдено`);
           socket.emit('error', { message: 'Чат не знайдено' });
+          return;
+        }
+
+        // Перевірка пароля
+        const isPasswordValid = CHECK_CHAT_PASSWORD(chatId, pasw);
+        console.log(`🔐 Перевірка пароля для контенту ${chatId}: ${isPasswordValid ? '✅ Успішно' : '❌ Невірний'}`);
+        
+        if (!isPasswordValid) {
+          socket.emit('error', { message: 'Невірний пароль' });
           return;
         }
 
@@ -119,14 +136,24 @@ export function initSocketServer(server: any) {
     });
 
     // Обробка повідомлень
-    socket.on('message', async (msg: any) => {
+    socket.on('message', async (msg: any, pasw: string) => {
       try {
         const { chatId, type, content, userId, username, id, timestamp } = msg;
 
-        console.log(`📨 Нове повідомлення в чат ${chatId} від ${username}`);
+        console.log(`📨 Нове повідомлення в чат ${chatId} від ${username}, пароль: ${pasw ? '****' : 'відсутній'}`);
 
-        if (!GET_CHATS().includes(chatId)) {
-          socket.emit('error', { message: 'Чат не знайдено в доступних' });
+        const chats = await GET_CHATS();
+        if (!chats.includes(chatId)) {
+          console.log(`❌ Чат ${chatId} не знайдено`);
+          socket.emit('error', { message: 'Чат не знайдено' });
+          return;
+        }
+
+        // Перевірка пароля
+        const isPasswordValid = CHECK_CHAT_PASSWORD(chatId, pasw);
+        
+        if (!isPasswordValid) {
+          socket.emit('error', { message: 'Невірний пароль' });
           return;
         }
 

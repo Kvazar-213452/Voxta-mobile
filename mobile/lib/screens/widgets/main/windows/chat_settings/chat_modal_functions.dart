@@ -144,7 +144,7 @@ class ChatModalFunctions {
                       title: 'Налаштування',
                       onTap: () {
                         Navigator.pop(context);
-                        _loadAndShowChatSettings(context, id: id, type: type);
+                        _loadAndShowChatSettings(context, id: id, type: type, onBackPressed: onBackPressed);
                       },
                     ),
 
@@ -302,6 +302,7 @@ class ChatModalFunctions {
     BuildContext context, {
     required String id,
     required String type,
+    required VoidCallback onBackPressed,
   }) {
     showDialog(
       context: context,
@@ -326,6 +327,7 @@ class ChatModalFunctions {
           chatName: name,
           currentDescription: description,
           id: id,
+          onBackPressed: onBackPressed,
           type: type,
           avatarUrl: data["avatar"],
           users: data["participants"] ?? [],
@@ -355,6 +357,7 @@ class ChatModalFunctions {
     required String time,
     required String owner,
     required String? avatarUrl,
+    required VoidCallback onBackPressed,
     required List<dynamic> users,
   }) async {
     Widget? avatarWidget;
@@ -384,6 +387,7 @@ class ChatModalFunctions {
           currentName: chatName,
           currentDescription: currentDescription,
           chatAvatar: avatarWidget,
+          onBackPressed: onBackPressed,
           users: users,
           typeChat: type,
           time: time,

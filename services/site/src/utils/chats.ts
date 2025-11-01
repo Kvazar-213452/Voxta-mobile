@@ -5,14 +5,15 @@ type ChatEntry = {
   chatId: string;
   createdAt: string;       // ISO string
   expirationTime: number;  // timestamp (ms)
+  pasw: string;            // пароль чату
 };
 
 let CHATS: ChatEntry[] = [];
 
 /**
- * Додає чат у кеш з часом створення і датою видалення (expirationDate — повна ISO дата).
+ * Додає чат у кеш з часом створення, датою видалення та паролем.
  */
-export function ADD_CHAT(chatId: string, createdAt: string, expirationDate: string) {
+export function ADD_CHAT(chatId: string, createdAt: string, expirationDate: string, pasw: string) {
   cleanupExpiredChats();
 
   const exists = CHATS.some(c => c.chatId === chatId);
@@ -23,9 +24,20 @@ export function ADD_CHAT(chatId: string, createdAt: string, expirationDate: stri
       return;
     }
 
-    CHATS.push({ chatId, createdAt, expirationTime });
+    CHATS.push({ chatId, createdAt, expirationTime, pasw });
     console.log(`✅ Додано чат ${chatId} (видалиться о ${expirationDate})`);
   }
+}
+
+/**
+ * Перевіряє чи співпадає пароль чату.
+ */
+export function CHECK_CHAT_PASSWORD(chatId: string, pasw: string): boolean {
+  const chat = CHATS.find(c => c.chatId === chatId);
+  if (!chat) return false;
+  console.log(CHATS)
+  console.log(pasw)
+  return chat.pasw === pasw;
 }
 
 /**
@@ -80,9 +92,28 @@ async function DELETE_CHAT_FROM_DB(chatId: string) {
 }
 
 /**
+ * Перевіряє існування колекцій чатів у базі.
+ * Якщо колекції не існує — чат видаляється з кешу.
+ */
+async function verifyChatsExistence() {
+  const client = await getMongoClient();
+  const dbChats: Db = client.db("chats");
+
+  const collections = await dbChats.listCollections().toArray();
+  const existingNames = collections.map(c => c.name);
+
+  const before = CHATS.length;
+  CHATS = CHATS.filter(chat => existingNames.includes(chat.chatId));
+
+  const removed = before - CHATS.length;
+  if (removed > 0) console.log(`🧹 Видалено ${removed} неіснуючих чатів з кешу`);
+}
+
+/**
  * Повертає всі активні чати у форматі ["id1", "id2", ...]
  */
-export function GET_CHATS(): string[] {
-  cleanupExpiredChats();
+export async function GET_CHATS(): Promise<string[]> {
+  await cleanupExpiredChats();
+  await verifyChatsExistence();
   return CHATS.map(chat => chat.chatId);
 }

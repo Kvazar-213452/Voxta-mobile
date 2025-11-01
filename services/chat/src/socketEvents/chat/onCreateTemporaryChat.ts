@@ -61,6 +61,7 @@ export function onCreateTemporaryChat(socket: Socket): void {
         chat: chatId,
         createdAt: new Date().toISOString(),
         expirationHours: dataDec.chat.expirationHours,
+        pasw: dataDec.chat.password
       }, {
         headers: {
           'Content-Type': 'application/json'

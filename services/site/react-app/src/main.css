@@ -91,6 +91,40 @@ body {
   }
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lockPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes errorShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-8px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(8px);
+  }
+}
+
 /* Chat Container */
 .chat-container {
   width: 100%;
@@ -106,6 +140,397 @@ body {
 
 .chat-container.light {
   background: linear-gradient(135deg, #FFFFFF, #FCFCFC, #F8F8F8);
+}
+
+/* Password Modal */
+.password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 2000;
+  animation: fadeIn 0.4s ease;
+}
+
+.dark .password-modal {
+  background: linear-gradient(135deg, rgba(31, 31, 31, 0.98), rgba(45, 45, 50, 0.98));
+  backdrop-filter: blur(10px);
+}
+
+.light .password-modal {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 248, 248, 0.98));
+  backdrop-filter: blur(10px);
+}
+
+.password-modal-content {
+  max-width: 480px;
+  width: 100%;
+  padding: 50px 40px;
+  border-radius: 24px;
+  text-align: center;
+  border: 2px solid;
+  position: relative;
+  overflow: hidden;
+  animation: scaleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dark .password-modal-content {
+  background: linear-gradient(135deg, #2a2a2a, #1e1e1e);
+  border-color: rgba(88, 255, 127, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 
+              0 0 80px rgba(88, 255, 127, 0.1);
+}
+
+.light .password-modal-content {
+  background: linear-gradient(135deg, #ffffff, #f9f9f9);
+  border-color: rgba(34, 187, 102, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 
+              0 0 80px rgba(34, 187, 102, 0.05);
+}
+
+.password-modal-content::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0.03;
+  pointer-events: none;
+  animation: rotate 20s linear infinite;
+}
+
+.dark .password-modal-content::before {
+  background: radial-gradient(circle, #58ff7f 0%, transparent 70%);
+}
+
+.light .password-modal-content::before {
+  background: radial-gradient(circle, #22BB66 0%, transparent 70%);
+}
+
+.password-lock-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 30px;
+  animation: lockPulse 2s ease-in-out infinite;
+}
+
+.dark .password-lock-icon {
+  background: linear-gradient(135deg, rgba(88, 255, 127, 0.15), rgba(88, 255, 127, 0.05));
+  color: #58ff7f;
+  box-shadow: 0 0 40px rgba(88, 255, 127, 0.2);
+}
+
+.light .password-lock-icon {
+  background: linear-gradient(135deg, rgba(34, 187, 102, 0.15), rgba(34, 187, 102, 0.05));
+  color: #22BB66;
+  box-shadow: 0 0 40px rgba(34, 187, 102, 0.15);
+}
+
+.password-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+.dark .password-title {
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(88, 255, 127, 0.2);
+}
+
+.light .password-title {
+  color: #1a1a1a;
+  text-shadow: 0 2px 10px rgba(34, 187, 102, 0.1);
+}
+
+.password-subtitle {
+  font-size: 1rem;
+  margin-bottom: 30px;
+  opacity: 0.8;
+}
+
+.dark .password-subtitle {
+  color: #AAAAAA;
+}
+
+.light .password-subtitle {
+  color: #666666;
+}
+
+.password-chat-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  margin-bottom: 35px;
+  font-size: 0.9rem;
+}
+
+.dark .password-chat-id {
+  background: rgba(88, 255, 127, 0.08);
+  color: #AAAAAA;
+}
+
+.light .password-chat-id {
+  background: rgba(34, 187, 102, 0.08);
+  color: #666666;
+}
+
+.password-chat-id code {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.dark .password-chat-id code {
+  background: rgba(0, 0, 0, 0.3);
+  color: #58ff7f;
+}
+
+.light .password-chat-id code {
+  background: rgba(0, 0, 0, 0.05);
+  color: #22BB66;
+}
+
+.password-input-wrapper {
+  margin-bottom: 25px;
+}
+
+.password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 2px solid;
+  transition: all 0.3s ease;
+}
+
+.dark .password-input-container {
+  background: rgba(88, 255, 127, 0.05);
+  border-color: rgba(88, 255, 127, 0.2);
+}
+
+.light .password-input-container {
+  background: rgba(34, 187, 102, 0.05);
+  border-color: rgba(34, 187, 102, 0.2);
+}
+
+.password-input-container:focus-within {
+  transform: translateY(-2px);
+}
+
+.dark .password-input-container:focus-within {
+  border-color: #58ff7f;
+  background: rgba(88, 255, 127, 0.1);
+  box-shadow: 0 8px 24px rgba(88, 255, 127, 0.2);
+}
+
+.light .password-input-container:focus-within {
+  border-color: #22BB66;
+  background: rgba(34, 187, 102, 0.1);
+  box-shadow: 0 8px 24px rgba(34, 187, 102, 0.15);
+}
+
+.password-input-icon {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.dark .password-input-icon {
+  color: #58ff7f;
+}
+
+.light .password-input-icon {
+  color: #22BB66;
+}
+
+.password-input-field {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  outline: none;
+  font-weight: 500;
+}
+
+.dark .password-input-field {
+  color: #ffffff;
+}
+
+.light .password-input-field {
+  color: #000000;
+}
+
+.dark .password-input-field::placeholder {
+  color: #666666;
+}
+
+.light .password-input-field::placeholder {
+  color: #999999;
+}
+
+.password-toggle-btn {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.dark .password-toggle-btn {
+  color: #58ff7f;
+}
+
+.light .password-toggle-btn {
+  color: #22BB66;
+}
+
+.dark .password-toggle-btn:hover {
+  background: rgba(88, 255, 127, 0.1);
+}
+
+.light .password-toggle-btn:hover {
+  background: rgba(34, 187, 102, 0.1);
+}
+
+.password-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: errorShake 0.5s ease, fadeIn 0.3s ease;
+}
+
+.dark .password-error {
+  background: rgba(255, 85, 85, 0.15);
+  color: #FF5555;
+  border: 1px solid rgba(255, 85, 85, 0.3);
+}
+
+.light .password-error {
+  background: rgba(211, 47, 47, 0.15);
+  color: #D32F2F;
+  border: 1px solid rgba(211, 47, 47, 0.3);
+}
+
+.password-submit-btn {
+  width: 100%;
+  padding: 16px 24px;
+  border-radius: 16px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .password-submit-btn {
+  background: linear-gradient(135deg, #58ff7f, #3dd86a);
+  color: #000000;
+  box-shadow: 0 8px 24px rgba(88, 255, 127, 0.3);
+}
+
+.light .password-submit-btn {
+  background: linear-gradient(135deg, #22BB66, #1a9855);
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(34, 187, 102, 0.3);
+}
+
+.password-submit-btn:hover {
+  transform: translateY(-3px);
+}
+
+.dark .password-submit-btn:hover {
+  box-shadow: 0 12px 32px rgba(88, 255, 127, 0.4);
+}
+
+.light .password-submit-btn:hover {
+  box-shadow: 0 12px 32px rgba(34, 187, 102, 0.4);
+}
+
+.password-submit-btn:active {
+  transform: translateY(-1px);
+}
+
+.password-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.password-submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.password-submit-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+.password-footer {
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid;
+  opacity: 0.6;
+}
+
+.dark .password-footer {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  color: #999999;
+}
+
+.light .password-footer {
+  border-top-color: rgba(0, 0, 0, 0.1);
+  color: #666666;
+}
+
+.password-footer p {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 /* Chat Header */
@@ -272,6 +697,14 @@ body {
   animation: pulse 0.5s ease;
 }
 
+.empty-messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  opacity: 0.5;
+}
+
 /* Messages */
 .message {
   max-width: 70%;
@@ -368,6 +801,51 @@ body {
 .message-image:hover {
   transform: scale(1.03);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.message-file-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.file-info {
+  flex: 1;
+}
+
+.file-name {
+  display: block;
+  font-weight: 600;
+}
+
+.file-size {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.file-download {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.dark .file-download {
+  background: rgba(88, 255, 127, 0.2);
+  color: #58ff7f;
+}
+
+.light .file-download {
+  background: rgba(34, 187, 102, 0.2);
+  color: #22BB66;
+}
+
+.file-download:hover {
+  transform: scale(1.05);
 }
 
 /* Input Area */
@@ -727,5 +1205,22 @@ body {
   .modal-content {
     padding: 25px 20px;
   }
-}
 
+  .password-modal-content {
+    padding: 40px 30px;
+  }
+
+  .password-lock-icon {
+    width: 100px;
+    height: 100px;
+  }
+
+  .password-lock-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .password-title {
+    font-size: 1.6rem;
+  }
+}

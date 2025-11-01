@@ -11,6 +11,7 @@ import 'widgets/chat_users_widgets.dart';
 import 'widgets/chat_invite_widgets.dart';
 import 'user_removal_dialog.dart';
 import '../../../../../services/chat/socket_service.dart';
+import '../modal/utils.dart';
 
 class ChatSettingsModal extends StatefulWidget {
   final String currentName;
@@ -22,6 +23,7 @@ class ChatSettingsModal extends StatefulWidget {
   final Widget? chatAvatar;
   final List<dynamic> users;
   final String? currentInviteCode;
+  final VoidCallback onBackPressed;
   final Function(String name, String description, String? avatar) onSave;
 
   const ChatSettingsModal({
@@ -29,6 +31,7 @@ class ChatSettingsModal extends StatefulWidget {
     required this.currentName,
     required this.currentDescription,
     required this.typeChat,
+    required this.onBackPressed,
     required this.owner,
     required this.time,
     this.chatAvatar,
@@ -157,6 +160,19 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
 
       _closeModal();
     }
+  }
+
+  void _deleteChat() {
+    delChat(
+      idChat: widget.chatId,
+      onSuccess: () {
+        _closeModal();
+        widget.onBackPressed();
+      },
+      onError: (error) {
+       print(error);
+      },
+    );
   }
 
   Future<void> _pickImage() async {
@@ -369,6 +385,82 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             isLoadingUsers: _isLoadingUsers,
             owner: widget.owner,
             onRemoveUser: _removeUser,
+          ),
+          const SizedBox(height: 24),
+          _buildDeleteChatSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteChatSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.red.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Небезпечна зона',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.lightGray,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Видалення чату призведе до безповоротної втрати всіх повідомлень та даних.',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.grayText,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: _deleteChat,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: BorderSide(color: Colors.red, width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.delete_forever, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Видалити чат',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
