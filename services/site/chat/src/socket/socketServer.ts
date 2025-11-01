@@ -160,11 +160,11 @@ export function initSocketServer(server: any) {
     });
 
     socket.on('disconnect', () => {
-      console.log(`🔴 Клієнт відключився: ${socket.id}, userId: ${userId}`);
+      console.log(`Клієнт відключився: ${socket.id}, userId: ${userId}`);
     });
   });
 
-  console.log('🚀 Socket.IO сервер ініціалізовано');
+  console.log('Socket.IO сервер ініціалізовано');
   return io;
 }
 

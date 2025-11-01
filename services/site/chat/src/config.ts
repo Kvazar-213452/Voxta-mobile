@@ -1,9 +1,49 @@
-const CONFIG = {
-    PORT: 3008,
+import axios from "axios";
+import dotenv from "dotenv";
 
-    SERVIS_NOTIFICATION: "http://localhost:3005",
-    ID_CHAT_MAIN: "0TGcAEgtSFpuPs",
-    AVATAR: "http://localhost:3004/avatars/306d4102-f22b-452c-9f3b-c14b7661b0f8.jpg"
+dotenv.config();
+
+interface ConfigResponse {
+  status: number;
+  config: any;
 }
 
-export default CONFIG;
+export let CONFIG: any = null;
+
+export let CONFIG_MAIN: any | null = null;
+export let CONFIG_DB: any | null = null;
+export let CONFIG_API: any | null = null;
+
+export async function loadConfig(name: string = process.env.NAME || ""): Promise<void> {
+  try {
+    const response = await axios.post<ConfigResponse>(
+      `${process.env.API_MAIN}api/get_config`,
+      { name: name },
+      { headers: { "Content-Type": "application/json" } }
+    );
+
+    if (response.data.status !== 1) {
+      throw new Error("Failed to load config: invalid status");
+    }
+
+    if (name === "GLOBAL_DB") {
+      CONFIG_DB = response.data.config;
+    } else if (name === "GLOBAL_URL") {
+      CONFIG_API = response.data.config;
+    } else if (name === process.env.NAME) {
+      CONFIG_MAIN = response.data.config;
+    }
+
+  } catch (err) {
+    console.error("Error loading config:");
+    throw err;
+  }
+}
+
+export function rebuildConfig() {
+  CONFIG = {
+    ...(CONFIG_MAIN || {}),
+    ...(CONFIG_DB || {}),
+    ...(CONFIG_API || {}),
+  };
+}

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { ADD_CHAT } from '../utils/chats';
 
 export default class Chat {
-  async loadChats(req: Request, res: Response): Promise<void> {
+  static async loadChats(req: Request, res: Response): Promise<void> {
     const { chat, createdAt, expirationHours } = req.body;
 
     try {

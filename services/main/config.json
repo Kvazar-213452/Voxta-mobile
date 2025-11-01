@@ -8,6 +8,7 @@
     "MICROSERVICES_NOTIFICATION": "http://localhost:3006/",
     "MICROSERVICES_AUTHENTICATION": "http://localhost:3007/",
     "MICROSERVICES_STATUS": "http://localhost:3002/",
+    "MICROSERVICES_SITE": "http://localhost:3011/",
     "API_LOCAL": "http://localhost:8000/"
   },
   "GLOBAL_DB": {
@@ -20,6 +21,10 @@
     "PORT": "3010",
     "API": "localhost",
     "SECRET_KEY": "your_secret_key"
+  },
+  "API_SITE": {
+    "PORT": "3011",
+    "API": "localhost"
   },
   "API_CRYPTO": {
     "PORT": "3005",

@@ -11,6 +11,7 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
+    overflow-y: auto;
 }
 
 /* Particles background */

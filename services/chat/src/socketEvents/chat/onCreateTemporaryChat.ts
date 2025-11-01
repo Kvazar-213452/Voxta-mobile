@@ -57,7 +57,7 @@ export function onCreateTemporaryChat(socket: Socket): void {
         { $addToSet: { chats: chatId, type: dataDec.chat.privacy } }
       );
 
-      await axios.post(`${CONFIG.MICROSERVICES_DATA}/set_chats`, {
+      await axios.post(`${CONFIG.MICROSERVICES_SITE}/set_chat`, {
         chat: chatId,
         createdAt: new Date().toISOString(),
         expirationHours: dataDec.chat.expirationHours,
