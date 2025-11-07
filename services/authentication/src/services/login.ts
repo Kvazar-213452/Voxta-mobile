@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
-import { getMongoClient } from '../models/getMongoClient';
+import { getMongoClient } from '../utils/getMongoClient';
 import { transforUser, safeParseJSON } from '../utils/utils'
 import { CONFIG } from "../config";
 
@@ -60,8 +60,6 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
       token: token,
       user: JSON.stringify(transforUser(foundUser), null, 2)
     });
-
-    console.log("ddddddddd")
 
     const encrypted = await encryptionMsg(key, responsePayload);
     res.json({ code: 1, data: encrypted });

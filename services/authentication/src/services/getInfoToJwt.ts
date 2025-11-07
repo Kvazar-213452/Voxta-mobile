@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
-import { getMongoClient } from '../models/getMongoClient';
+import { getMongoClient } from '../utils/getMongoClient';
 import { transforUser, safeParseJSON } from '../utils/utils'
 import { CONFIG } from "../config";
 

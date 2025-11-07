@@ -49,3 +49,12 @@ Future<String?> getJWTStorage() async {
     return null;
   }
 }
+
+Future<void> deleteJWTStorage() async {
+  try {
+    await secureStorage.delete(key: "jwtData");
+    print('JWT deleted from secure storage');
+  } catch (e) {
+    print('error deleting jwt from secure storage: $e');
+  }
+}

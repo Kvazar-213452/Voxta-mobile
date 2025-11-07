@@ -5,7 +5,6 @@ import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/utils.dart';
 import '../models/storage_key.dart';
 import '../screens/main_screen.dart';
-import '../screens/register_screen.dart';
 import '../config.dart';
 import '../models/storage_user.dart';
 import '../models/interface/user.dart';
@@ -14,17 +13,27 @@ import 'widgets/login/login_panel.dart';
 import 'widgets/login/custom_input_field.dart';
 import '../app_colors.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class VerificationScreen extends StatefulWidget {
+  final String name;
+  final String email;
+  final String password;
+  final String codeJwt;
+
+  const VerificationScreen({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.codeJwt,
+  });
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<VerificationScreen> createState() => _VerificationScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _VerificationScreenState extends State<VerificationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _codeController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -37,34 +46,40 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Вхід в акаунт',
+                  'Підтвердження email',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w600,
                     color: AppColors.brandGreen,
                   ),
                 ),
+                const SizedBox(height: 10),
+                Text(
+                  'Код підтвердження надіслано на',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.grayText,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  widget.email,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.lightGray,
+                  ),
+                ),
                 const SizedBox(height: 30),
                 CustomInputField(
-                  controller: _nameController,
-                  label: 'Ім\'я користувача',
-                  placeholder: 'Введіть ім\'я',
+                  controller: _codeController,
+                  label: 'Код підтвердження',
+                  placeholder: 'Введіть код',
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Введіть ім\'я користувача';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-                CustomInputField(
-                  controller: _passwordController,
-                  label: 'Пароль',
-                  placeholder: 'Введіть пароль',
-                  isPassword: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Введіть пароль';
+                      return 'Введіть код підтвердження';
                     }
                     return null;
                   },
@@ -73,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: _handleVerification,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brandGreen,
                       foregroundColor: AppColors.blackText,
@@ -84,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       elevation: 0,
                     ),
                     child: const Text(
-                      'Увійти',
+                      'Підтвердити',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -93,33 +108,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Немає акаунту? ',
-                      style: TextStyle(fontSize: 13, color: AppColors.grayText),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Повернутися назад',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.brandGreen,
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Зареєструватися',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.brandGreen,
-                          fontWeight: FontWeight.w500,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -129,18 +130,19 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() async {
+  void _handleVerification() async {
     if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
-      final password = _passwordController.text;
+      final code = _codeController.text;
 
       try {
         final keyPair = await getOrCreateKeyPair();
         final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
         final dataToEncrypt = jsonEncode({
-          'name': name,
-          'password': password,
+          'name': widget.name,
+          'password': widget.password,
+          'codeJwt': widget.codeJwt,
+          'code': code,
         });
 
         final serverPublicKeyPem = await getServerPublicKey();
@@ -148,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
 
         final response = await http.post(
-          Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/login'),
+          Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/register_verification'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'data': {
@@ -164,6 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
         final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
 
         final data = jsonDecode(decrypted);
+
         final dataJsonMap = jsonDecode(data['user']);
         final userModel = UserModel.fromJson(dataJsonMap);
 
@@ -171,16 +174,17 @@ class _LoginScreenState extends State<LoginScreen> {
         await saveUserStorage(userModel);
 
         if (!context.mounted) return;
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
             builder: (_) => MainScreen(),
           ),
+          (route) => false,
         );
       } catch (e) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Помилка входу: $e')),
+          SnackBar(content: Text('Помилка підтвердження: $e')),
         );
         print(e);
       }
@@ -189,8 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _passwordController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 }

@@ -1,4 +1,5 @@
 import os
+import socket
 import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response
@@ -8,32 +9,34 @@ from config import load_config, get_config
 import uvicorn
 import httpx
 from datetime import datetime
+import subprocess
 
 http_client = None
+
 
 async def get_http_client():
     global http_client
     if http_client is None:
         http_client = httpx.AsyncClient(
-            timeout=httpx.Timeout(10.0, connect=2.0),  # Зменшені таймаути
+            timeout=httpx.Timeout(10.0, connect=2.0),
             limits=httpx.Limits(
-                max_keepalive_connections=100,  # Більше keep-alive з'єднань
-                max_connections=200,            # Більше паралельних з'єднань
-                keepalive_expiry=30.0          # Тримати з'єднання довше
+                max_keepalive_connections=100,
+                max_connections=200,
+                keepalive_expiry=30.0
             ),
             follow_redirects=True
         )
     return http_client
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     await get_http_client()
     yield
-
     global http_client
     if http_client:
         await http_client.aclose()
+
 
 async def create_app() -> FastAPI:
     await load_config()
@@ -65,18 +68,12 @@ async def create_app() -> FastAPI:
                 path = path[len(prefix):] or "/"
             url = f"{target_base_url}{path}"
 
-            headers = {
-                k: v for k, v in request.headers.items() 
-                if k.lower() not in {'host', 'content-length'}
-            }
-
+            headers = {k: v for k, v in request.headers.items() if k.lower() not in {'host', 'content-length'}}
             client = await get_http_client()
-            
             body_task = asyncio.create_task(request.body())
-            
+
             try:
                 body = await body_task
-
                 resp = await client.request(
                     method=request.method,
                     url=url,
@@ -90,23 +87,13 @@ async def create_app() -> FastAPI:
                     if k.lower() not in {'content-length', 'transfer-encoding', 'connection'}
                 }
 
-                return Response(
-                    content=resp.content,
-                    status_code=resp.status_code,
-                    headers=response_headers
-                )
-                
+                return Response(content=resp.content, status_code=resp.status_code, headers=response_headers)
+
             except httpx.TimeoutException:
-                return Response(
-                    content="Gateway Timeout",
-                    status_code=504
-                )
+                return Response(content="Gateway Timeout", status_code=504)
             except Exception as e:
                 print(f"Proxy error: {e}")
-                return Response(
-                    content="Bad Gateway",
-                    status_code=502
-                )
+                return Response(content="Bad Gateway", status_code=502)
 
         return proxy
 
@@ -127,13 +114,47 @@ async def create_app() -> FastAPI:
     return app
 
 
+def get_local_ip():
+    """Отримує локальний IP комп’ютера"""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+def print_urls(ip: str, port: int):
+    """Виводить усі доступні URL"""
+    urls = [
+        f"http://localhost:{port}",
+        f"http://127.0.0.1:{port}",
+        f"http://{ip}:{port}"
+    ]
+    print("\n🌐 Доступні URL:")
+    for u in urls:
+        print(f"   → {u}")
+        print(f"     ↳ {u}/api")
+        print(f"     ↳ {u}/data")
+        print(f"     ↳ {u}/crypto")
+        print(f"     ↳ {u}/authentication")
+    print("")
+
+
 if __name__ == "__main__":
     app = asyncio.run(create_app())
     config = get_config()
-    
+
+    host = config.get("API", "0.0.0.0")
+    port = int(config.get("PORT", 8000))
+    ip = get_local_ip()
+
+    print_urls(ip, port)
+
     uvicorn.run(
-        app, 
-        host=config.get("API", "127.0.0.1"), 
-        port=int(config.get("PORT", 3014)),
+        app,
+        host=host,
+        port=port,
         access_log=False
     )

@@ -4,6 +4,7 @@ import 'modal.dart';
 import 'header.dart';
 import 'footer.dart';
 import '../../../../../models/storage_settings.dart';
+import '../../../../../models/storage_user.dart';
 import '../../../../../models/interface/settings.dart';
 import '../../../../../app_colors.dart';
 
@@ -14,9 +15,8 @@ class SettingsScreenWidget extends StatefulWidget {
   State<SettingsScreenWidget> createState() => _SettingsScreenWidgetState();
 }
 
-class _SettingsScreenWidgetState extends State<SettingsScreenWidget> 
+class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     with SingleTickerProviderStateMixin {
-  
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
@@ -28,9 +28,9 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   bool _onlineStatus = true;
   String _selectedLanguage = 'uk';
   int _pasw = 0;
-  
+
   final TextEditingController _passwordController = TextEditingController();
-  
+
   bool _isLoading = true;
 
   @override
@@ -45,23 +45,15 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _slideAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
-    
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
-    
+
+    _slideAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
     _animationController.forward();
   }
 
@@ -77,7 +69,8 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           _onlineStatus = settings.onlineStatus;
           _selectedLanguage = settings.language;
           _pasw = settings.pasw;
-          _passwordController.text = _pasw == 0 ? '' : _pasw.toString().padLeft(6, '0');
+          _passwordController.text =
+              _pasw == 0 ? '' : _pasw.toString().padLeft(6, '0');
           _isLoading = false;
         });
       } else {
@@ -104,7 +97,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         onlineStatus: _onlineStatus,
         pasw: _pasw,
       );
-      
+
       await SettingsDB.saveSettings(settings);
     } catch (e) {
       print('Помилка збереження налаштувань: $e');
@@ -126,7 +119,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
 
   void _saveSettings() async {
     _showLoadingDialog();
-    
+
     try {
       await _saveSettingsToDb();
       Navigator.of(context).pop();
@@ -141,37 +134,39 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
-        ),
-      ),
+      builder:
+          (context) => Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
+            ),
+          ),
     );
   }
 
   void _showErrorDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.gradientMiddle,
-        title: Text(
-          'Помилка',
-          style: TextStyle(color: AppColors.whiteText),
-        ),
-        content: Text(
-          'Не вдалося зберегти налаштування. Спробуйте ще раз.',
-          style: TextStyle(color: AppColors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: TextStyle(color: AppColors.brandGreen),
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: AppColors.gradientMiddle,
+            title: Text(
+              'Помилка',
+              style: TextStyle(color: AppColors.whiteText),
             ),
+            content: Text(
+              'Не вдалося зберегти налаштування. Спробуйте ще раз.',
+              style: TextStyle(color: AppColors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  'OK',
+                  style: TextStyle(color: AppColors.brandGreen),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -221,6 +216,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   }
 
   void _logout() {
+    deleteJWTStorage();
     Navigator.of(context).pop();
   }
 
@@ -232,42 +228,50 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         return Scaffold(
           backgroundColor: AppColors.profileBackground,
           body: Transform.translate(
-            offset: Offset(MediaQuery.of(context).size.width * _slideAnimation.value, 0),
+            offset: Offset(
+              MediaQuery.of(context).size.width * _slideAnimation.value,
+              0,
+            ),
             child: Opacity(
               opacity: _fadeAnimation.value,
               child: SafeArea(
-                child: _isLoading 
-                  ? Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        SettingsHeaderWidget(onBackPressed: _closeSettings),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Column(
-                              children: [
-                                const SizedBox(height: 20),
-                                _buildAppearanceSection(),
-                                _buildNotificationsSection(),
-                                _buildChatSection(),
-                                _buildSecuritySection(),
-                                _buildPrivacySection(),
-                                const SizedBox(height: 20),
-                              ],
+                child:
+                    _isLoading
+                        ? Center(
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.brandGreen,
                             ),
                           ),
+                        )
+                        : Column(
+                          children: [
+                            SettingsHeaderWidget(onBackPressed: _closeSettings),
+                            Expanded(
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                child: Column(
+                                  children: [
+                                    const SizedBox(height: 20),
+                                    _buildAppearanceSection(),
+                                    _buildNotificationsSection(),
+                                    _buildChatSection(),
+                                    _buildSecuritySection(),
+                                    _buildPrivacySection(),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SettingsFooterWidget(
+                              onLogout: _logout,
+                              onReset: _resetSettings,
+                              onSave: _saveSettings,
+                            ),
+                          ],
                         ),
-                        SettingsFooterWidget(
-                          onLogout: _logout,
-                          onReset: _resetSettings,
-                          onSave: _saveSettings,
-                        ),
-                      ],
-                    ),
               ),
             ),
           ),
@@ -323,7 +327,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             DropdownMenuItem(value: 'en', child: Text('English')),
           ],
           onChanged: (value) => setState(() => _selectedLanguage = value!),
-        )
+        ),
       ],
     );
   }
@@ -331,9 +335,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   Widget _buildSecuritySection() {
     return _buildSection(
       title: '🔒 Безпека',
-      children: [
-        _buildPasswordInputItem(),
-      ],
+      children: [_buildPasswordInputItem()],
     );
   }
 
@@ -358,9 +360,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       decoration: BoxDecoration(
         color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.whiteTransparent10,
-        ),
+        border: Border.all(color: AppColors.whiteTransparent10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,15 +393,15 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
               TextButton(
                 onPressed: _resetPassword,
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   minimumSize: const Size(0, 30),
                 ),
                 child: Text(
                   'Вимкнути',
-                  style: TextStyle(
-                    color: AppColors.errorRed,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: AppColors.errorRed, fontSize: 12),
                 ),
               ),
             ],
@@ -411,9 +411,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
             decoration: BoxDecoration(
               color: AppColors.whiteTransparent10,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: AppColors.whiteTransparent20,
-              ),
+              border: Border.all(color: AppColors.whiteTransparent20),
             ),
             child: TextField(
               controller: _passwordController,
@@ -453,7 +451,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
       child: Column(
@@ -488,9 +489,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       decoration: BoxDecoration(
         color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.whiteTransparent10,
-        ),
+        border: Border.all(color: AppColors.whiteTransparent10),
       ),
       child: Row(
         children: [
@@ -536,9 +535,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       decoration: BoxDecoration(
         color: AppColors.whiteTransparent05,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.whiteTransparent10,
-        ),
+        border: Border.all(color: AppColors.whiteTransparent10),
       ),
       child: Row(
         children: [
@@ -578,7 +575,11 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                 items: items,
                 onChanged: onChanged,
                 underline: const SizedBox(),
-                icon: Icon(Icons.keyboard_arrow_down, color: AppColors.whiteText, size: 20),
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: AppColors.whiteText,
+                  size: 20,
+                ),
                 style: TextStyle(color: AppColors.whiteText, fontSize: 14),
                 dropdownColor: AppColors.gradientMiddle,
               ),
@@ -589,7 +590,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 
-  Widget _buildToggleSwitch({required bool value, required ValueChanged<bool> onChanged}) {
+  Widget _buildToggleSwitch({
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -599,9 +603,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(13),
           color: value ? AppColors.brandGreen : AppColors.whiteTransparent20,
-          border: Border.all(
-            color: AppColors.whiteTransparent10,
-          ),
+          border: Border.all(color: AppColors.whiteTransparent10),
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),
@@ -620,3 +622,5 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 }
+
+// log

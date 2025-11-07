@@ -4,26 +4,24 @@ import 'package:http/http.dart' as http;
 import '../utils/crypto/crypto_app.dart';
 import '../utils/crypto/utils.dart';
 import '../models/storage_key.dart';
-import '../screens/main_screen.dart';
-import '../screens/register_screen.dart';
 import '../config.dart';
-import '../models/storage_user.dart';
-import '../models/interface/user.dart';
 import 'widgets/login/login_background.dart';
 import 'widgets/login/login_panel.dart';
 import 'widgets/login/custom_input_field.dart';
+import 'verification_screen.dart';
 import '../app_colors.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
@@ -37,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Вхід в акаунт',
+                  'Реєстрація',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w600,
@@ -58,6 +56,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
                 CustomInputField(
+                  controller: _emailController,
+                  label: 'Email',
+                  placeholder: 'Введіть email',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Введіть email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                CustomInputField(
                   controller: _passwordController,
                   label: 'Пароль',
                   placeholder: 'Введіть пароль',
@@ -66,6 +76,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Введіть пароль';
                     }
+                    if (value.length < 6) {
+                      return 'Пароль має бути не менше 6 символів';
+                    }
                     return null;
                   },
                 ),
@@ -73,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: _handleRegister,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.brandGreen,
                       foregroundColor: AppColors.blackText,
@@ -84,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       elevation: 0,
                     ),
                     child: const Text(
-                      'Увійти',
+                      'Зареєструватися',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -97,20 +110,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Немає акаунту? ',
+                      'Вже є акаунт? ',
                       style: TextStyle(fontSize: 13, color: AppColors.grayText),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterScreen(),
-                          ),
-                        );
+                        Navigator.pop(context);
                       },
                       child: Text(
-                        'Зареєструватися',
+                        'Увійти',
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.brandGreen,
@@ -129,59 +137,73 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _handleLogin() async {
+  void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       final name = _nameController.text;
+      final email = _emailController.text;
       final password = _passwordController.text;
 
       try {
         final keyPair = await getOrCreateKeyPair();
         final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
-        final dataToEncrypt = jsonEncode({
-          'name': name,
-          'password': password,
-        });
+        final dataToEncrypt = jsonEncode({'gmail': email});
 
         final serverPublicKeyPem = await getServerPublicKey();
 
-        final encrypted = await encryptMessage(dataToEncrypt, serverPublicKeyPem);
+        final encrypted = await encryptMessage(
+          dataToEncrypt,
+          serverPublicKeyPem,
+        );
 
         final response = await http.post(
-          Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/login'),
+          Uri.parse('${Config.URL_SERVICES_AUNTIFICATION}/register'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'data': {
-              'data': encrypted['data'],
-              'key': encrypted['key'],
-            },
+            'data': {'data': encrypted['data'], 'key': encrypted['key']},
             'key': publicKeyPem,
             'type': 'mobile',
           }),
         );
 
         final jsonResponse = jsonDecode(response.body);
-        final decrypted = await decryptServerResponse(jsonResponse, keyPair.privateKey);
+        final decrypted = await decryptServerResponse(
+          jsonResponse,
+          keyPair.privateKey,
+        );
 
         final data = jsonDecode(decrypted);
-        final dataJsonMap = jsonDecode(data['user']);
-        final userModel = UserModel.fromJson(dataJsonMap);
 
-        await saveJWTStorage(data["token"]);
-        await saveUserStorage(userModel);
-
-        if (!context.mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MainScreen(),
-          ),
-        );
+        if (jsonResponse['code'] == 1) {
+          if (!context.mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (_) => VerificationScreen(
+                    name: name,
+                    email: email,
+                    password: password,
+                    codeJwt: data["codeJwt"]
+                  ),
+            ),
+          );
+        } else {
+          // Інша логіка, якщо потрібно
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Помилка: ${jsonResponse['message'] ?? 'Невідома помилка'}',
+              ),
+            ),
+          );
+        }
       } catch (e) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Помилка входу: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Помилка реєстрації: $e')));
         print(e);
       }
     }
@@ -190,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
