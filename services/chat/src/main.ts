@@ -2,6 +2,8 @@ import http from 'http';
 import { Server, Socket } from 'socket.io';
 import { loadConfig, rebuildConfig, CONFIG } from "./utils/config/config";
 import { setIO } from "./utils/config/io";
+import fs from "fs";
+import path from "path";
 
 import { onGetInfoChats } from './socketEvents/chat/onGetInfoChats';
 import { onLoadChatContent } from './socketEvents/chat/onLoadChatContent';
@@ -22,6 +24,7 @@ import { onSaveProfile } from './socketEvents/user/onSaveProfile';
 import { onCreateTemporaryChat } from './socketEvents/chat/onCreateTemporaryChat';
 import { onGetInfoChatFix } from './socketEvents/chat/onGetInfoChatFix';
 import { onDelChat } from './socketEvents/chat/onDelChat';
+import { onGetPubKey } from './socketEvents/user/onGetPubKey';
 
 import { onDelSelfInChat } from './socketEvents/chat/onDelSelfInChat';
 import { onDelMsg } from './socketEvents/chat/onDelMsg';
@@ -38,6 +41,12 @@ async function startServer() {
 
   rebuildConfig();
 
+  const dir = path.join(process.cwd(), "keys");
+
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+
   const socketServer = http.createServer();
   const io = new Server(socketServer, {
     cors: {
@@ -51,6 +60,7 @@ async function startServer() {
   io.on('connection', (socket: Socket) => {
     console.log(`connect client: ${socket.id}`);
 
+    onGetPubKey(socket);
     onDelChat(socket);
     onGetInfoChatFix(socket);
     onCreateTemporaryChat(socket);

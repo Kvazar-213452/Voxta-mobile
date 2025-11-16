@@ -7,11 +7,14 @@ import { transforUser } from '../../utils/transform'
 import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 
+import axios from "axios";
+import fs from "fs";
+import path from "path";
+
 export function onAuthenticate(socket: Socket): void {
   socket.on('authenticate', async (data: { data: any, type: string, key: string }) => {
 
     let dataDec: any;
-
     dataDec = await decryptionMsg(data.data);
     dataDec = safeParseJSON(dataDec);
 
@@ -28,14 +31,29 @@ export function onAuthenticate(socket: Socket): void {
       const collection = db.collection<any>(decoded.userId);
 
       let userConfig = await collection.findOne({ _id: 'config' });
-      userConfig._id = userConfig.id;
-      delete userConfig.id;
 
       if (!userConfig) {
         socket.emit('authenticated', { code: 0 });
         socket.disconnect();
         return;
       }
+
+      const userKeyDir = path.join("keys", decoded.userId);
+
+      if (!fs.existsSync(userKeyDir)) {
+        fs.mkdirSync(userKeyDir, { recursive: true });
+      }
+
+      const resp = await axios.post(`${CONFIG.MICROSERVICES_CRYPTO}generate`);
+      const { publicKey, privateKey } = resp.data.result;
+
+      fs.writeFileSync(path.join(userKeyDir, "public.pem"), publicKey);
+      fs.writeFileSync(path.join(userKeyDir, "private.pem"), privateKey);
+
+      console.log("Keys saved for user:", decoded.userId);
+
+      userConfig._id = userConfig.id;
+      delete userConfig.id;
 
       const dataCtypto = {
         code: 1,
@@ -47,6 +65,7 @@ export function onAuthenticate(socket: Socket): void {
       });
 
     } catch (error) {
+      console.log("AUTH ERROR:", error);
       socket.emit('authenticated', { code: 0 });
       socket.disconnect();
     }

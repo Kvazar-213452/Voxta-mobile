@@ -56,3 +56,6 @@ target
 services/global/crypto/public_key.pem
 services/global/crypto/private_key.pem
 requirements.txt
+
+
+services/chat/keys/

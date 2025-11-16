@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import fs from 'fs';
-import { generateKeyPair, encryptMessage, decryptMessage } from './encryptionService';
+import { generateKeyPair, encryptMessage, decryptMessage, generateKeyPairForServer, decryptMessageServer } from './encryptionService';
 import { loadConfig, rebuildConfig, CONFIG } from "./config";
 
 const app = express();
@@ -72,13 +72,37 @@ app.post('/decrypt', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/generate', async (req: Request, res: Response) => {
+  try {
+    res.json({ code: 1, result: generateKeyPairForServer() });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Невідома помилка';
+    res.status(400).json({ error: `Помилка розшифрування: ${msg}` });
+  }
+});
+
+app.post('/decrypt_message_server', async (req: Request, res: Response) => {
+  try {
+    const { data } = req.body;
+    if (!data?.key || !data?.data)
+      return res.status(400).json({ error: 'Відсутні необхідні параметри' });
+
+    const result = decryptMessageServer({ key: data.key, data: data.data }, data.privateKeyPem);
+
+    res.json({ code: 1, message: result });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Невідома помилка';
+    res.status(400).json({ error: `Помилка розшифрування: ${msg}` });
+  }
+});
+
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err.message.includes('request entity too large')) {
     return res.status(400).json({
       error: `Розмір запиту перевищує ${MAX_REQUEST_SIZE / (1024 * 1024)}MB`
     });
   }
-  console.error('❌ Помилка сервера:', err);
+  console.error('Помилка сервера:', err);
   res.status(500).json({ error: 'Внутрішня помилка сервера' });
 });
 

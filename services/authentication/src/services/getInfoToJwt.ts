@@ -59,8 +59,6 @@ export async function getInfoToJwtHandler(req: Request, res: Response): Promise<
 
     res.json({ code: 1, data: json });
   } catch (e) {
-    console.error('getInfoToJwtHandler error:', e);
     res.json({ code: 0, data: 'error jwt' });
   }
 }
-

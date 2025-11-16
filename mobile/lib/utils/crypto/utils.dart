@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config.dart';
+import '../../../../../../../services/chat/socket_service.dart';
 
 Future<String> getServerPublicKey() async {
   final response = await http.get(
@@ -12,21 +13,43 @@ Future<String> getServerPublicKey() async {
   }
 
   try {
-    // Спробуємо розпарсити JSON
     final decoded = jsonDecode(response.body);
 
-    // Якщо це ще один JSON усередині (рядок з лапками)
     final data = decoded is String ? jsonDecode(decoded) : decoded;
 
-    // Якщо це Map ({"key": "-----BEGIN..."})
     if (data is Map<String, dynamic> && data.containsKey('key')) {
       return data['key'];
     }
 
-    // Якщо формат неочікуваний — повертаємо як текст
     return response.body;
   } catch (e) {
-    // Якщо це не JSON — просто повертаємо текст ключа
     return response.body;
+  }
+}
+
+void getServerIoPublicKey({
+  required Function(Map<String, dynamic>) onSuccess,
+  required Function(String error) onError,
+}) {
+  try {
+    socket!.emit('get_pub_key', {});
+
+    socket!.off('get_pub_key_return');
+
+    socket!.on('get_pub_key_return', (data) {
+      try {
+        if (data['code'] == 1) {
+          onSuccess(data['key']);
+        } else {
+          onError('Помилка отримання даних користувачів');
+        }
+        
+      } catch (e) {
+        onError('Помилка обробки даних чату');
+        socket!.off('get_pub_key_return');
+      }
+    });
+  } catch (e) {
+    print('Помилка відправлення запиту: $e');
   }
 }

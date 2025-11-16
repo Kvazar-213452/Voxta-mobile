@@ -6,6 +6,27 @@ interface EncryptedData {
   data: string;
 }
 
+interface generateKeyPairForServerData {
+  publicKey: string;
+  privateKey: string;
+}
+
+export function generateKeyPairForServer(): generateKeyPairForServerData {
+  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: 'pkcs1',
+      format: 'pem'
+    },
+    privateKeyEncoding: {
+      type: 'pkcs8',
+      format: 'pem'
+    }
+  });
+
+  return {publicKey: publicKey, privateKey: privateKey};
+};
+
 export const generateKeyPair = (): void => {
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
     modulusLength: 4096,
@@ -105,6 +126,72 @@ export const encryptMessage = (publicRsaKey: string, message: string): Encrypted
 export const decryptMessage = (encryptedData: EncryptedData): string => {
   try {
     const privateKeyPem = fs.readFileSync('private_key.pem', 'utf-8');
+    const privateKey = crypto.createPrivateKey({
+      key: privateKeyPem,
+      format: 'pem',
+      type: 'pkcs8'
+    });
+    
+    const encryptedKeyBuffer = Buffer.from(encryptedData.key, 'base64');
+    
+    let aesKey: Buffer;
+    try {
+      aesKey = crypto.privateDecrypt(
+        {
+          key: privateKey,
+          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+          oaepHash: 'sha256'
+        },
+        encryptedKeyBuffer
+      );
+    } catch {
+      aesKey = crypto.privateDecrypt(
+        {
+          key: privateKey,
+          padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+          oaepHash: 'sha1'
+        },
+        encryptedKeyBuffer
+      );
+    }
+    
+    const parts = encryptedData.data.split('.');
+    if (parts.length !== 3) {
+      throw new Error('Неправильний формат зашифрованих даних');
+    }
+    
+    const nonce = Buffer.from(parts[0], 'base64');
+    const authTag = Buffer.from(parts[1], 'base64');
+    const encryptedMessage = Buffer.from(parts[2], 'base64');
+
+    if (nonce.length !== 12) {
+      throw new Error('Неправильний розмір nonce');
+    }
+    if (authTag.length !== 16) {
+      throw new Error('Неправильний розмір auth tag');
+    }
+    
+    const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, nonce);
+    decipher.setAuthTag(authTag);
+    
+    const decryptedMessage = Buffer.concat([
+      decipher.update(encryptedMessage),
+      decipher.final()
+    ]);
+    
+    return decryptedMessage.toString('utf8');
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Невідома помилка';
+    throw new Error(`Помилка розшифрування: ${errorMessage}`);
+  }
+};
+
+// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
+// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
+// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
+
+export const decryptMessageServer = (encryptedData: EncryptedData, privateKeyPem: string): string => {
+  try {
     const privateKey = crypto.createPrivateKey({
       key: privateKeyPem,
       format: 'pem',
