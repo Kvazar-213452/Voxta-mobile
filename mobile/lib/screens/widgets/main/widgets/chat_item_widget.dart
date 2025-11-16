@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../models/interface/chat_models.dart';
 import '../../../../app_colors.dart';
+import '../../../../config.dart';
 
 class ChatItemWidget extends StatelessWidget {
+  static const String baseUrl = Config.URL_SERVICES_DATA;
+  
   final ChatItem chat;
   final int index;
   final VoidCallback onTap;
@@ -14,125 +17,79 @@ class ChatItemWidget extends StatelessWidget {
     required this.onTap,
   });
 
-  bool _isUrl(String avatar) {
-    return avatar.startsWith('http://') || avatar.startsWith('https://');
+  String _getFullUrl(String url) {
+    if (url.isEmpty) return url;
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    if (url.startsWith('/')) {
+      return '$baseUrl$url';
+    } else {
+      return '$baseUrl/$url';
+    }
   }
 
   Widget _buildAvatar() {
-    // Тимчасово всім ставимо одну аватарку для тестування
-    String avatarUrl = 'https://icon-library.com/images/none-icon/none-icon-13.jpg';
+    final String avatarUrl = chat.avatar.isNotEmpty
+        ? _getFullUrl(chat.avatar)
+        : Config.DEF_ICON_USER;
     
-    if (_isUrl(chat.avatar)) {
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.chatItemBackground,
-          shape: BoxShape.circle,
-        ),
-        child: ClipOval(
-          child: Image.network(
-            chat.avatar,
-            width: 44,
-            height: 44,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.chatItemBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
-                    ),
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: AppColors.chatItemBackground,
+        shape: BoxShape.circle,
+      ),
+      child: ClipOval(
+        child: Image.network(
+          avatarUrl,
+          width: 44,
+          height: 44,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.chatItemBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                   ),
                 ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.chatItemBackground,
-                  shape: BoxShape.circle,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.chatItemBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.person,
+                  size: 24,
+                  color: AppColors.whiteText.withOpacity(0.6),
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.person,
-                    size: 24,
-                    color: AppColors.whiteText.withOpacity(0.6),
-                  ),
-                ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-      );
-    } else {
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.chatItemBackground,
-          shape: BoxShape.circle,
-        ),
-        child: ClipOval(
-          child: Image.network(
-            avatarUrl,
-            width: 44,
-            height: 44,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.chatItemBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
-                    ),
-                  ),
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.chatItemBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.person,
-                    size: 24,
-                    color: AppColors.whiteText.withOpacity(0.6),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   @override

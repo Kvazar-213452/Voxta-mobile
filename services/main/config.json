@@ -6,7 +6,6 @@
     "MICROSERVICES_CHAT": "http://localhost:3010/",
     "MICROSERVICES_CRYPTO": "http://localhost:3005/",
     "MICROSERVICES_AUTHENTICATION": "http://localhost:3007/",
-    "MICROSERVICES_STATUS": "http://localhost:3002/",
     "MICROSERVICES_SITE": "http://localhost:3011/",
     "API_LOCAL": "http://localhost:8000/"
   },
@@ -29,15 +28,10 @@
     "PORT": "3005",
     "API": "localhost"
   },
-  "API_STATUS": {
-    "PORT": "3002",
-    "API": "localhost",
-    "SECRET_KEY": "your_secret_key"
-  },
   "API_AUTHENTICATION": {
     "PORT": "3007",
     "API": "localhost",
-    "ID_CHAT_MAIN": "0TGcAEgtSFpuPs",
+    "ID_CHAT_MAIN": "8htobVIkTB4m3J1",
     "AVATAR": "http://localhost:3004/avatars/306d4102-f22b-452c-9f3b-c14b7661b0f8.jpg",
     "SECRET_KEY": "your_secret_key",
     "SENDER_EMAIL": "articlestudio6@gmail.com",

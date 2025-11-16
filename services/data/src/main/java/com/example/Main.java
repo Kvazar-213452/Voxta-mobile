@@ -54,7 +54,6 @@ public class Main {
                 });
             });
             
-            // Налаштування Gson як JSON mapper
             config.jsonMapper(new JsonMapper() {
                 @Override
                 public String toJsonString(Object obj, Type type) {
@@ -157,12 +156,13 @@ public class Main {
         }
 
         String scheme = ctx.scheme();
-        String avatarURL = String.format("%s://%s/avatars/%s", scheme, ctx.host(), uniqueFileName);
 
-        System.out.printf("Avatar saved successfully: %s%n", avatarURL);
+        String fixed = uniqueFileName.replace("data\\", "").replace("\\", "/");
+        String relativePath = "/avatars/" + fixed;
 
         Map<String, String> response = new HashMap<>();
-        response.put("url", avatarURL);
+
+        response.put("url", relativePath);
 
         ctx.json(response);
     }
@@ -239,12 +239,11 @@ public class Main {
         }
 
         String scheme = ctx.scheme();
-        String fileURL = String.format("%s://%s/file/%s", scheme, ctx.host(), uniqueFileName);
-
-        System.out.printf("File saved successfully: %s%n", fileURL);
+        String fixed = uniqueFileName.replace("data\\", "").replace("\\", "/");
+        String relativePath = "/file/" + fixed;
 
         Map<String, String> response = new HashMap<>();
-        response.put("url", fileURL);
+        response.put("url", relativePath);
 
         ctx.json(response);
     }

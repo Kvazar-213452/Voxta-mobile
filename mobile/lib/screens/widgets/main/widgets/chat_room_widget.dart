@@ -5,6 +5,7 @@ import '../windows/chat_settings/chat_modal_functions.dart';
 import '../../../../app_colors.dart';
 import 'component/file_picker_service.dart';
 import 'component/file_message_builder.dart';
+import '../../../../config.dart';
 
 class ChatRoomWidget extends StatefulWidget {
   final String chatName;
@@ -37,6 +38,7 @@ class ChatRoomWidget extends StatefulWidget {
 }
 
 class _ChatRoomWidgetState extends State<ChatRoomWidget> {
+  static const String baseUrl = Config.URL_SERVICES_DATA;
   double _sendButtonScale = 1.0;
   double _fileButtonScale = 1.0;
   bool _isUploadingFile = false;
@@ -46,14 +48,30 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
     return avatar.startsWith('http://') || avatar.startsWith('https://');
   }
 
+  String _getFullUrl(String url) {
+    if (url.isEmpty) return url;
+    
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    if (url.startsWith('/')) {
+      return '$baseUrl$url';
+    } else {
+      return '$baseUrl/$url';
+    }
+  }
+
   Widget _buildChatAvatar() {
-    if (_isUrl(widget.chatAvatar)) {
+    final String avatarUrl = _getFullUrl(widget.chatAvatar);
+    
+    if (_isUrl(avatarUrl)) {
       return CircleAvatar(
         radius: 20,
         backgroundColor: Colors.transparent,
         child: ClipOval(
           child: Image.network(
-            widget.chatAvatar,
+            avatarUrl,
             width: 40,
             height: 40,
             fit: BoxFit.cover,

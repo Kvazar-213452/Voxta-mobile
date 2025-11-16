@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../../../models/interface/chat_models.dart';
 import '../../../../../app_colors.dart';
 import 'delete_message_dialog.dart';
+import '../../../../../config.dart';
 
 class MessageWidget extends StatelessWidget {
+  static const String baseUrl = Config.URL_SERVICES_DATA;
+  
   final Message message;
   final String? chatId;
 
@@ -13,9 +16,18 @@ class MessageWidget extends StatelessWidget {
     this.chatId,
   });
 
-  bool _isUrl(String? avatar) {
-    if (avatar == null || avatar.isEmpty) return false;
-    return avatar.startsWith('http://') || avatar.startsWith('https://');
+  String _getFullUrl(String url) {
+    if (url.isEmpty) return url;
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    if (url.startsWith('/')) {
+      return '$baseUrl$url';
+    } else {
+      return '$baseUrl/$url';
+    }
   }
 
   String _getMessageText() {
@@ -31,67 +43,55 @@ class MessageWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    if (_isUrl(message.senderAvatar)) {
-      return CircleAvatar(
-        radius: 16,
-        backgroundColor: Colors.transparent,
-        child: ClipOval(
-          child: Image.network(
-            message.senderAvatar!,
-            width: 32,
-            height: 32,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: AppColors.chatItemBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: SizedBox(
-                    width: 12,
-                    height: 12,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
-                    ),
+    // Отримуємо повний URL для аватара
+    final String avatarUrl = message.senderAvatar != null && message.senderAvatar!.isNotEmpty
+        ? _getFullUrl(message.senderAvatar!)
+        : Config.DEF_ICON_USER;
+
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: Colors.transparent,
+      child: ClipOval(
+        child: Image.network(
+          avatarUrl,
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.chatItemBackground,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 1.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.loadingIndicator),
                   ),
                 ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return ClipOval(
-                child: Image.network(
-                  'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                ),
-              );
-            },
-          ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return ClipOval(
+              child: Image.network(
+                Config.DEF_ICON_USER,
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+              ),
+            );
+          },
         ),
-      );
-    } else {
-      return CircleAvatar(
-        radius: 16,
-        backgroundColor: Colors.transparent,
-        child: ClipOval(
-          child: Image.network(
-            'https://upload.wikimedia.org/wikipedia/commons/d/dc/Adolf_Hitler_cropped_restored.jpg',
-            width: 32,
-            height: 32,
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
-
-
 
   @override
   Widget build(BuildContext context) {

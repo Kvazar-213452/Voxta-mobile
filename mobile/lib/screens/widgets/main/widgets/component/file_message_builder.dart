@@ -4,11 +4,28 @@ import '../../../../../models/interface/chat_models.dart';
 import '../../../../../app_colors.dart';
 import '../utils/chat_room.dart';
 import 'delete_message_dialog.dart';
+import '../../../../../config.dart';
 
 class FileMessageBuilder {
+  static const String baseUrl = Config.URL_SERVICES_DATA;
+
   static bool _isImageFile(String fileName) {
     final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
     return imageExtensions.any((ext) => fileName.toLowerCase().endsWith(ext));
+  }
+
+  static String _getFullUrl(String url) {
+    if (url.isEmpty) return url;
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    if (url.startsWith('/')) {
+      return '$baseUrl$url';
+    } else {
+      return '$baseUrl/$url';
+    }
   }
 
   static Widget buildFileMessage(Message message, {String? chatId, BuildContext? context}) {
@@ -26,7 +43,8 @@ class FileMessageBuilder {
       return _buildErrorMessage();
     }
 
-    final String url = fileData['url'] ?? '';
+    final String rawUrl = fileData['url'] ?? '';
+    final String url = _getFullUrl(rawUrl);
     final String name = fileData['name'] ?? 'Невідомий файл';
     final String size = fileData['size']?.toString() ?? '0';
     final bool isImage = _isImageFile(name);
