@@ -3,7 +3,7 @@ import { Db } from "mongodb";
 import { getMongoClient } from "../../models/mongoClient";
 import { verifyAuth } from "../../utils/verifyAuth";
 import { generateId } from "../../utils/generateId";
-import { decryptionMsg, encryptionMsg } from "../../utils/cryptoFunc";
+import { decryptionMsgServer, encryptionMsg } from "../../utils/cryptoFunc";
 import { safeParseJSON } from "../../utils/utils";
 import { onSendMessage as onSendMessage1 } from "../../utils/sendCreateChat";
 import axios from "axios";
@@ -15,7 +15,7 @@ export function onSendMessage(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      let dataDec: any = await decryptionMsg(data.data);
+      let dataDec: any = await decryptionMsgServer(data.data, auth.userId);
       dataDec = safeParseJSON(dataDec);
 
       const client = await getMongoClient();

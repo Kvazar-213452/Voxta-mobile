@@ -28,8 +28,7 @@ Future<String> getServerPublicKey() async {
 }
 
 void getServerIoPublicKey({
-  required Function(Map<String, dynamic>) onSuccess,
-  required Function(String error) onError,
+  required Function(String) onSuccess,
 }) {
   try {
     socket!.emit('get_pub_key', {});
@@ -39,13 +38,10 @@ void getServerIoPublicKey({
     socket!.on('get_pub_key_return', (data) {
       try {
         if (data['code'] == 1) {
+          socket!.off('get_pub_key_return');
           onSuccess(data['key']);
-        } else {
-          onError('Помилка отримання даних користувачів');
         }
-        
       } catch (e) {
-        onError('Помилка обробки даних чату');
         socket!.off('get_pub_key_return');
       }
     });

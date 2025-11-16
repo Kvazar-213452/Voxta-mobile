@@ -9,7 +9,7 @@ export function onGetPubKey(socket: Socket): void {
       const auth = verifyAuth(socket);
       if (!auth) return;
 
-      const publicKey = fs.readFileSync('public_key.pem', 'utf-8');
+      const publicKey = fs.readFileSync(`keys/${auth.userId}/public.pem`, 'utf-8');
 
       socket.emit('get_pub_key_return', {
         code: 1,

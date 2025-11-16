@@ -176,7 +176,7 @@ void sendMessage(
     'typeChat': type,
   };
 
-  socket!.emit('send_message', await encrypt_auto(dataToEncrypt));
+  socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
 }
 
 void loadChatContent(String chatId, String type) async {

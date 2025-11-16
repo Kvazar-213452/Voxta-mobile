@@ -83,11 +83,12 @@ app.post('/generate', async (req: Request, res: Response) => {
 
 app.post('/decrypt_message_server', async (req: Request, res: Response) => {
   try {
-    const { data } = req.body;
-    if (!data?.key || !data?.data)
-      return res.status(400).json({ error: 'Відсутні необхідні параметри' });
+    const { data, privateKeyPem } = req.body;
+    if (!data?.key || !data?.data) return res.status(400).json({ error: 'Відсутні необхідні параметри' });
 
-    const result = decryptMessageServer({ key: data.key, data: data.data }, data.privateKeyPem);
+    console.log(data)
+
+    const result = decryptMessageServer({ key: data.key, data: data.data }, privateKeyPem);
 
     res.json({ code: 1, message: result });
   } catch (error) {
