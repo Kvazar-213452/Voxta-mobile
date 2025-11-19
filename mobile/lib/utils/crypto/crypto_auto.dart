@@ -39,7 +39,6 @@ Future<Map<String, dynamic>> encryptAutoServer(
   final publicKeyPem = encodePublicKeyToPemPKCS1(keyPair.publicKey);
 
   final dataToEncrypt = jsonEncode(data);
-  print(data);
 
   final completer = Completer<Map<String, dynamic>>();
 

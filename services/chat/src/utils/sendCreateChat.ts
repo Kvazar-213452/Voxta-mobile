@@ -13,4 +13,3 @@ export function onSendMessage(data: any) {
       socket.emit("send_message_return", { code: 1, data: data  });
   });
 }
-
