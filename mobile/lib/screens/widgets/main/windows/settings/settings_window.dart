@@ -256,10 +256,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
                                   children: [
                                     const SizedBox(height: 20),
                                     _buildAppearanceSection(),
-                                    _buildNotificationsSection(),
-                                    _buildChatSection(),
                                     _buildSecuritySection(),
-                                    _buildPrivacySection(),
                                     const SizedBox(height: 20),
                                   ],
                                 ),
@@ -294,62 +291,10 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 
-  Widget _buildNotificationsSection() {
-    return _buildSection(
-      title: '🔔 Сповіщення',
-      children: [
-        _buildToggleItem(
-          title: 'Сповіщення',
-          subtitle: 'Показувати сповіщення',
-          value: _browserNotifications,
-          onChanged: (value) => setState(() => _browserNotifications = value),
-        ),
-        _buildToggleItem(
-          title: 'Режим "Не турбувати"',
-          subtitle: 'Вимкнути всі сповіщення',
-          value: _doNotDisturb,
-          onChanged: (value) => setState(() => _doNotDisturb = value),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChatSection() {
-    return _buildSection(
-      title: '💬 Чат',
-      children: [
-        _buildDropdownItem(
-          title: 'Мова інтерфейсу',
-          subtitle: 'Вибрати мову додатка',
-          value: _selectedLanguage,
-          items: const [
-            DropdownMenuItem(value: 'uk', child: Text('Українська')),
-            DropdownMenuItem(value: 'en', child: Text('English')),
-          ],
-          onChanged: (value) => setState(() => _selectedLanguage = value!),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSecuritySection() {
     return _buildSection(
       title: '🔒 Безпека',
       children: [_buildPasswordInputItem()],
-    );
-  }
-
-  Widget _buildPrivacySection() {
-    return _buildSection(
-      title: '👁️ Приватність',
-      children: [
-        _buildToggleItem(
-          title: 'Статус онлайн',
-          subtitle: 'Показувати коли ви онлайн',
-          value: _onlineStatus,
-          onChanged: (value) => setState(() => _onlineStatus = value),
-        ),
-      ],
     );
   }
 
@@ -522,74 +467,6 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 
-  Widget _buildDropdownItem({
-    required String title,
-    required String subtitle,
-    required String value,
-    required List<DropdownMenuItem<String>> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: AppColors.whiteTransparent05,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.whiteTransparent10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.whiteText,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.whiteTransparent60,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.whiteTransparent10,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Material(
-              color: AppColors.transparent,
-              child: DropdownButton<String>(
-                value: value,
-                items: items,
-                onChanged: onChanged,
-                underline: const SizedBox(),
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: AppColors.whiteText,
-                  size: 20,
-                ),
-                style: TextStyle(color: AppColors.whiteText, fontSize: 14),
-                dropdownColor: AppColors.gradientMiddle,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildToggleSwitch({
     required bool value,
     required ValueChanged<bool> onChanged,
@@ -622,5 +499,3 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
     );
   }
 }
-
-// log

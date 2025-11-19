@@ -1,8 +1,14 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import fs from 'fs';
-import { generateKeyPair, encryptMessage, decryptMessage, generateKeyPairForServer, decryptMessageServer } from './encryptionService';
-import { loadConfig, rebuildConfig, CONFIG } from "./config";
+import {
+  generateKeyPair,
+  encryptMessage,
+  decryptMessage,
+  generateKeyPairForServer,
+  decryptMessageServer
+} from './encryptionService';
+import { loadConfig, rebuildConfig, CONFIG } from './config';
 
 const app = express();
 const MAX_REQUEST_SIZE = 100 * 1024 * 1024;
@@ -16,88 +22,67 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
 });
 
 const initializeKeys = () => {
   if (!fs.existsSync('public_key.pem') || !fs.existsSync('private_key.pem')) {
+    console.log('Генерую нові ключі...');
     generateKeyPair();
   } else {
     console.log('Використовуються існуючі ключі');
   }
 };
 
-app.get('/public_key_mobile', async (req: Request, res: Response) => {
-  try {
-    const publicKey = fs.readFileSync('public_key.pem', 'utf-8');
-    res.json({ key: publicKey });
-  } catch {
-    res.status(404).json({ error: 'Публічний ключ не знайдено' });
+const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) =>
+  Promise.resolve(fn(req, res, next)).catch(next);
+
+app.get('/public_key_mobile', asyncHandler(async (_req, res) => {
+  if (!fs.existsSync('public_key.pem')) {
+    return res.status(404).json({ error: 'Публічний ключ не знайдено' });
   }
-});
+  const publicKey = fs.readFileSync('public_key.pem', 'utf-8');
+  res.json({ key: publicKey });
+}));
 
-app.post('/encryption', async (req: Request, res: Response) => {
-  try {
-    const { key: publicKey, data: message } = req.body;
-
-    if (!publicKey || !message)
-      return res.status(400).json({ error: 'Відсутні необхідні параметри' });
-
-    if (message.length > 1024 * 1024)
-      return res.status(400).json({ error: 'Повідомлення занадто велике' });
-
-    const result = encryptMessage(publicKey, message);
-
-    res.json({ code: 1, message: result });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Невідома помилка';
-    res.status(400).json({ error: `Помилка шифрування: ${msg}` });
+app.post('/encryption', asyncHandler(async (req: Request, res: Response) => {
+  const { key: publicKey, data: message } = req.body;
+  if (!publicKey || !message) {
+    return res.status(400).json({ error: 'Відсутні необхідні параметри' });
   }
-});
-
-app.post('/decrypt', async (req: Request, res: Response) => {
-  try {
-    const { data } = req.body;
-    if (!data?.key || !data?.data)
-      return res.status(400).json({ error: 'Відсутні необхідні параметри' });
-
-    const result = decryptMessage({ key: data.key, data: data.data });
-
-    res.json({ code: 1, message: result });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Невідома помилка';
-    res.status(400).json({ error: `Помилка розшифрування: ${msg}` });
+  if (message.length > 1024 * 1024) {
+    return res.status(400).json({ error: 'Повідомлення занадто велике' });
   }
-});
+  const encrypted = encryptMessage(publicKey, message);
+  res.json({ code: 1, message: encrypted });
+}));
 
-app.post('/generate', async (req: Request, res: Response) => {
-  try {
-    res.json({ code: 1, result: generateKeyPairForServer() });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Невідома помилка';
-    res.status(400).json({ error: `Помилка розшифрування: ${msg}` });
+app.post('/decrypt', asyncHandler(async (req: Request, res: Response) => {
+  const { data } = req.body;
+  if (!data?.key || !data?.data) {
+    return res.status(400).json({ error: 'Відсутні необхідні параметри' });
   }
-});
+  const decrypted = decryptMessage({ key: data.key, data: data.data });
+  res.json({ code: 1, message: decrypted });
+}));
 
-app.post('/decrypt_message_server', async (req: Request, res: Response) => {
-  try {
-    const { data, privateKeyPem } = req.body;
-    if (!data?.key || !data?.data) return res.status(400).json({ error: 'Відсутні необхідні параметри' });
+app.post('/generate', asyncHandler(async (_req, res) => {
+  const keys = generateKeyPairForServer();
+  res.json({ code: 1, result: keys });
+}));
 
-    console.log(data)
-
-    const result = decryptMessageServer({ key: data.key, data: data.data }, privateKeyPem);
-
-    res.json({ code: 1, message: result });
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : 'Невідома помилка';
-    res.status(400).json({ error: `Помилка розшифрування: ${msg}` });
+app.post('/decrypt_message_server', asyncHandler(async (req: Request, res: Response) => {
+  const { data, privateKeyPem } = req.body;
+  if (!data?.key || !data?.data) {
+    return res.status(400).json({ error: 'Відсутні необхідні параметри' });
   }
-});
+  const decrypted = decryptMessageServer({ key: data.key, data: data.data }, privateKeyPem);
+  res.json({ code: 1, message: decrypted });
+}));
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   if (err.message.includes('request entity too large')) {
     return res.status(400).json({
       error: `Розмір запиту перевищує ${MAX_REQUEST_SIZE / (1024 * 1024)}MB`
@@ -107,12 +92,12 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   res.status(500).json({ error: 'Внутрішня помилка сервера' });
 });
 
+
 async function main() {
   try {
     await loadConfig("GLOBAL_URL");
     await loadConfig("GLOBAL_DB");
     await loadConfig();
-
     rebuildConfig();
     initializeKeys();
 
@@ -121,7 +106,7 @@ async function main() {
       console.log(`Максимальний розмір запиту: ${MAX_REQUEST_SIZE / (1024 * 1024)}MB`);
     });
   } catch (err) {
-    console.error("Помилка при старті сервера:", err);
+    console.error('Помилка при старті сервера:', err);
     process.exit(1);
   }
 }

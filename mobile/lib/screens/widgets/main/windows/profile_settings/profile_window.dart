@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:intl/intl.dart';
 import 'header.dart';
 import 'footer.dart';
 import 'utils.dart';
@@ -65,6 +66,26 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     _animationController.forward();
   }
 
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) {
+      return 'Не вказано';
+    }
+    
+    try {
+      final DateTime dateTime = DateTime.parse(dateString);
+      final DateFormat formatter = DateFormat('dd MMMM yyyy, HH:mm', 'uk_UA');
+      return formatter.format(dateTime);
+    } catch (e) {
+      // Якщо не вдалося розпарсити, спробуємо простий формат
+      try {
+        final DateTime dateTime = DateTime.parse(dateString);
+        return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      } catch (e) {
+        return dateString;
+      }
+    }
+  }
+
   Future<void> _loadProfileData() async {
     try {
       setState(() {
@@ -80,7 +101,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
           _descriptionController.text = userData['desc']?.toString() ?? '';
           _profileImageUrl = userData['avatar']?.toString() ?? '';
           _userId = 'ID: ${userData['id']?.toString() ?? 'Невідомо'}';
-          _userTime = userData['time']?.toString() ?? 'Не вказано';
+          _userTime = _formatDate(userData['time']?.toString());
           _isDataLoading = false;
         });
       }

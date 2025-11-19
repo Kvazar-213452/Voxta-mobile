@@ -186,10 +186,6 @@ export const decryptMessage = (encryptedData: EncryptedData): string => {
   }
 };
 
-// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
-// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
-// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер// мені похер
-
 export const decryptMessageServer = (encryptedData: EncryptedData, privateKeyPem: string): string => {
   try {
     const privateKey = crypto.createPrivateKey({

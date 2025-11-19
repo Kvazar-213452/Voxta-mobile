@@ -358,29 +358,32 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                                 color: AppColors.whiteText.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(25),
                               ),
-                              child: TextField(
-                                controller: widget.messageController,
-                                style: TextStyle(color: AppColors.whiteText),
-                                maxLines: null,
-                                minLines: 1,
-                                textCapitalization: TextCapitalization.sentences,
-                                textInputAction: TextInputAction.newline,
-                                keyboardType: TextInputType.multiline,
-                                decoration: InputDecoration(
-                                  hintText: 'Повідомлення...',
-                                  hintStyle: TextStyle(
-                                    color: AppColors.whiteText.withOpacity(0.6),
+                              child: Scrollbar(
+                                child: TextField(
+                                  controller: widget.messageController,
+                                  style: TextStyle(color: AppColors.whiteText),
+                                  maxLines: null,
+                                  minLines: 1,
+                                  textCapitalization: TextCapitalization.sentences,
+                                  textInputAction: TextInputAction.newline,
+                                  keyboardType: TextInputType.multiline,
+                                  scrollPhysics: const BouncingScrollPhysics(),
+                                  decoration: InputDecoration(
+                                    hintText: 'Повідомлення...',
+                                    hintStyle: TextStyle(
+                                      color: AppColors.whiteText.withOpacity(0.6),
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    isDense: true,
                                   ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                  isDense: true,
+                                  onSubmitted: (value) {
+                                    _sendMessage();
+                                  },
                                 ),
-                                onSubmitted: (value) {
-                                  _sendMessage();
-                                },
                               ),
                             ),
                           ),
