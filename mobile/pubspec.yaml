@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  path_provider: ^2.1.2
+  permission_handler: ^11.0.1
   intl: ^0.18.0
   cupertino_icons: ^1.0.8
   pointycastle: ^3.5.3

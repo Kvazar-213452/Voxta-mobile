@@ -6,6 +6,7 @@ import 'header.dart';
 import 'footer.dart';
 import 'utils.dart';
 import '../../../../../utils/getBase64.dart';
+import '../../../../../config.dart';
 import '../../../../../app_colors.dart';
 
 class ProfileScreenWidget extends StatefulWidget {
@@ -15,22 +16,21 @@ class ProfileScreenWidget extends StatefulWidget {
   State<ProfileScreenWidget> createState() => _ProfileScreenWidgetState();
 }
 
-class _ProfileScreenWidgetState extends State<ProfileScreenWidget> 
+class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
   with SingleTickerProviderStateMixin {
-  
+ 
   late AnimationController _animationController;
   late Animation<double> _slideAnimation;
   late Animation<double> _fadeAnimation;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
-  // Дані профілю
+
   String _profileImageUrl = '';
   File? _selectedImage;
   String _userId = '';
   String _userTime = '';
-  
+ 
   bool _isLoading = false;
   bool _isDataLoading = true;
 
@@ -46,7 +46,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       duration: const Duration(milliseconds: 300),
       vsync: this,
     );
-    
+   
     _slideAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
@@ -54,7 +54,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+   
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -62,7 +62,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       parent: _animationController,
       curve: Curves.easeOut,
     ));
-    
+   
     _animationController.forward();
   }
 
@@ -70,13 +70,12 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     if (dateString == null || dateString.isEmpty) {
       return 'Не вказано';
     }
-    
+   
     try {
       final DateTime dateTime = DateTime.parse(dateString);
       final DateFormat formatter = DateFormat('dd MMMM yyyy, HH:mm', 'uk_UA');
       return formatter.format(dateTime);
     } catch (e) {
-      // Якщо не вдалося розпарсити, спробуємо простий формат
       try {
         final DateTime dateTime = DateTime.parse(dateString);
         return '${dateTime.day.toString().padLeft(2, '0')}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -92,7 +91,6 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         _isDataLoading = true;
       });
 
-      // Використовуємо функцію з retry механізмом
       final userData = await getSelfWithRetry(maxRetries: 2);
 
       if (mounted) {
@@ -103,6 +101,8 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
           _userId = 'ID: ${userData['id']?.toString() ?? 'Невідомо'}';
           _userTime = _formatDate(userData['time']?.toString());
           _isDataLoading = false;
+
+          _profileImageUrl = Config.URL_SERVICES_DATA + _profileImageUrl;
         });
       }
     } catch (e) {
@@ -110,10 +110,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         setState(() {
           _isDataLoading = false;
         });
-        
+       
         String errorMessage = 'Невідома помилка';
-        
-        if (e.toString().contains('secure_storage') || 
+       
+        if (e.toString().contains('secure_storage') ||
             e.toString().contains('CryptUnprotectData')) {
           errorMessage = 'Помилка системи безпеки. Перезапустіть додаток';
         } else if (e.toString().contains('з\'єднання')) {
@@ -123,7 +123,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
         } else {
           errorMessage = 'Помилка завантаження: ${e.toString()}';
         }
-        
+       
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -156,7 +156,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
       maxHeight: 512,
       imageQuality: 80,
     );
-    
+   
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
@@ -176,7 +176,10 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
     });
 
     try {
-      String? avatarData = getImageBase64(_selectedImage);
+      String? avatarData;
+      if (_selectedImage != null) {
+        avatarData = getImageBase64(_selectedImage);
+      }
 
       Map<String, dynamic> profileData = {
         'name': _nameController.text.trim(),
@@ -223,7 +226,7 @@ class _ProfileScreenWidgetState extends State<ProfileScreenWidget>
                   ),
                 ),
                 child: SafeArea(
-                  child: _isDataLoading 
+                  child: _isDataLoading
                     ? _buildLoadingScreen()
                     : Column(
                         children: [

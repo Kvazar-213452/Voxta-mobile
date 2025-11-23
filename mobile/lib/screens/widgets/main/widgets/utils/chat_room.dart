@@ -2,11 +2,53 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../../../../../app_colors.dart';
 
-Future<void> downloadFile(String url, String fileName) async {
+Future<void> downloadFile(String url, String fileName, BuildContext context) async {
   try {
-    final Directory dir = await getApplicationDocumentsDirectory();
-    final String filePath = '${dir.path}/$fileName';
+    if (Platform.isAndroid) {
+      var status = await Permission.storage.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Немає дозволу на запис у пам'ять"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
+    Directory? downloadsDir;
+
+    if (Platform.isAndroid) {
+      downloadsDir = Directory("/storage/emulated/0/Download");
+    } else if (Platform.isIOS) {
+      downloadsDir = await getApplicationDocumentsDirectory(); 
+    } else {
+      downloadsDir = await getDownloadsDirectory();
+    }
+
+    if (downloadsDir == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Не можу знайти папку завантажень"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final String filePath = "${downloadsDir.path}/$fileName";
+
+    // Показуємо індикатор завантаження
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Завантаження файлу..."),
+        duration: Duration(seconds: 1),
+      ),
+    );
 
     final response = await http.get(Uri.parse(url));
 
@@ -14,11 +56,34 @@ Future<void> downloadFile(String url, String fileName) async {
       final file = File(filePath);
       await file.writeAsBytes(response.bodyBytes);
 
+      // Показуємо успішне повідомлення
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Файл збережено в директорію завантажень"),
+          backgroundColor: AppColors.brandGreen,
+          duration: const Duration(seconds: 3),
+          action: SnackBarAction(
+            label: 'OK',
+            textColor: AppColors.blackText,
+            onPressed: () {},
+          ),
+        ),
+      );
     } else {
-      print('Помилка при вигзузці на сервер');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Помилка завантаження: ${response.statusCode}"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   } catch (e) {
-    print('Помилка при завантаженні файлу: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Помилка при завантаженні: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 }
 

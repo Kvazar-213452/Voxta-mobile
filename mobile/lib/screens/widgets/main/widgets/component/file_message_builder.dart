@@ -70,9 +70,8 @@ class FileMessageBuilder {
             _buildFilePreview(name, size),
           
           const SizedBox(height: 8),
-          
-          // Інформація про файл та кнопка завантаження
-          _buildFileInfo(name, size, url),
+
+          _buildFileInfo(name, size, url, context),
         ],
       ),
     );
@@ -213,7 +212,7 @@ class FileMessageBuilder {
     );
   }
 
-  static Widget _buildFileInfo(String name, String size, String url) {
+  static Widget _buildFileInfo(String name, String size, String url, BuildContext? context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -243,7 +242,7 @@ class FileMessageBuilder {
         ),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: () => downloadFile(url, name),
+          onTap: context != null ? () => downloadFile(url, name, context) : null,
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

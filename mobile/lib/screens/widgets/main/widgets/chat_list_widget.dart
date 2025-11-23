@@ -3,7 +3,7 @@ import '../../../../models/interface/chat_models.dart';
 import 'chat_item_widget.dart';
 import '../../../../app_colors.dart';
 
-class ChatListWidget extends StatelessWidget {
+class ChatListWidget extends StatefulWidget {
   final List<ChatItem> chats;
   final TextEditingController searchController;
   final Function(ChatItem) onChatTap;
@@ -20,6 +20,48 @@ class ChatListWidget extends StatelessWidget {
     required this.onAddChatTap,
     required this.onProfileSettingsTap,
   });
+
+  @override
+  State<ChatListWidget> createState() => _ChatListWidgetState();
+}
+
+class _ChatListWidgetState extends State<ChatListWidget> {
+  List<ChatItem> filteredChats = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredChats = widget.chats;
+    widget.searchController.addListener(_filterChats);
+  }
+
+  @override
+  void didUpdateWidget(ChatListWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chats != widget.chats) {
+      _filterChats();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.searchController.removeListener(_filterChats);
+    super.dispose();
+  }
+
+  void _filterChats() {
+    final query = widget.searchController.text.toLowerCase().trim();
+    
+    setState(() {
+      if (query.isEmpty) {
+        filteredChats = widget.chats;
+      } else {
+        filteredChats = widget.chats.where((chat) {
+          return chat.name.toLowerCase().contains(query);
+        }).toList();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +93,11 @@ class ChatListWidget extends StatelessWidget {
                         ),
                         Row(
                           children: [
-                            _buildHeaderButton(Icons.manage_accounts, onProfileSettingsTap),
+                            _buildHeaderButton(Icons.manage_accounts, widget.onProfileSettingsTap),
                             const SizedBox(width: 8),
-                            _buildHeaderButton(Icons.add, onAddChatTap),
+                            _buildHeaderButton(Icons.add, widget.onAddChatTap),
                             const SizedBox(width: 8),
-                            _buildHeaderButton(Icons.settings, onSettingsTap),
+                            _buildHeaderButton(Icons.settings, widget.onSettingsTap),
                           ],
                         ),
                       ],
@@ -81,7 +123,7 @@ class ChatListWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: TextField(
-                        controller: searchController,
+                        controller: widget.searchController,
                         style: TextStyle(color: AppColors.whiteText),
                         decoration: InputDecoration(
                           hintText: 'Пошук чатів...',
@@ -95,6 +137,17 @@ class ChatListWidget extends StatelessWidget {
                             Icons.search,
                             color: AppColors.whiteText.withOpacity(0.6),
                           ),
+                          suffixIcon: widget.searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: AppColors.whiteText.withOpacity(0.6),
+                                  ),
+                                  onPressed: () {
+                                    widget.searchController.clear();
+                                  },
+                                )
+                              : null,
                         ),
                       ),
                     ),
@@ -114,20 +167,41 @@ class ChatListWidget extends StatelessWidget {
                     offset: Offset(0, 30 * (1 - value)),
                     child: Opacity(
                       opacity: value,
-                      child: ListView.builder(
-                        itemCount: chats.length,
-                        itemBuilder: (context, index) {
-                          return AnimatedContainer(
-                            duration: Duration(milliseconds: 300 + (index * 100)),
-                            curve: Curves.easeOutBack,
-                            child: ChatItemWidget(
-                              chat: chats[index],
-                              index: index,
-                              onTap: () => onChatTap(chats[index]),
+                      child: filteredChats.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: AppColors.whiteText.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Чатів не знайдено',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: AppColors.whiteText.withOpacity(0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: filteredChats.length,
+                              itemBuilder: (context, index) {
+                                return AnimatedContainer(
+                                  duration: Duration(milliseconds: 300 + (index * 100)),
+                                  curve: Curves.easeOutBack,
+                                  child: ChatItemWidget(
+                                    chat: filteredChats[index],
+                                    index: index,
+                                    onTap: () => widget.onChatTap(filteredChats[index]),
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      ),
                     ),
                   );
                 },

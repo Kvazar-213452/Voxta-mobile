@@ -43,7 +43,6 @@ class MessageWidget extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Отримуємо повний URL для аватара
     final String avatarUrl = message.senderAvatar != null && message.senderAvatar!.isNotEmpty
         ? _getFullUrl(message.senderAvatar!)
         : Config.DEF_ICON_USER;
