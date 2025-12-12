@@ -4,6 +4,7 @@ import io.javalin.json.JsonMapper;
 import java.lang.reflect.Type;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,6 +18,7 @@ import com.google.gson.Gson;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.staticfiles.Location;
+import io.javalin.http.UploadedFile;
 
 public class Main {
 
@@ -54,6 +56,9 @@ public class Main {
                 });
             });
             
+            // Збільшуємо ліміт для великих файлів (100 МБ)
+            config.http.maxRequestSize = 100 * 1024 * 1024L;
+            
             config.jsonMapper(new JsonMapper() {
                 @Override
                 public String toJsonString(Object obj, Type type) {
@@ -73,6 +78,7 @@ public class Main {
 
         app.post("/upload_avatar_base64", Main::uploadAvatarBase64);
         app.post("/upload_file_base64", Main::uploadFileBase64);
+        app.post("/upload_large_file", Main::uploadLargeFile);
 
         System.out.printf("Server started on port %d%n", port);
     }
@@ -239,6 +245,61 @@ public class Main {
         }
 
         String scheme = ctx.scheme();
+        String fixed = uniqueFileName.replace("data\\", "").replace("\\", "/");
+        String relativePath = "/file/" + fixed;
+
+        Map<String, String> response = new HashMap<>();
+        response.put("url", relativePath);
+
+        ctx.json(response);
+    }
+
+    private static void uploadLargeFile(Context ctx) {
+        System.out.println("Received request to /upload_large_file");
+
+        UploadedFile uploadedFile = ctx.uploadedFile("file");
+        
+        if (uploadedFile == null) {
+            System.out.println("No file uploaded");
+            ctx.status(400).result("No file provided");
+            return;
+        }
+
+        String originalFileName = uploadedFile.filename();
+        long fileSize = uploadedFile.size();
+        
+        System.out.printf("File name: %s, size: %d bytes (%.2f MB)%n", 
+            originalFileName, fileSize, fileSize / (1024.0 * 1024.0));
+
+        String extension = "";
+        int lastDot = originalFileName.lastIndexOf(".");
+        if (lastDot != -1) {
+            extension = originalFileName.substring(lastDot);
+        }
+
+        Path fileDir = Paths.get("data/file");
+        try {
+            Files.createDirectories(fileDir);
+        } catch (IOException e) {
+            System.out.printf("Failed to create directory: %s%n", e.getMessage());
+            ctx.status(500).result("Failed to create file directory");
+            return;
+        }
+
+        String uniqueFileName = UUID.randomUUID().toString() + extension;
+        Path filePath = fileDir.resolve(uniqueFileName);
+
+        System.out.printf("Saving large file to: %s%n", filePath);
+
+        try (InputStream inputStream = uploadedFile.content()) {
+            Files.copy(inputStream, filePath);
+            System.out.printf("File saved successfully: %s%n", filePath);
+        } catch (IOException e) {
+            System.out.printf("Failed to write file: %s%n", e.getMessage());
+            ctx.status(500).result("Failed to save file: " + e.getMessage());
+            return;
+        }
+
         String fixed = uniqueFileName.replace("data\\", "").replace("\\", "/");
         String relativePath = "/file/" + fixed;
 

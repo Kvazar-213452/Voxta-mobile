@@ -226,6 +226,14 @@ export default class Create {
             time: dataDec.message.time,
             type: dataDec.message.type
           };
+        } else if (dataDec.message.type == "longFile") {
+          messageToInsert = {
+            _id: generateId(12),
+            sender: dataDec.message.sender,
+            content: { name: dataDec.message.content["fileName"], size: dataDec.message.content["fileSize"], url: dataDec.message.content["urlFile"] },
+            time: dataDec.message.time,
+            type: "file"
+          };
         } else {
           messageToInsert = {
             _id: generateId(12),

@@ -165,18 +165,53 @@ void sendMessage(
     text = encryptText(text.toString(), keyChat);
   }
 
-  final dataToEncrypt = {
-    'message': {
-      'content': text,
-      'sender': userId,
-      'type': typeMsg,
-      'time': DateTime.now().toIso8601String(),
-    },
-    'chatId': chatId,
-    'typeChat': type,
-  };
+  if (typeMsg == "file") {
+    final map = text as Map<String, dynamic>;
 
-  socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+    if (map["fileSize"] > 20000) {
+      final base64Data = map["base64Data"] as String?;
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
+
+      if (base64Data != null && fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {"fileName": fileName, "fileSize": fileSize, "urlFile": uploadedUrl},
+              'sender': userId,
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
+            },
+            'chatId': chatId,
+            'typeChat': type,
+          };
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
+      } else {
+        print('base64Data or fileName is missing');
+        return;
+      }
+    }
+  } else {
+    final dataToEncrypt = {
+      'message': {
+        'content': text,
+        'sender': userId,
+        'type': typeMsg,
+        'time': DateTime.now().toIso8601String(),
+      },
+      'chatId': chatId,
+      'typeChat': type,
+    };
+
+    socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+  }
 }
 
 void loadChatContent(String chatId, String type) async {
@@ -234,7 +269,8 @@ void createTemporaryChat(
   int expirationHours,
   String password,
 ) async {
-  final expirationDate = DateTime.now().add(Duration(hours: expirationHours)).toIso8601String();
+  final expirationDate =
+      DateTime.now().add(Duration(hours: expirationHours)).toIso8601String();
 
   final chatData = {
     'chat': {

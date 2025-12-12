@@ -30,6 +30,7 @@ async function startServer() {
       origin: '*',
       methods: ['GET', 'POST'],
     },
+    maxHttpBufferSize: 100 * 1024 * 1024,
   });
 
   setIO(io);

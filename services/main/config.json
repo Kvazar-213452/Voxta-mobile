@@ -1,6 +1,6 @@
 {
   "PORT": "8000",
-  "API": "localhost",
+  "API": "0.0.0.0",
   "GLOBAL_URL": {
     "MICROSERVICES_DATA": "http://localhost:3004/",
     "MICROSERVICES_CHAT": "http://localhost:3010/",
@@ -17,20 +17,20 @@
   },
   "API_CHAT": {
     "PORT": "3010",
-    "API": "localhost",
+    "API": "0.0.0.0",
     "SECRET_KEY": "your_secret_key"
   },
   "API_SITE": {
     "PORT": "3011",
-    "API": "localhost"
+    "API": "0.0.0.0"
   },
   "API_CRYPTO": {
     "PORT": "3005",
-    "API": "localhost"
+    "API": "0.0.0.0"
   },
   "API_AUTHENTICATION": {
     "PORT": "3007",
-    "API": "localhost",
+    "API": "0.0.0.0",
     "ID_CHAT_MAIN": "8htobVIkTB4m3J1",
     "AVATAR": "http://localhost:3004/avatars/306d4102-f22b-452c-9f3b-c14b7661b0f8.jpg",
     "SECRET_KEY": "your_secret_key",
@@ -39,7 +39,7 @@
   },
   "API_DATA": {
     "PORT": "3004",
-    "API": "localhost",
-    "API_GLOBAL": "http://localhost:3004/data/"
+    "API": "0.0.0.0",
+    "API_GLOBAL": "http://192.168.68.105:3004/data/"
   }
 }
