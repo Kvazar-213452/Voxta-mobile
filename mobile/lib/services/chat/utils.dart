@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config.dart';
 
 String formatTime(String createdAt) {
   try {
@@ -23,12 +24,9 @@ Future<String?> uploadLargeFileBase64(
   String fileName,
 ) async {
   try {
-    final url = Uri.parse('http://localhost:3004/upload_file_base64');
+    final url = Uri.parse(Config.URL_SERVICES_DATA + '/upload_file_base64');
 
     final body = json.encode({'file': base64Data, 'name': fileName});
-
-    print('Uploading file via base64: $fileName');
-    print('Base64 data length: ${base64Data.length}');
 
     final response = await http.post(
       url,
@@ -36,17 +34,12 @@ Future<String?> uploadLargeFileBase64(
       body: body,
     );
 
-    print('Server response status: ${response.statusCode}');
-    print('Server response body: ${response.body}');
-
     if (response.statusCode == 200) {
       try {
         final jsonResponse = json.decode(response.body);
         final fileUrl = jsonResponse['url'];
 
         if (fileUrl != null && fileUrl.isNotEmpty) {
-          print('File uploaded successfully!');
-          print('URL: $fileUrl');
           return fileUrl;
         } else {
           print('File URL is null or empty');
@@ -54,12 +47,10 @@ Future<String?> uploadLargeFileBase64(
         }
       } catch (e) {
         print('Error parsing JSON response: $e');
-        print('Response body: ${response.body}');
         return null;
       }
     } else {
       print('Upload failed with status: ${response.statusCode}');
-      print('Response: ${response.body}');
       return null;
     }
   } catch (e) {
