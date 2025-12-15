@@ -2,89 +2,81 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
-import '../../../../../app_colors.dart';
+import 'dart:convert';
+import '../../../../../models/storage_chat_key.dart';
+import '../../../../../utils/crypto/crypto_msg.dart';
+import 'dart:typed_data';
 
-Future<void> downloadFile(String url, String fileName, BuildContext context) async {
+Future<void> downloadFile(
+  String url,
+  String fileName,
+  String chatId,
+  BuildContext context,
+) async {
   try {
-    if (Platform.isAndroid) {
-      var status = await Permission.storage.request();
-      if (!status.isGranted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Немає дозволу на запис у пам'ять"),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-    }
-
-    Directory? downloadsDir;
-
-    if (Platform.isAndroid) {
-      downloadsDir = Directory("/storage/emulated/0/Download");
-    } else if (Platform.isIOS) {
-      downloadsDir = await getApplicationDocumentsDirectory(); 
-    } else {
-      downloadsDir = await getDownloadsDirectory();
-    }
-
-    if (downloadsDir == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Не можу знайти папку завантажень"),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final String filePath = "${downloadsDir.path}/$fileName";
-
-    // Показуємо індикатор завантаження
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Завантаження файлу..."),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    final keyChat = await ChatKeysDB.getKey(chatId);
 
     final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-
-      // Показуємо успішне повідомлення
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Файл збережено в директорію завантажень"),
-          backgroundColor: AppColors.brandGreen,
-          duration: const Duration(seconds: 3),
-          action: SnackBarAction(
-            label: 'OK',
-            textColor: AppColors.blackText,
-            onPressed: () {},
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Помилка завантаження: ${response.statusCode}"),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (response.statusCode != 200) {
+      throw Exception("HTTP ${response.statusCode}");
     }
+
+    Directory baseDir;
+    if (Platform.isAndroid) {
+      baseDir = Directory("/storage/emulated/0/Download");
+    } else if (Platform.isIOS) {
+      baseDir = await getApplicationDocumentsDirectory();
+    } else {
+      baseDir = (await getDownloadsDirectory())!;
+    }
+
+    final voxtaDir = Directory("${baseDir.path}/voxtaDWN");
+    if (!await voxtaDir.exists()) {
+      await voxtaDir.create(recursive: true);
+    }
+
+    final filePath = "${voxtaDir.path}/$fileName";
+
+    Uint8List fileBytes;
+
+    if (keyChat.isNotEmpty) {
+      final decryptedData = decryptBytes(response.bodyBytes, keyChat);
+      final decryptedString = utf8.decode(decryptedData);
+      fileBytes = decodeDataUri(decryptedString);
+    } else {
+      fileBytes = response.bodyBytes;
+    }
+
+    final file = File(filePath);
+    await file.writeAsBytes(fileBytes);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Файл збережено в папці voxtaDWN"),
+        backgroundColor: Colors.green,
+      ),
+    );
   } catch (e) {
+    print(e);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Помилка при завантаженні: $e"),
+        content: Text("Помилка завантаження: $e"),
         backgroundColor: Colors.red,
       ),
     );
   }
+}
+
+Uint8List decodeDataUri(String dataUri) {
+  final prefix = 'base64,';
+  final index = dataUri.indexOf(prefix);
+
+  if (index == -1) {
+    throw Exception("Invalid Data URI format");
+  }
+
+  final base64Part = dataUri.substring(index + prefix.length);
+  return base64Decode(base64Part);
 }
 
 IconData getFileIcon(String fileName) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { Send, Paperclip, Sun, Moon, Info, X, FileText, Image as ImageIcon, Lock, Eye, EyeOff } from 'lucide-react';
 import { useParams } from 'react-router-dom';
+import Config from './config';
 
 import './main.css';
 
@@ -31,7 +32,6 @@ const ChatRoom: React.FC = () => {
   const chatStartTime = useRef<Date>(new Date());
   const chatDuration: number = 60;
 
-  // Перевірка кешованого пароля при завантаженні
   useEffect(() => {
     const cachedPassword = localStorage.getItem(`chat_password_${chatId}`);
     if (cachedPassword) {
@@ -44,18 +44,18 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     if (!password) return;
 
-    const newSocket: any = io('http://localhost:3011', {
+    const newSocket: any = io(Config.URL_SERVER, {
       transports: ['websocket', 'polling'],
       reconnection: true,
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ Підключено до сервера');
+      console.log('Підключено до сервера');
       setIsConnected(true);
     });
 
     newSocket.on('disconnect', () => {
-      console.log('🔴 Відключено від сервера');
+      console.log('Відключено від сервера');
       setIsConnected(false);
       setIsAuthenticated(false);
     });
@@ -296,10 +296,6 @@ const ChatRoom: React.FC = () => {
             >
               Підключитись до чату
             </button>
-
-            <div className="password-footer">
-              <p>🔒 Ваші дані захищені</p>
-            </div>
           </div>
         </div>
       </div>

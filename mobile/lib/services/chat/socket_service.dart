@@ -161,19 +161,19 @@ void sendMessage(
 ) async {
   String keyChat = await ChatKeysDB.getKey(chatId);
 
-  if (keyChat != "") {
+  if (keyChat != "" && typeMsg != "file") {
     text = encryptText(text.toString(), keyChat);
-  }
-
-  if (typeMsg == "file") {
+  } else if (keyChat != "" && typeMsg == "file") {
     final map = text as Map<String, dynamic>;
 
     if (map["fileSize"] > 20000) {
-      final base64Data = map["base64Data"] as String?;
+      final base64Data1 = map["base64Data"] as String?;
+
+      String base64Data = encryptText(base64Data1.toString(), keyChat);
       final fileName = map["fileName"] as String?;
       final fileSize = map["fileSize"] as int?;
 
-      if (base64Data != null && fileName != null) {
+      if (fileName != null) {
         final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
 
         if (uploadedUrl != null) {
@@ -198,7 +198,9 @@ void sendMessage(
         return;
       }
     }
-  } else {
+  }
+
+  if (typeMsg != "file") {
     final dataToEncrypt = {
       'message': {
         'content': text,

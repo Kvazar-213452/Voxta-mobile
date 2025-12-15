@@ -14,6 +14,8 @@ class FileMessageBuilder {
     return imageExtensions.any((ext) => fileName.toLowerCase().endsWith(ext));
   }
 
+  static String chatIdMain = "";
+
   static String _getFullUrl(String url) {
     if (url.isEmpty) return url;
 
@@ -30,7 +32,8 @@ class FileMessageBuilder {
 
   static Widget buildFileMessage(Message message, {String? chatId, BuildContext? context}) {
     Map<String, dynamic> fileData;
-    
+    chatIdMain = chatId ?? '';
+
     try {
       if (message.text is String) {
         fileData = json.decode(message.text as String);
@@ -242,7 +245,7 @@ class FileMessageBuilder {
         ),
         const SizedBox(width: 8),
         GestureDetector(
-          onTap: context != null ? () => downloadFile(url, name, context) : null,
+          onTap: context != null ? () => downloadFile(url, name, chatIdMain,  context) : null,
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -274,3 +277,5 @@ class FileMessageBuilder {
     );
   }
 }
+
+// chatId

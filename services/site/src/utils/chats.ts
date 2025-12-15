@@ -20,12 +20,12 @@ export function ADD_CHAT(chatId: string, createdAt: string, expirationDate: stri
   if (!exists) {
     const expirationTime = new Date(expirationDate).getTime();
     if (isNaN(expirationTime)) {
-      console.error(`❌ Некоректна дата видалення: ${expirationDate}`);
+      console.error(`Некоректна дата видалення: ${expirationDate}`);
       return;
     }
 
     CHATS.push({ chatId, createdAt, expirationTime, pasw });
-    console.log(`✅ Додано чат ${chatId} (видалиться о ${expirationDate})`);
+    console.log(`Додано чат ${chatId} (видалиться о ${expirationDate})`);
   }
 }
 
@@ -35,8 +35,6 @@ export function ADD_CHAT(chatId: string, createdAt: string, expirationDate: stri
 export function CHECK_CHAT_PASSWORD(chatId: string, pasw: string): boolean {
   const chat = CHATS.find(c => c.chatId === chatId);
   if (!chat) return false;
-  console.log(CHATS)
-  console.log(pasw)
   return chat.pasw === pasw;
 }
 
@@ -66,7 +64,7 @@ async function DELETE_CHAT_FROM_DB(chatId: string) {
     const chatConfig = await chatCollection.findOne({ _id: "config" as any });
 
     if (!chatConfig || !Array.isArray(chatConfig.participants)) {
-      console.warn(`⚠️ Чат ${chatId} не має учасників або не знайдено.`);
+      console.warn(`Чат ${chatId} не має учасників або не знайдено.`);
       return;
     }
 
@@ -85,9 +83,9 @@ async function DELETE_CHAT_FROM_DB(chatId: string) {
     }
 
     await chatCollection.drop();
-    console.log(`🗑️ Чат ${chatId} успішно видалено з DB`);
+    console.log(`Чат ${chatId} успішно видалено з DB`);
   } catch (err) {
-    console.error(`❌ Помилка при видаленні чату ${chatId}:`, err);
+    console.error(`Помилка при видаленні чату ${chatId}:`, err);
   }
 }
 
@@ -106,7 +104,7 @@ async function verifyChatsExistence() {
   CHATS = CHATS.filter(chat => existingNames.includes(chat.chatId));
 
   const removed = before - CHATS.length;
-  if (removed > 0) console.log(`🧹 Видалено ${removed} неіснуючих чатів з кешу`);
+  if (removed > 0) console.log(`Видалено ${removed} неіснуючих чатів з кешу`);
 }
 
 /**

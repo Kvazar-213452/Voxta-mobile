@@ -508,31 +508,6 @@ body {
   height: 300px;
 }
 
-.password-footer {
-  margin-top: 25px;
-  padding-top: 25px;
-  border-top: 1px solid;
-  opacity: 0.6;
-}
-
-.dark .password-footer {
-  border-top-color: rgba(255, 255, 255, 0.1);
-  color: #999999;
-}
-
-.light .password-footer {
-  border-top-color: rgba(0, 0, 0, 0.1);
-  color: #666666;
-}
-
-.password-footer p {
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
 /* Chat Header */
 .chat-header {
   padding: 15px 20px;
@@ -1224,3 +1199,9 @@ body {
     font-size: 1.6rem;
   }
 }
+
+/* 
+
+password-footer
+
+*/
