@@ -115,7 +115,6 @@ async def create_app() -> FastAPI:
 
 
 def get_local_ip():
-    """Отримує локальний IP комп’ютера"""
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
@@ -126,13 +125,12 @@ def get_local_ip():
         return "127.0.0.1"
 
 def print_urls(ip: str, port: int):
-    """Виводить усі доступні URL"""
     urls = [
         f"http://localhost:{port}",
         f"http://127.0.0.1:{port}",
         f"http://{ip}:{port}"
     ]
-    print("\n🌐 Доступні URL:")
+    print("\nДоступні URL:")
     for u in urls:
         print(f"   → {u}")
         print(f"     ↳ {u}/api")
