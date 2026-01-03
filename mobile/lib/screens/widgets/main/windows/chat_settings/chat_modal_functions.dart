@@ -15,10 +15,13 @@ class ChatModalFunctions {
     required Widget chatAvatar,
     required VoidCallback onBackPressed,
   }) {
+    BuildContext? dialogContext;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
+        dialogContext = ctx;
         return Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
@@ -35,7 +38,11 @@ class ChatModalFunctions {
         String description,
         Map<String, dynamic> data,
       ) {
-        Navigator.pop(context);
+        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+          Navigator.pop(dialogContext!);
+        }
+        
+        if (!context.mounted) return;
 
         _showOptionsModal(
           context,
@@ -48,7 +55,12 @@ class ChatModalFunctions {
         );
       },
       onError: (String error) {
-        Navigator.pop(context);
+        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+          Navigator.pop(dialogContext!);
+        }
+        
+        if (!context.mounted) return;
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
@@ -68,6 +80,8 @@ class ChatModalFunctions {
     required Widget chatAvatar,
     required VoidCallback onBackPressed,
   }) {
+    final parentContext = context;
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.transparent,
@@ -144,7 +158,7 @@ class ChatModalFunctions {
                       title: 'Налаштування',
                       onTap: () {
                         Navigator.pop(context);
-                        _loadAndShowChatSettings(context, id: id, type: type, onBackPressed: onBackPressed);
+                        _loadAndShowChatSettings(parentContext, id: id, type: type, onBackPressed: onBackPressed);
                       },
                     ),
 
@@ -304,10 +318,13 @@ class ChatModalFunctions {
     required String type,
     required VoidCallback onBackPressed,
   }) {
+    BuildContext? dialogContext;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext ctx) {
+        dialogContext = ctx;
         return Center(
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
@@ -320,7 +337,14 @@ class ChatModalFunctions {
       id: id,
       type: type,
       onSuccess: (String name, String description, Map<String, dynamic> data) {
-        Navigator.pop(context);
+        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+          Navigator.pop(dialogContext!);
+        }
+        
+        if (!context.mounted) {
+          print('Context не mounted');
+          return;
+        }
 
         showChatSettingsModal(
           context,
@@ -336,7 +360,13 @@ class ChatModalFunctions {
         );
       },
       onError: (String error) {
-        Navigator.pop(context);
+        print('onError: $error');
+        
+        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
+          Navigator.pop(dialogContext!);
+        }
+        
+        if (!context.mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -378,6 +408,8 @@ class ChatModalFunctions {
     } catch (e) {
       print("error: $e");
     }
+
+    if (!context.mounted) return;
 
     showDialog(
       context: context,

@@ -165,8 +165,9 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   void _deleteChat() {
     delChat(
       idChat: widget.chatId,
-      onSuccess: () {
+      onSuccess: () async {
         _closeModal();
+        await loadChats();
         widget.onBackPressed();
       },
       onError: (error) {

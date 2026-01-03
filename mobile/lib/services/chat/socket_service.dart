@@ -81,6 +81,7 @@ void connectSocket(
     });
 
     socket!.on('create_new_chat', (data) async {
+      print("dddddddddd");
       await loadChats();
     });
 

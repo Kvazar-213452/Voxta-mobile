@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { CONFIG } from "../config";
 
 export async function decryptionMsg(dataToSend: { encrypted: string }): Promise<any> {
   try {
-    const response: any = await axios.post(`http://localhost:8000/crypto/decrypt`, { data: dataToSend }, {
+    const response: any = await axios.post(`${CONFIG.MICROSERVICES_CRYPTO}decrypt`, { data: dataToSend }, {
       headers: {'Content-Type': 'application/json'}
     });
 
@@ -14,7 +15,7 @@ export async function decryptionMsg(dataToSend: { encrypted: string }): Promise<
 
 export async function encryptionMsg(key: string, dataToSend: string ): Promise<any> {
   try {
-    const response: any = await axios.post(`http://localhost:8000/crypto/encryption`, { key: key, data: dataToSend }, {
+    const response: any = await axios.post(`${CONFIG.MICROSERVICES_CRYPTO}encryption`, { key: key, data: dataToSend }, {
       headers: {'Content-Type': 'application/json'}
     });
 
