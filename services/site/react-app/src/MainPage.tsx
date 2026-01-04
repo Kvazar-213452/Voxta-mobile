@@ -209,14 +209,14 @@ const VoxtaMessenger: React.FC = () => {
         </section>
 
         <div className="download-section">
-          <button className="download-btn" onClick={() => handleDownload("http://localhost:5173/ggg.apk")}>
+          <button className="download-btn" onClick={() => handleDownload("http://localhost:5173/app-release.apk")}>
             <Smartphone size={24} />
             Завантажити на телефон
           </button>
           <br />
           <br />
           <br />
-          <button className="download-btn windows-btn" onClick={() => handleDownload("http://localhost:5173/vwefw.exe")}>
+          <button className="download-btn windows-btn" onClick={() => handleDownload("http://localhost:5173/Release.zip")}>
             <Download size={24} />
             Завантажити для Windows
           </button>
