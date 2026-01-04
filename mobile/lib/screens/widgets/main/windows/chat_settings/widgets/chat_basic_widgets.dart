@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../../../../../../app_colors.dart';
+import 'package:intl/intl.dart';
 
 class ChatAvatarSection extends StatelessWidget {
   final Widget? chatAvatar;
@@ -193,13 +194,23 @@ class ChatInfoSection extends StatelessWidget {
     required this.typeChat,
   });
 
+  String formatDate(String isoDate) {
+    try {
+      DateTime dateTime = DateTime.parse(isoDate);
+
+      return DateFormat('dd.MM.yyyy HH:mm').format(dateTime.toLocal());
+    } catch (e) {
+      return isoDate;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Дата створення: $time',
+          'Дата створення: ${formatDate(time)}',
           style: TextStyle(fontSize: 16, color: AppColors.whiteText),
         ),
         const SizedBox(height: 12),
