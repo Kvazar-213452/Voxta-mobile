@@ -84,22 +84,13 @@ const VoxtaMessenger: React.FC = () => {
 
   const handleDotClick = (index: number) => setCurrentSlide(index);
 
-  const handleDownload = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const btn = e.currentTarget;
-    const originalText = btn.textContent || "";
-
-    btn.innerHTML = '<span class="download-loading">⏳ Завантаження...</span>';
-    btn.classList.add("downloading");
-
-    setTimeout(() => {
-      btn.innerHTML = '<span class="download-success">✅ Завантажено!</span>';
-      btn.classList.remove("downloading");
-      btn.classList.add("downloaded");
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.classList.remove("downloaded");
-      }, 2000);
-    }, 2000);
+  const handleDownload = (url: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -218,9 +209,16 @@ const VoxtaMessenger: React.FC = () => {
         </section>
 
         <div className="download-section">
-          <button className="download-btn" onClick={handleDownload}>
+          <button className="download-btn" onClick={() => handleDownload("http://localhost:5173/ggg.apk")}>
+            <Smartphone size={24} />
+            Завантажити на телефон
+          </button>
+          <br />
+          <br />
+          <br />
+          <button className="download-btn windows-btn" onClick={() => handleDownload("http://localhost:5173/vwefw.exe")}>
             <Download size={24} />
-            Завантажити Voxta
+            Завантажити для Windows
           </button>
         </div>
       </div>

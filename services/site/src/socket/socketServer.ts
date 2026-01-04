@@ -182,7 +182,7 @@ export function initSocketServer(server: any) {
     });
 
     socket.on('disconnect', (reason: string) => {
-      console.log(`❌ Клієнт відключився: ${socket.id}, userId: ${userId}, причина: ${reason}`);
+      console.log(`Клієнт відключився: ${socket.id}, userId: ${userId}, причина: ${reason}`);
     });
   });
 
