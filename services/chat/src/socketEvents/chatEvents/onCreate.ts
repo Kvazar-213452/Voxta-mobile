@@ -245,8 +245,8 @@ export default class Create {
         }
 
         await collection.insertOne(messageToInsert);
-
-        onSendMessage1(await CryptoFunc.encryptionMsg(data.key, JSON.stringify(messageToInsert)));
+        // await CryptoFunc.encryptionMsg
+        onSendMessage1(JSON.stringify(messageToInsert));
 
       } catch {
         Helpers.fail(socket, "send_message_return", "server_error");

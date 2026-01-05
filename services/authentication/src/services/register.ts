@@ -6,6 +6,7 @@ import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
 import { getMongoClient } from '../utils/getMongoClient';
 import { generateId, generateSixDigitCode, transforUser } from '../utils/utils';
 import { CONFIG } from "../config";
+import argon2 from "argon2";
 
 export async function registerHandler(req: Request, res: Response): Promise<void> {
   const { data, key, type } = req.body;
@@ -52,7 +53,6 @@ export async function registerVerificationHandler(req: Request, res: Response): 
 
     const decrypted = await decryptionMsg(data);
     const parsed = JSON.parse(decrypted);
-    console.log(parsed)
     const inputCode = parsed.code;
     const tempTokenVal = parsed.codeJwt;
 
@@ -64,6 +64,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
     if (inputCode === decoded.code) {
       const name = parsed.name;
       const password = parsed.password;
+      const passworDhash = await argon2.hash(password);
       const gmail = decoded.gmail;
 
       const client = await getMongoClient();
@@ -79,7 +80,7 @@ export async function registerVerificationHandler(req: Request, res: Response): 
       const dataConfig = {
         _id: "config" as any,
         name,
-        password,
+        password: passworDhash,
         avatar: CONFIG.AVATAR,
         time: new Date().toISOString(),
         desc: "new acaunt",

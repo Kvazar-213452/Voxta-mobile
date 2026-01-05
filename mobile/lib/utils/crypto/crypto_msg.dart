@@ -111,25 +111,35 @@ Future<Map<String, dynamic>> decryptMessage(
   Map<String, dynamic> message,
   String chatId,
 ) async {
-  final keyChat = await ChatKeysDB.getKey(chatId);
+  try {
+    final keyChat = await ChatKeysDB.getKey(chatId);
 
-  if (keyChat.isEmpty) return message;
-
-  final content = message["content"];
-  if (content is! String) return message;
-
-  final base64Pattern = RegExp(r'^[A-Za-z0-9+/=]+$');
-  final looksEncrypted =
-      base64Pattern.hasMatch(content) && content.length % 4 == 0;
-
-  if (looksEncrypted) {
-    try {
-      final decrypted = decryptText(content, keyChat);
-      message["content"] = decrypted;
-    } catch (e) {
-      print("Не вдалося розшифрувати повідомлення ${message["_id"]}: $e");
+    if (keyChat.isEmpty) {
+      return message;
     }
-  }
 
-  return message;
+    final content = message["content"];
+    
+    if (content is! String) {
+      return message;
+    }
+
+    final base64Pattern = RegExp(r'^[A-Za-z0-9+/=]+$');
+    final looksEncrypted =
+        base64Pattern.hasMatch(content) && content.length % 4 == 0;
+
+    if (looksEncrypted) {
+      try {
+        final decrypted = decryptText(content, keyChat);
+        
+        message["content"] = decrypted;
+      } catch (e, stackTrace) {
+        print("Stack trace: $stackTrace");
+      }
+    }
+
+    return message;
+  } catch (e, stackTrace) {
+    return message;
+  }
 }

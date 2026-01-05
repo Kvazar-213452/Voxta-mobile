@@ -7,6 +7,7 @@ import 'utils.dart';
 import '../../utils/crypto/crypto_auto.dart';
 import '../../models/storage_chat_key.dart';
 import '../../utils/crypto/crypto_msg.dart';
+import 'dart:convert';
 
 IO.Socket? socket;
 Function(Map<String, dynamic>)? _onMessageReceived;
@@ -43,10 +44,36 @@ void connectSocket(
     });
 
     socket!.on('send_message_return', (data) async {
-      data = await decrypted_auto(data);
-      data = await decryptMessage(data, CAHT_ID);
+      try {
+        Map<String, dynamic>? messageData;
 
-      _onMessageReceived!(data as Map<String, dynamic>);
+        if (data is Map && data.containsKey('data')) {
+          final innerData = data['data'];
+
+          if (innerData is String) {
+            messageData = jsonDecode(innerData) as Map<String, dynamic>;
+          } else if (innerData is Map) {
+            messageData = Map<String, dynamic>.from(innerData);
+          } else {
+            print('Неочікуваний тип innerData: ${innerData.runtimeType}');
+            return;
+          }
+        } else if (data is Map) {
+          messageData = Map<String, dynamic>.from(data);
+        } else {
+          return;
+        }
+
+        final msgFull = await decryptMessage(messageData, CAHT_ID);
+
+        if (msgFull != null) {
+          _onMessageReceived!(msgFull);
+        } else {
+          print('decryptMessage повернула null');
+        }
+      } catch (e, stackTrace) {
+        print('Stack trace: $stackTrace');
+      }
     });
 
     socket!.on('del_msg', (data) async {
@@ -180,7 +207,11 @@ void sendMessage(
         if (uploadedUrl != null) {
           final dataToEncrypt = {
             'message': {
-              'content': {"fileName": fileName, "fileSize": fileSize, "urlFile": uploadedUrl},
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
               'sender': userId,
               'type': "longFile",
               'time': DateTime.now().toIso8601String(),
@@ -291,3 +322,5 @@ void createTemporaryChat(
 }
 
 bool get isSocketConnected => socket?.connected ?? false;
+
+// send_message_return

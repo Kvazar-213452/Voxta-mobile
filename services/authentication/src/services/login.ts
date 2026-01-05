@@ -4,6 +4,7 @@ import { encryptionMsg, decryptionMsg } from '../utils/cryptoFunc';
 import { getMongoClient } from '../utils/getMongoClient';
 import { transforUser, safeParseJSON } from '../utils/utils'
 import { CONFIG } from "../config";
+import argon2 from "argon2";
 
 export async function loginHandler(req: Request, res: Response): Promise<void> {
   const { data, key, type } = req.body;
@@ -30,7 +31,7 @@ export async function loginHandler(req: Request, res: Response): Promise<void> {
       const collection = db.collection<{ _id: string; [key: string]: any }>(col.name);
       const config = await collection.findOne({ _id: 'config' });
 
-      if (config && config.name === name && config.password === password) {
+      if (config && config.name === name && true === await argon2.verify(config.password, password)) {
           foundUser = { ...config };
           userCollectionName = col.name;
           break;
