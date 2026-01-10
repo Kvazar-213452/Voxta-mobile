@@ -15,20 +15,7 @@ class ChatModalFunctions {
     required Widget chatAvatar,
     required VoidCallback onBackPressed,
   }) {
-    BuildContext? dialogContext;
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext ctx) {
-        dialogContext = ctx;
-        return Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
-          ),
-        );
-      },
-    );
+    if (!context.mounted) return;
 
     getInfoChat(
       id: id,
@@ -38,10 +25,6 @@ class ChatModalFunctions {
         String description,
         Map<String, dynamic> data,
       ) {
-        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-          Navigator.pop(dialogContext!);
-        }
-        
         if (!context.mounted) return;
 
         _showOptionsModal(
@@ -55,16 +38,13 @@ class ChatModalFunctions {
         );
       },
       onError: (String error) {
-        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-          Navigator.pop(dialogContext!);
-        }
-        
         if (!context.mounted) return;
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
             backgroundColor: AppColors.destructiveRed,
+            duration: const Duration(seconds: 3),
           ),
         );
       },
@@ -80,18 +60,32 @@ class ChatModalFunctions {
     required Widget chatAvatar,
     required VoidCallback onBackPressed,
   }) {
+    if (!context.mounted) return;
+    
     final parentContext = context;
     
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.transparent,
       isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
       builder: (BuildContext context) {
         return FutureBuilder(
           future: getUserStorage(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: AppColors.modalBackground,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              );
             }
 
             final user = snapshot.data;
@@ -158,7 +152,15 @@ class ChatModalFunctions {
                       title: 'Налаштування',
                       onTap: () {
                         Navigator.pop(context);
-                        _loadAndShowChatSettings(parentContext, id: id, type: type, onBackPressed: onBackPressed);
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (!parentContext.mounted) return;
+                          _loadAndShowChatSettings(
+                            parentContext,
+                            id: id,
+                            type: type,
+                            onBackPressed: onBackPressed,
+                          );
+                        });
                       },
                     ),
 
@@ -167,11 +169,14 @@ class ChatModalFunctions {
                     title: 'Встановити ключ',
                     onTap: () {
                       Navigator.pop(context);
-                      _showSetKeyModal(
-                        context,
-                        chatId: id,
-                        chatName: chatName,
-                      );
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (!parentContext.mounted) return;
+                        _showSetKeyModal(
+                          parentContext,
+                          chatId: id,
+                          chatName: chatName,
+                        );
+                      });
                     },
                     isDestructive: false,
                   ),
@@ -181,13 +186,16 @@ class ChatModalFunctions {
                     title: 'Вийти',
                     onTap: () {
                       Navigator.pop(context);
-                      showBlockDialog(
-                        onBackPressed,
-                        id,
-                        type,
-                        context,
-                        chatName: chatName,
-                      );
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (!parentContext.mounted) return;
+                        showBlockDialog(
+                          onBackPressed,
+                          id,
+                          type,
+                          parentContext,
+                          chatName: chatName,
+                        );
+                      });
                     },
                     isDestructive: true,
                   ),
@@ -250,9 +258,12 @@ class ChatModalFunctions {
     required String chatId,
     required String chatName,
   }) {
+    if (!context.mounted) return;
+    
     showDialog(
       context: context,
       barrierColor: AppColors.overlayBackground,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return SetKeyModal(
           chatId: chatId,
@@ -270,8 +281,11 @@ class ChatModalFunctions {
     BuildContext context, {
     required String chatName,
   }) {
+    if (!context.mounted) return;
+    
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppColors.modalBackground,
@@ -297,9 +311,13 @@ class ChatModalFunctions {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await delSelfInChat(id, type);
-                await loadChats();
-                onBackPressed();
+                try {
+                  await delSelfInChat(id, type);
+                  await loadChats();
+                  onBackPressed();
+                } catch (e) {
+                  print('Error leaving chat: $e');
+                }
               },
               child: Text(
                 'Вийти',
@@ -318,33 +336,13 @@ class ChatModalFunctions {
     required String type,
     required VoidCallback onBackPressed,
   }) {
-    BuildContext? dialogContext;
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext ctx) {
-        dialogContext = ctx;
-        return Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.brandGreen),
-          ),
-        );
-      },
-    );
+    if (!context.mounted) return;
 
     getInfoChat(
       id: id,
       type: type,
       onSuccess: (String name, String description, Map<String, dynamic> data) {
-        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-          Navigator.pop(dialogContext!);
-        }
-        
-        if (!context.mounted) {
-          print('Context не mounted');
-          return;
-        }
+        if (!context.mounted) return;
 
         showChatSettingsModal(
           context,
@@ -362,16 +360,13 @@ class ChatModalFunctions {
       onError: (String error) {
         print('onError: $error');
         
-        if (dialogContext != null && Navigator.canPop(dialogContext!)) {
-          Navigator.pop(dialogContext!);
-        }
-        
         if (!context.mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
             backgroundColor: AppColors.destructiveRed,
+            duration: const Duration(seconds: 3),
           ),
         );
       },
@@ -390,6 +385,8 @@ class ChatModalFunctions {
     required VoidCallback onBackPressed,
     required List<dynamic> users,
   }) async {
+    if (!context.mounted) return;
+    
     Widget? avatarWidget;
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       avatarWidget = Image.network(
@@ -406,7 +403,7 @@ class ChatModalFunctions {
     try {
       keyChat = await getKeyChat(id);
     } catch (e) {
-      print("error: $e");
+      print("error getting key: $e");
     }
 
     if (!context.mounted) return;
@@ -414,6 +411,7 @@ class ChatModalFunctions {
     showDialog(
       context: context,
       barrierColor: AppColors.overlayBackground,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return ChatSettingsModal(
           currentName: chatName,

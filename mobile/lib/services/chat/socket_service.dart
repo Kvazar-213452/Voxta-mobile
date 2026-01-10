@@ -245,6 +245,44 @@ void sendMessage(
     };
 
     socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+  } else if (typeMsg == "file") {
+    final map = text as Map<String, dynamic>;
+
+    if (map["fileSize"] > 20000) {
+      String base64Data = map["base64Data"] as String;
+
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
+
+      if (fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
+              'sender': userId,
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
+            },
+            'chatId': chatId,
+            'typeChat': type,
+          };
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
+      } else {
+        print('base64Data or fileName is missing');
+        return;
+      }
+    }
   }
 }
 
