@@ -184,7 +184,7 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Введіть ID чату, до якого хочете приєднатися:',
+            'Введіть код чату, до якого хочете приєднатися:',
             style: TextStyle(
               fontSize: 14,
               color: AppColors.white70,
@@ -193,8 +193,8 @@ class _JoinChatModalState extends State<_JoinChatModal> with TickerProviderState
           const SizedBox(height: 20),
           _buildInputField(
             controller: _chatIdController,
-            label: 'ID Чату',
-            hint: 'Введіть ID чату...',
+            label: 'Код чату',
+            hint: 'Введіть код чату...',
             icon: Icons.chat_bubble_outline,
           ),
         ],
@@ -419,3 +419,5 @@ class ChatFooter extends StatelessWidget {
     );
   }
 }
+
+// Приє
