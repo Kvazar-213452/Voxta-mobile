@@ -318,7 +318,7 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal>
   }
 
   Widget _buildBody() {
-    final remainingHours = _calculateRemainingHours(_chatData?['expiresAt']);
+    final remainingHours = _calculateRemainingHours(_chatData?['expirationHours']);
 
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -353,8 +353,6 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal>
           _buildInfoRow('Назва чату', _chatData?['name'] ?? 'Невідомо'),
           const SizedBox(height: 12),
           _buildInfoRow('Тип чату', _chatData?['type'] ?? 'Temporary'),
-          const SizedBox(height: 12),
-          _buildInfoRow('Опис', _chatData?['description'] ?? 'Без опису'),
           const SizedBox(height: 12),
           _buildInfoRow(
             'Діє ще',
@@ -586,4 +584,5 @@ class _TemporaryPasswordModalState extends State<TemporaryPasswordModal>
     );
   }
 }
-// Видалення чату з ID
+
+// Опис

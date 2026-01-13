@@ -114,6 +114,7 @@ void connectSocket(
 
     socket!.on('get_info_self', (data) async {
       data = await decrypted_auto(data);
+      print(data);
 
       if (data['type'] == "load_chats") {
         final userMap = data['user'];
@@ -361,4 +362,4 @@ void createTemporaryChat(
 
 bool get isSocketConnected => socket?.connected ?? false;
 
-// send_message_return
+// ddd
