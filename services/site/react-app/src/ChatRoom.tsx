@@ -244,57 +244,39 @@ const ChatRoom: React.FC = () => {
     return (
       <div className={`chat-container ${theme}`}>
         <div className="password-modal">
-          <div className="password-modal-content">
-            <div className="password-lock-icon">
-              <Lock size={64} />
+          <div className="password-content">
+            <Lock size={40} className="lock-icon" />
+            <h2>Захищений чат</h2>
+            <span className="chat-id">{chatId}</span>
+            
+            <div className="password-input-group">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={passwordInput}
+                onChange={(e: any) => {
+                  setPasswordInput(e.target.value);
+                  setPasswordError('');
+                }}
+                onKeyPress={handlePasswordKeyPress}
+                placeholder="Пароль"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="toggle-password"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             
-            <h2 className="password-title">Захищений чат</h2>
-            <p className="password-subtitle">Введіть пароль для доступу до чату</p>
+            {passwordError && <span className="error">{passwordError}</span>}
             
-            <div className="password-chat-id">
-              <span>ID чату:</span>
-              <code>{chatId}</code>
-            </div>
-
-            <div className="password-input-wrapper">
-              <div className="password-input-container">
-                <Lock size={20} className="password-input-icon" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={passwordInput}
-                  onChange={(e: any) => {
-                    setPasswordInput(e.target.value);
-                    setPasswordError('');
-                  }}
-                  onKeyPress={handlePasswordKeyPress}
-                  placeholder="Введіть пароль..."
-                  className="password-input-field"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="password-toggle-btn"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-              
-              {passwordError && (
-                <div className="password-error">
-                  <X size={16} />
-                  <span>{passwordError}</span>
-                </div>
-              )}
-            </div>
-
             <button
               onClick={handlePasswordSubmit}
-              className="password-submit-btn"
               disabled={!passwordInput.trim()}
             >
-              Підключитись до чату
+              Підключитись
             </button>
           </div>
         </div>
@@ -306,66 +288,53 @@ const ChatRoom: React.FC = () => {
     <div className={`chat-container ${theme}`}>
       {/* Header */}
       <div className="chat-header">
-        {chatInfo?.avatar && (
-          <img src={chatInfo.avatar} alt="Avatar" className="chat-avatar" />
-        )}
-        <div className="chat-header-info">
-          <div className="chat-name">{chatInfo?.name || 'Завантаження...'}</div>
-          <div className="chat-status">{isConnected ? 'Активний' : 'Офлайн'}</div>
+        <div className="header-left">
+          {chatInfo?.avatar && <img src={chatInfo.avatar} alt="" className="avatar1" />}
+          <span className="chat-name">{chatInfo?.name || 'Завантаження...'}</span>
         </div>
-        <div className="header-buttons">
-          <button onClick={toggleTheme} className="theme-btn" title="Змінити тему">
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+        <div className="header-right">
+          <button onClick={toggleTheme} className="icon-btn">
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
-          <button onClick={() => setIsModalOpen(true)} className="info-btn" title="Інформація">
-            <Info size={20} />
+          <button onClick={() => setIsModalOpen(true)} className="icon-btn">
+            <Info size={18} />
           </button>
         </div>
       </div>
 
-      {/* Messages Area */}
+      {/* Messages */}
       <div className="messages-area">
         {messages.length === 0 ? (
-          <div className="empty-messages">
-            <p>Поки що немає повідомлень. Напишіть перше!</p>
+          <div className="empty-state">
+            <span>Немає повідомлень</span>
           </div>
         ) : (
           messages.map((msg: any) => (
             <div key={msg.id} className={`message ${msg.userId === userId ? 'sent' : 'received'}`}>
-              <div className="message-bubble">                
-                {msg.type === 'text' && (
-                  <div className="message-text">{msg.content}</div>
-                )}
+              <div className="message-content">                
+                {msg.type === 'text' && <p>{msg.content}</p>}
 
                 {msg.type === 'img' && (
-                  <>
-                    <img src={msg.content.data} alt={msg.content.name} className="message-image" />
-                    <div className="message-file-info">
-                      <ImageIcon size={14} />
-                      <span>{msg.content.name}</span>
-                      <span>({formatFileSize(msg.content.size)})</span>
-                    </div>
-                  </>
+                  <div className="image-wrapper">
+                    <img src={msg.content.data} alt={msg.content.name} />
+                    <span className="file-name">{msg.content.name}</span>
+                  </div>
                 )}
 
                 {msg.type === 'file' && (
-                  <div className="message-file">
+                  <div className="file-wrapper">
                     <FileText size={20} />
-                    <div className="file-info">
+                    <div className="file-details">
                       <span className="file-name">{msg.content.name}</span>
                       <span className="file-size">{formatFileSize(msg.content.size)}</span>
                     </div>
-                    <a
-                      href={msg.content.data}
-                      download={msg.content.name}
-                      className="file-download"
-                    >
+                    <a href={msg.content.data} download={msg.content.name}>
                       Завантажити
                     </a>
                   </div>
                 )}
 
-                <div className="message-time">{formatTime(msg.timestamp)}</div>
+                <span className="timestamp">{formatTime(msg.timestamp)}</span>
               </div>
             </div>
           ))
@@ -373,7 +342,7 @@ const ChatRoom: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input */}
       <div className="input-area">
         <input
           ref={imageInputRef}
@@ -391,8 +360,7 @@ const ChatRoom: React.FC = () => {
         
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="file-btn"
-          title="Прикріпити файл"
+          className="icon-btn"
           disabled={!isConnected || !userId || !isAuthenticated}
         >
           <Paperclip size={18} />
@@ -403,15 +371,13 @@ const ChatRoom: React.FC = () => {
           value={newMessage}
           onChange={(e: any) => setNewMessage(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Напишіть повідомлення..."
-          className="message-input"
+          placeholder="Повідомлення..."
           disabled={!isConnected || !userId || !isAuthenticated}
         />
         
         <button 
           onClick={handleSendMessage} 
-          className="send-btn" 
-          title="Надіслати"
+          className="send-btn"
           disabled={!newMessage.trim() || !isConnected || !userId || !isAuthenticated}
         >
           <Send size={18} />
@@ -422,47 +388,37 @@ const ChatRoom: React.FC = () => {
       {isModalOpen && (
         <div className="modal" onClick={() => setIsModalOpen(false)}>
           <div className="modal-content" onClick={(e: any) => e.stopPropagation()}>
+            <button onClick={() => setIsModalOpen(false)} className="close-btn">
+              <X size={18} />
+            </button>
+            
             <div className="modal-header">
-              {chatInfo?.avatar && (
-                <img src={chatInfo.avatar} alt="Avatar" className="modal-avatar" />
-              )}
-              <div className="modal-header-info">
-                <div className="modal-title">{chatInfo?.name || 'Чат'}</div>
-                <div className="chat-status">{isConnected ? 'Активний' : 'Офлайн'}</div>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="close-btn">
-                <X size={20} />
-              </button>
+              {chatInfo?.avatar && <img src={chatInfo.avatar} alt="" className="modal-avatar" />}
+              <span className="modal-title">{chatInfo?.name || 'Чат'}</span>
             </div>
             
-            <div className="modal-info">
-              <div className="info-item">
-                <div className="info-label">Опис</div>
-                <div className="info-value">{chatInfo?.desc || 'Немає опису'}</div>
+            <div className="modal-body">
+              <div className="info-row">
+                <span className="label">Опис</span>
+                <span className="value">{chatInfo?.desc || 'Немає опису'}</span>
               </div>
 
-              <div className="info-item">
-                <div className="info-label">Створено</div>
-                <div className="info-value">{createdDate}</div>
+              <div className="info-row">
+                <span className="label">Створено</span>
+                <span className="value">{createdDate}</span>
               </div>
 
-              <div className="info-item">
-                <div className="info-label">Час до завершення</div>
-                <div className="info-value">
-                  {timeRemaining > 0 ? `${timeRemaining} хвилин` : 'Чат завершено'}
-                </div>
+              <div className="info-row">
+                <span className="label">Залишилось</span>
+                <span className="value">
+                  {timeRemaining > 0 ? `${timeRemaining} хв` : 'Завершено'}
+                </span>
               </div>
 
-              <div className="info-item">
-                <div className="info-label">Ваш ID</div>
-                <div className="info-value">{userId || 'Завантаження...'}</div>
+              <div className="info-row">
+                <span className="label">ID</span>
+                <span className="value">{userId || '...'}</span>
               </div>
-
-              {timeRemaining <= 10 && (
-                <div className="timer-warning">
-                  ⚠️ {timeRemaining > 0 ? 'Чат скоро закінчиться!' : 'Час чату закінчився!'}
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -472,3 +428,5 @@ const ChatRoom: React.FC = () => {
 };
 
 export default ChatRoom;
+
+// avatar
