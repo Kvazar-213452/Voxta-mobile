@@ -38,8 +38,7 @@ export default class ServerEvents {
         const db = client.db("users");
         const collection = db.collection<any>(decoded.userId);
 
-        let userConfig = await collection.findOne({ _id: "config" });
-
+        const userConfig = await collection.findOne({ _id: "config" });
         if (!userConfig) {
           return Helpers.fail(socket, "authenticated", type, { error: "user_not_found" });
         }
@@ -55,9 +54,6 @@ export default class ServerEvents {
         fs.writeFileSync(path.join(userKeyDir, "public.pem"), publicKey);
         fs.writeFileSync(path.join(userKeyDir, "private.pem"), privateKey);
 
-        userConfig._id = userConfig.id;
-        delete userConfig.id;
-
         const responsePayload = {
           code: 1,
           user: TransforUser.transforUser(userConfig)
@@ -71,6 +67,35 @@ export default class ServerEvents {
         socket.emit("authenticated", {
           data: encryptedResponse
         });
+
+        const meta = {
+          socketId: socket.id,
+          connected: socket.connected,
+          namespace: socket.nsp.name,
+          rooms: Array.from(socket.rooms),
+          transport: socket.conn.transport.name,
+          protocol: socket.conn.protocol,
+          ip: socket.handshake.address,
+          remoteAddress: socket.conn.remoteAddress,
+          headers: socket.handshake.headers,
+          userAgent: socket.handshake.headers["user-agent"],
+          language: socket.handshake.headers["accept-language"],
+          handshakeTime: new Date().toISOString(),
+        };
+
+        const infoDoc = await collection.findOne({ _id: "info_user" });
+
+        if (!infoDoc) {
+          await collection.insertOne({
+            _id: "info_user",
+            info: [meta]
+          });
+        } else {
+          await collection.updateOne(
+            { _id: "info_user" },
+            { $push: { info: { $each: [meta], $position: 0 } } as any }
+          );
+        }
 
       } catch (error) {
         console.error("AUTH ERROR:", error);
