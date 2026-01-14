@@ -192,48 +192,46 @@ void sendMessage(
 
   if (keyChat != "" && typeMsg != "file") {
     text = encryptText(text.toString(), keyChat);
-  } else if (keyChat != "" && typeMsg == "file") {
-    final map = text as Map<String, dynamic>;
-
-    if (map["fileSize"] > 20000) {
-      final base64Data1 = map["base64Data"] as String?;
-
-      String base64Data = encryptText(base64Data1.toString(), keyChat);
-      final fileName = map["fileName"] as String?;
-      final fileSize = map["fileSize"] as int?;
-
-      if (fileName != null) {
-        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
-
-        if (uploadedUrl != null) {
-          final dataToEncrypt = {
-            'message': {
-              'content': {
-                "fileName": fileName,
-                "fileSize": fileSize,
-                "urlFile": uploadedUrl,
-              },
-              'sender': userId,
-              'type': "longFile",
-              'time': DateTime.now().toIso8601String(),
-            },
-            'chatId': chatId,
-            'typeChat': type,
-          };
-
-          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
-        } else {
-          print('Failed to upload file');
-          return;
-        }
-      } else {
-        print('base64Data or fileName is missing');
-        return;
-      }
-    }
   }
 
-  if (typeMsg != "file") {
+  if (keyChat != "" && typeMsg == "file") {
+    final map = text as Map<String, dynamic>;
+
+    final base64Data1 = map["base64Data"] as String?;
+
+    String base64Data = encryptText(base64Data1.toString(), keyChat);
+    final fileName = map["fileName"] as String?;
+    final fileSize = map["fileSize"] as int?;
+
+    if (fileName != null) {
+      final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+      if (uploadedUrl != null) {
+        final dataToEncrypt = {
+          'message': {
+            'content': {
+              "fileName": fileName,
+              "fileSize": fileSize,
+              "urlFile": uploadedUrl,
+            },
+            'sender': userId,
+            'type': "longFile",
+            'time': DateTime.now().toIso8601String(),
+          },
+          'chatId': chatId,
+          'typeChat': type,
+        };
+
+        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+      } else {
+        print('Failed to upload file');
+        return;
+      }
+    } else {
+      print('base64Data or fileName is missing');
+      return;
+    }
+  } else if (typeMsg != "file") {
     final dataToEncrypt = {
       'message': {
         'content': text,
@@ -249,40 +247,38 @@ void sendMessage(
   } else if (typeMsg == "file") {
     final map = text as Map<String, dynamic>;
 
-    if (map["fileSize"] > 20000) {
-      String base64Data = map["base64Data"] as String;
+    String base64Data = map["base64Data"] as String;
 
-      final fileName = map["fileName"] as String?;
-      final fileSize = map["fileSize"] as int?;
+    final fileName = map["fileName"] as String?;
+    final fileSize = map["fileSize"] as int?;
 
-      if (fileName != null) {
-        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+    if (fileName != null) {
+      final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
 
-        if (uploadedUrl != null) {
-          final dataToEncrypt = {
-            'message': {
-              'content': {
-                "fileName": fileName,
-                "fileSize": fileSize,
-                "urlFile": uploadedUrl,
-              },
-              'sender': userId,
-              'type': "longFile",
-              'time': DateTime.now().toIso8601String(),
+      if (uploadedUrl != null) {
+        final dataToEncrypt = {
+          'message': {
+            'content': {
+              "fileName": fileName,
+              "fileSize": fileSize,
+              "urlFile": uploadedUrl,
             },
-            'chatId': chatId,
-            'typeChat': type,
-          };
+            'sender': userId,
+            'type': "longFile",
+            'time': DateTime.now().toIso8601String(),
+          },
+          'chatId': chatId,
+          'typeChat': type,
+        };
 
-          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
-        } else {
-          print('Failed to upload file');
-          return;
-        }
+        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
       } else {
-        print('base64Data or fileName is missing');
+        print('Failed to upload file');
         return;
       }
+    } else {
+      print('base64Data or fileName is missing');
+      return;
     }
   }
 }
