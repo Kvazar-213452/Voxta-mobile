@@ -409,13 +409,6 @@ const ChatRoom: React.FC = () => {
               </div>
 
               <div className="info-row">
-                <span className="label">Залишилось</span>
-                <span className="value">
-                  {timeRemaining > 0 ? `${timeRemaining} хв` : 'Завершено'}
-                </span>
-              </div>
-
-              <div className="info-row">
                 <span className="label">ID</span>
                 <span className="value">{userId || '...'}</span>
               </div>
@@ -429,4 +422,4 @@ const ChatRoom: React.FC = () => {
 
 export default ChatRoom;
 
-// avatar
+// опис
