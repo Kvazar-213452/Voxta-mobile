@@ -23,6 +23,7 @@ class SetKeyModal extends StatefulWidget {
 class _SetKeyModalState extends State<SetKeyModal>
     with TickerProviderStateMixin {
   final TextEditingController _keyController = TextEditingController();
+  bool _isEncrypted = false;
 
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
@@ -33,6 +34,7 @@ class _SetKeyModalState extends State<SetKeyModal>
     super.initState();
 
     _loadKey();
+    _loadEncryptionStatus();
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -55,6 +57,15 @@ class _SetKeyModalState extends State<SetKeyModal>
     if (mounted) {
       setState(() {
         _keyController.text = key;
+      });
+    }
+  }
+
+  Future<void> _loadEncryptionStatus() async {
+    final isEncrypted = await ChatKeysDB.isEncrypted(widget.chatId);
+    if (mounted) {
+      setState(() {
+        _isEncrypted = isEncrypted;
       });
     }
   }
@@ -136,7 +147,7 @@ class _SetKeyModalState extends State<SetKeyModal>
     _closeModal();
   }
 
-  void _deleteKey() {
+  void _toggleEncryption() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -146,11 +157,13 @@ class _SetKeyModalState extends State<SetKeyModal>
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
-            'Видалити ключ?',
+            _isEncrypted ? 'Вимкнути шифрування?' : 'Увімкнути шифрування?',
             style: TextStyle(color: AppColors.whiteText),
           ),
           content: Text(
-            'Ви впевнені, що хочете видалити ключ доступу?',
+            _isEncrypted
+                ? 'Повідомлення більше не будуть шифруватися. Це не видалить існуючі ключі.'
+                : 'Повідомлення в цьому чаті будуть шифруватися.',
             style: TextStyle(color: AppColors.white70),
           ),
           actions: [
@@ -162,14 +175,34 @@ class _SetKeyModalState extends State<SetKeyModal>
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                ChatKeysDB.deleteKey(widget.chatId);
-                _closeModal();
+                await ChatKeysDB.setEncryption(
+                  widget.chatId,
+                  !_isEncrypted,
+                );
+                setState(() {
+                  _isEncrypted = !_isEncrypted;
+                });
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        _isEncrypted
+                            ? 'Шифрування увімкнено'
+                            : 'Шифрування вимкнено',
+                      ),
+                      backgroundColor: AppColors.brandGreen,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
               child: Text(
-                'Видалити',
-                style: TextStyle(color: AppColors.destructiveRed),
+                'Так',
+                style: TextStyle(
+                  color: _isEncrypted ? AppColors.destructiveRed : AppColors.brandGreen,
+                ),
               ),
             ),
           ],
@@ -241,10 +274,16 @@ class _SetKeyModalState extends State<SetKeyModal>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.brandGreenTransparent20,
+              color: _isEncrypted 
+                  ? AppColors.brandGreenTransparent20 
+                  : AppColors.whiteTransparent20,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Icon(Icons.key, color: AppColors.brandGreen, size: 20),
+            child: Icon(
+              _isEncrypted ? Icons.lock : Icons.lock_open,
+              color: _isEncrypted ? AppColors.brandGreen : AppColors.white54,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -260,15 +299,48 @@ class _SetKeyModalState extends State<SetKeyModal>
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  widget.chatName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.brandGreen,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Text(
+                      widget.chatName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.brandGreen,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _isEncrypted 
+                            ? AppColors.brandGreenTransparent20 
+                            : AppColors.whiteTransparent10,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _isEncrypted 
+                              ? AppColors.brandGreen 
+                              : AppColors.white54,
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        _isEncrypted ? 'Увімкнено' : 'Вимкнено',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _isEncrypted 
+                              ? AppColors.brandGreen 
+                              : AppColors.white54,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -288,20 +360,30 @@ class _SetKeyModalState extends State<SetKeyModal>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.brandGreenTransparent20,
+              color: _isEncrypted 
+                  ? AppColors.brandGreenTransparent20 
+                  : AppColors.whiteTransparent10,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: AppColors.brandGreenTransparent30,
+                color: _isEncrypted 
+                    ? AppColors.brandGreenTransparent30 
+                    : AppColors.whiteTransparent20,
                 width: 1,
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: AppColors.brandGreen, size: 20),
+                Icon(
+                  Icons.info_outline,
+                  color: _isEncrypted ? AppColors.brandGreen : AppColors.white54,
+                  size: 20,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Згенеруйте ключ для шифрування чату',
+                    _isEncrypted 
+                        ? 'Шифрування активне. Згенеруйте новий ключ або використайте існуючий.'
+                        : 'Шифрування вимкнено. Увімкніть його для захисту повідомлень.',
                     style: TextStyle(fontSize: 13, color: AppColors.lightGray),
                   ),
                 ),
@@ -422,14 +504,15 @@ class _SetKeyModalState extends State<SetKeyModal>
               ),
               const SizedBox(width: 8),
               OutlinedButton(
-                onPressed: _keyController.text.isEmpty ? null : _deleteKey,
+                onPressed: _toggleEncryption,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.destructiveRed,
+                  foregroundColor: _isEncrypted 
+                      ? AppColors.destructiveRed 
+                      : AppColors.brandGreen,
                   side: BorderSide(
-                    color:
-                        _keyController.text.isEmpty
-                            ? AppColors.whiteTransparent20
-                            : AppColors.destructiveRed.withOpacity(0.5),
+                    color: _isEncrypted
+                        ? AppColors.destructiveRed.withOpacity(0.5)
+                        : AppColors.brandGreenTransparent30,
                     width: 1.5,
                   ),
                   padding: const EdgeInsets.symmetric(
@@ -441,12 +524,11 @@ class _SetKeyModalState extends State<SetKeyModal>
                   ),
                 ),
                 child: Icon(
-                  Icons.delete_outline,
+                  _isEncrypted ? Icons.lock_open : Icons.lock,
                   size: 20,
-                  color:
-                      _keyController.text.isEmpty
-                          ? AppColors.white54.withOpacity(0.3)
-                          : AppColors.destructiveRed,
+                  color: _isEncrypted 
+                      ? AppColors.destructiveRed 
+                      : AppColors.brandGreen,
                 ),
               ),
             ],

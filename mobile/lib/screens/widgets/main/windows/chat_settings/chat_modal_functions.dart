@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
 import 'set_key_modal.dart';
+import 'set_auto_key_modal.dart';
 import 'utils.dart';
 import '../../../../../services/chat/socket_service.dart';
 import '../../../../../models/storage_user.dart';
@@ -39,7 +40,7 @@ class ChatModalFunctions {
       },
       onError: (String error) {
         if (!context.mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Помилка завантаження: $error'),
@@ -61,9 +62,9 @@ class ChatModalFunctions {
     required VoidCallback onBackPressed,
   }) {
     if (!context.mounted) return;
-    
+
     final parentContext = context;
-    
+
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.transparent,
@@ -164,6 +165,24 @@ class ChatModalFunctions {
                       },
                     ),
 
+                  if (user != null && owner == user.id)
+                    _buildModalOption(
+                      icon: Icons.auto_awesome,
+                      title: 'Автоматичне шифрування',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (!parentContext.mounted) return;
+                          _showAutoSetKeyModal(
+                            parentContext,
+                            chatId: id,
+                            chatName: chatName,
+                          );
+                        });
+                      },
+                      isDestructive: false,
+                    ),
+
                   _buildModalOption(
                     icon: Icons.key,
                     title: 'Встановити ключ',
@@ -259,13 +278,30 @@ class ChatModalFunctions {
     required String chatName,
   }) {
     if (!context.mounted) return;
-    
+
     showDialog(
       context: context,
       barrierColor: AppColors.overlayBackground,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        return SetKeyModal(
+        return SetKeyModal(chatId: chatId, chatName: chatName, onClose: () {});
+      },
+    );
+  }
+
+  static void _showAutoSetKeyModal(
+    BuildContext context, {
+    required String chatId,
+    required String chatName,
+  }) {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierColor: AppColors.overlayBackground,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return SetAutoKeyModal(
           chatId: chatId,
           chatName: chatName,
           onClose: () {},
@@ -282,7 +318,7 @@ class ChatModalFunctions {
     required String chatName,
   }) {
     if (!context.mounted) return;
-    
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -359,7 +395,7 @@ class ChatModalFunctions {
       },
       onError: (String error) {
         print('onError: $error');
-        
+
         if (!context.mounted) return;
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -386,7 +422,7 @@ class ChatModalFunctions {
     required List<dynamic> users,
   }) async {
     if (!context.mounted) return;
-    
+
     Widget? avatarWidget;
     if (avatarUrl != null && avatarUrl.isNotEmpty) {
       avatarWidget = Image.network(
