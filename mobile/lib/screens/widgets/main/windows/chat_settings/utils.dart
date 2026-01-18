@@ -1,6 +1,7 @@
 import '../../../../../services/chat/socket_service.dart';
 import 'dart:async';
 import '../../../../../utils/crypto/crypto_auto.dart';
+import '../../../../../models/storage_user.dart';
 
 // ! ============ server func ============
 void getInfoUsers({
@@ -143,4 +144,46 @@ Future<String> generateRandomCode(String id) async {
 
 Future<void> delSelfInChat(String id, String type) async {
   socket!.emit('del_user_in_chat_self', await encrypt_auto({'id': id, 'typeChat': type}));
+}
+
+
+// ! =============== set_auto_key_modal.dart ===============
+// ! =============== set_auto_key_modal.dart ===============
+// ! =============== set_auto_key_modal.dart ===============
+
+Future<void> setInterval(String chatId, String interval) async {
+  final infoUser = await getUserStorage();
+
+  socket!.emit('set_interval_for_user', {
+    'userId': infoUser?.id,
+    'id': chatId,
+    'interval': interval
+  });
+}
+
+Future<void> getInterval({
+  required String chatId,
+  required Function(String interval) onSuccess,
+  required Function(String error) onError,
+}) async {
+  try {
+    final infoUser = await getUserStorage();
+
+    socket!.emit('get_user_interval', {
+      'id': chatId,
+      'userId': infoUser?.id,
+    });
+
+    socket!.off('get_interval_in_chat_return');
+
+    socket!.on('get_interval_in_chat_return', (data) {
+      try {        
+        onSuccess(data['interval']);
+      } catch (e) {
+        socket!.off('get_interval_in_chat_return');
+      }
+    });
+  } catch (e) {
+    print('Помилка відправлення запиту: $e');
+  }
 }

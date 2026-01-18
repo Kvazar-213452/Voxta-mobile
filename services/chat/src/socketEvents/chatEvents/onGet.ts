@@ -122,12 +122,17 @@ export default class chatEvents {
           messages.reverse();
         }
 
+        if (config.crypto[decrypted.userId].keyPub == "") {
+          socket.emit("make_key_pub_chat", { code: 1, chatId: decrypted.chatId, userId: decrypted.userId });
+        }
+
         const response = {
           code: 1,
           chatId: decrypted.chatId,
           participants: participantsData,
           messages,
-          type: data.type
+          type: data.type,
+          crypto: config.crypto
         };
 
         const encrypted = await CryptoFunc.encryptionMsg(data.key, JSON.stringify(response));

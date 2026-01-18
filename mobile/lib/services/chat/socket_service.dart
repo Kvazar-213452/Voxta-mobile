@@ -80,6 +80,12 @@ void connectSocket(
       _onReloadChatContent!();
     });
 
+    socket!.on('make_key_pub_chat', (data) async {
+      final keys = await ChatKeysDB.generateAndSaveRSAKeys(CAHT_ID);
+
+      socket!.emit('set_pub_key_for_user', {'id': data['chatId'], 'userId': data['userId'], 'key': keys["public"]});
+    });
+
     socket!.on('authenticated', (data) async {
       data = await decrypted_auto(data);
 
@@ -100,6 +106,9 @@ void connectSocket(
 
     socket!.on('load_chat_content_return', (data) async {
       data = await decrypted_auto(data);
+
+      print(data);
+
       data = await decryptMessages(data);
 
       CAHT_ID = data["chatId"];
@@ -108,13 +117,11 @@ void connectSocket(
     });
 
     socket!.on('create_new_chat', (data) async {
-      print("dddddddddd");
       await loadChats();
     });
 
     socket!.on('get_info_self', (data) async {
       data = await decrypted_auto(data);
-      print(data);
 
       if (data['type'] == "load_chats") {
         final userMap = data['user'];
@@ -284,9 +291,15 @@ void sendMessage(
 }
 
 void loadChatContent(String chatId, String type) async {
+  final infoUser = await getUserStorage();
+
   socket!.emit(
     'load_chat_content',
-    await encrypt_auto({'chatId': chatId, 'type': type}),
+    await encrypt_auto({
+      'chatId': chatId,
+      'type': type,
+      'userId': infoUser?.id,
+    }),
   );
 }
 
