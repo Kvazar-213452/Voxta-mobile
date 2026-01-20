@@ -30,7 +30,7 @@ export default class chatEvents {
         }
 
         if (!chat["isE2EEnabled"]) {
-          cryptoFiltered = {"":""};
+          cryptoFiltered = { "": "" };
         }
 
         socket.emit("get_pub_keys_chat_return", {
@@ -161,8 +161,16 @@ export default class chatEvents {
           messages.reverse();
         }
 
-        if (config.crypto[decrypted.userId].keyPub == "") {
-          socket.emit("make_key_pub_chat", { code: 1, chatId: decrypted.chatId, userId: decrypted.userId });
+        if (
+          !config.crypto ||
+          !config.crypto[decrypted.userId] ||
+          !config.crypto[decrypted.userId].keyPub
+        ) {
+          socket.emit("make_key_pub_chat", {
+            code: 1,
+            chatId: decrypted.chatId,
+            userId: decrypted.userId
+          });
         }
 
         const response = {

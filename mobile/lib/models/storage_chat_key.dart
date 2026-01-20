@@ -67,7 +67,7 @@ class ChatKeysDB {
   }) async {
     try {
       final keyPair = await RSACrypto.generateKeyPair(keySize: keySize);
-      
+
       await saveRSAKeys(
         chatId,
         publicKey: keyPair['public']!,
@@ -109,9 +109,11 @@ class ChatKeysDB {
         keysData['pub'] = publicKey;
 
         List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
+
         if (!privKeys.contains(privateKey)) {
           privKeys.add(privateKey);
         }
+
         keysData['priv'] = privKeys;
       } else {
         keysData = {
@@ -155,10 +157,7 @@ class ChatKeysDB {
         keyAES = result.first['keyAES'] as String?;
         keysData['pub'] = publicKey;
       } else {
-        keysData = {
-          'pub': publicKey,
-          'priv': [],
-        };
+        keysData = {'pub': publicKey, 'priv': []};
       }
 
       await db.insert('chat_keys', {
@@ -167,7 +166,6 @@ class ChatKeysDB {
         'keys': jsonEncode(keysData),
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
-
     } catch (e) {
       print('Failed to update public key: $e');
       rethrow;
@@ -320,7 +318,7 @@ class ChatKeysDB {
 
       final keysJson = result.first['keys'] as String;
       final keysData = jsonDecode(keysJson);
-      
+
       List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
       privKeys.remove(privateKey);
       keysData['priv'] = privKeys;
@@ -429,7 +427,6 @@ class ChatKeysDB {
           whereArgs: [chatId],
         );
       }
-
     } catch (e) {
       print('Failed to set encryption: $e');
       rethrow;
@@ -475,7 +472,7 @@ class ChatKeysDB {
 
       final keysJson = result.first['keys'] as String;
       final keysData = jsonDecode(keysJson);
-      
+
       keysData['priv'] = [];
 
       await db.update(
@@ -484,7 +481,6 @@ class ChatKeysDB {
         where: 'chatId = ?',
         whereArgs: [chatId],
       );
-
     } catch (e) {
       print('Failed to delete all keys: $e');
       rethrow;

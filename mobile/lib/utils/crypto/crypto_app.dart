@@ -149,7 +149,7 @@ Future<String> decryptServerResponse(
   RSAPrivateKey privateKey,
 ) async {
   try {
-    final encryptedKeyBase64 = responseJson['data']['key'] as String;
+    final encryptedKeyBase64 = responseJson['data']['key'] as String ?? "";
     final encryptedDataStr = responseJson['data']['data'] as String;
 
     final encryptedKey = base64Decode(encryptedKeyBase64);
