@@ -61,14 +61,11 @@ class ChatKeysDB {
 
   // ==================== RSA KEY MANAGEMENT ====================
 
-  /// Генерує та зберігає нову пару RSA ключів для чату
-  /// Використовує клас RSACrypto для генерації ключів
   static Future<Map<String, String>> generateAndSaveRSAKeys(
     String chatId, {
     int keySize = 2048,
   }) async {
     try {
-      // Використовуємо RSACrypto для генерації
       final keyPair = await RSACrypto.generateKeyPair(keySize: keySize);
       
       await saveRSAKeys(
@@ -84,7 +81,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Зберігає RSA ключі в базі даних
   static Future<void> saveRSAKeys(
     String chatId, {
     required String publicKey,
@@ -110,17 +106,14 @@ class ChatKeysDB {
         isEncrypted = (result.first['isEncrypted'] as int) == 1;
         keyAES = result.first['keyAES'] as String?;
 
-        // Оновлюємо публічний ключ
         keysData['pub'] = publicKey;
 
-        // Додаємо новий приватний ключ до масиву
         List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
         if (!privKeys.contains(privateKey)) {
           privKeys.add(privateKey);
         }
         keysData['priv'] = privKeys;
       } else {
-        // Створюємо нову структуру
         keysData = {
           'pub': publicKey,
           'priv': [privateKey],
@@ -134,14 +127,12 @@ class ChatKeysDB {
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      print('RSA keys saved for chatId: $chatId');
     } catch (e) {
       print('Failed to save RSA keys: $e');
       rethrow;
     }
   }
 
-  /// Оновлює тільки публічний ключ
   static Future<void> updatePublicKey(String chatId, String publicKey) async {
     try {
       final db = await initDatabase();
@@ -177,14 +168,12 @@ class ChatKeysDB {
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
-      print('Public key updated for chatId: $chatId');
     } catch (e) {
       print('Failed to update public key: $e');
       rethrow;
     }
   }
 
-  /// Отримує публічний ключ чату
   static Future<String?> getPublicKey(String chatId) async {
     try {
       final db = await initDatabase();
@@ -211,7 +200,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Отримує останній приватний ключ чату
   static Future<String?> getPrivateKey(String chatId) async {
     try {
       final db = await initDatabase();
@@ -242,7 +230,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Отримує всі приватні ключі чату
   static Future<List<String>> getAllPrivateKeys(String chatId) async {
     try {
       final db = await initDatabase();
@@ -268,7 +255,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Додає новий приватний ключ до існуючих
   static Future<void> addPrivateKey(String chatId, String privateKey) async {
     try {
       final db = await initDatabase();
@@ -316,7 +302,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Видаляє конкретний приватний ключ
   static Future<void> removePrivateKey(String chatId, String privateKey) async {
     try {
       final db = await initDatabase();
@@ -356,7 +341,6 @@ class ChatKeysDB {
 
   // ==================== AES KEY MANAGEMENT ====================
 
-  /// Встановлює AES ключ для чату
   static Future<void> setKeyAES(String chatId, String keyAES) async {
     try {
       final db = await initDatabase();
@@ -391,7 +375,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Отримує AES ключ для чату
   static Future<String?> getKeyAES(String chatId) async {
     try {
       final db = await initDatabase();
@@ -447,7 +430,6 @@ class ChatKeysDB {
         );
       }
 
-      print('Encryption status updated for chatId: $chatId to $isEncrypted');
     } catch (e) {
       print('Failed to set encryption: $e');
       rethrow;
@@ -503,7 +485,6 @@ class ChatKeysDB {
         whereArgs: [chatId],
       );
 
-      print('All private keys deleted for chatId: $chatId');
     } catch (e) {
       print('Failed to delete all keys: $e');
       rethrow;

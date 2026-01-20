@@ -4,10 +4,7 @@ import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 import 'package:asn1lib/asn1lib.dart';
 
-/// Клас для роботи з RSA шифруванням
 class RSACrypto {
-  /// Генерує пару RSA ключів (публічний та приватний)
-  /// [keySize] - розмір ключа в бітах (за замовчуванням 2048, рекомендовано 2048 або 4096)
   static Future<Map<String, String>> generateKeyPair({
     int keySize = 2048,
   }) async {
@@ -38,7 +35,6 @@ class RSACrypto {
     }
   }
 
-  /// Шифрує дані публічним ключем
   static String encrypt(String plainText, String publicKeyBase64) {
     try {
       final publicKey = _parsePublicKeyFromBase64(publicKeyBase64);
@@ -55,7 +51,6 @@ class RSACrypto {
     }
   }
 
-  /// Розшифровує дані приватним ключем
   static String decrypt(String encryptedBase64, String privateKeyBase64) {
     try {
       final privateKey = _parsePrivateKeyFromBase64(privateKeyBase64);
@@ -72,8 +67,6 @@ class RSACrypto {
       rethrow;
     }
   }
-
-  // ==================== PRIVATE HELPER METHODS ====================
 
   static SecureRandom _getSecureRandom() {
     final secureRandom = FortunaRandom();
@@ -147,27 +140,22 @@ class RSACrypto {
       String cleanedKey = base64Key.trim();
       final bytes = base64.decode(cleanedKey);
 
-      // Ручний парсинг DER-encoded public key
       int offset = 0;
 
-      // Пропускаємо SEQUENCE tag та length
       if (bytes[offset] != 0x30) {
         throw FormatException('Invalid SEQUENCE tag');
       }
       offset++;
 
-      // Читаємо довжину
       int seqLength = _readLength(bytes, offset);
       offset += _getLengthSize(bytes, offset);
 
-      // Пропускаємо AlgorithmIdentifier SEQUENCE
       if (bytes[offset] == 0x30) {
         offset++;
         int algIdLength = _readLength(bytes, offset);
         offset += _getLengthSize(bytes, offset) + algIdLength;
       }
 
-      // Читаємо BIT STRING
       if (bytes[offset] != 0x03) {
         throw FormatException('Invalid BIT STRING tag');
       }
@@ -175,9 +163,8 @@ class RSACrypto {
 
       int bitStringLength = _readLength(bytes, offset);
       offset += _getLengthSize(bytes, offset);
-      offset++; // Пропускаємо unused bits byte
+      offset++;
 
-      // Тепер парсимо RSAPublicKey SEQUENCE
       if (bytes[offset] != 0x30) {
         throw FormatException('Invalid RSAPublicKey SEQUENCE tag');
       }
@@ -186,7 +173,6 @@ class RSACrypto {
       int rsaSeqLength = _readLength(bytes, offset);
       offset += _getLengthSize(bytes, offset);
 
-      // Читаємо modulus (INTEGER)
       if (bytes[offset] != 0x02) {
         throw FormatException('Invalid modulus INTEGER tag');
       }
@@ -199,7 +185,6 @@ class RSACrypto {
       final modulus = _bytesToBigInt(modulusBytes);
       offset += modulusLength;
 
-      // Читаємо exponent (INTEGER)
       if (bytes[offset] != 0x02) {
         throw FormatException('Invalid exponent INTEGER tag');
       }
@@ -213,7 +198,6 @@ class RSACrypto {
 
       return RSAPublicKey(modulus, exponent);
     } catch (e, stackTrace) {
-      print('Error parsing public key manually: $e');
       print('Stack trace: $stackTrace');
       rethrow;
     }

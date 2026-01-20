@@ -164,28 +164,22 @@ Future<Map<String, dynamic>> decryptMessagesEndToEnd(
     final content = message["content"];
 
     try {
-      // ===== MAP CASE (E2E MESSAGE) =====
       if (content is Map) {
         if (content.containsKey(userIdMy)) {
           final encrypted = content[userIdMy];
 
           if (encrypted is String && isBase64(encrypted)) {
-            // 👉 тут викликаєш AES/RSA decrypt
-            // final decrypted = decrypt(encrypted);
-
-            message["content"] = encrypted; // тимчасово без decrypt
+            message["content"] = encrypted;
           }
         }
       }
-      // ===== STRING CASE =====
+
       else if (content is String) {
-        // якщо plaintext — пропускаємо
         if (!isBase64(content)) {
           newMessages.add(message);
           continue;
         }
 
-        // інакше можеш пробувати decrypt
       }
     } catch (e) {
       print("Decrypt error ${message['_id']}: $e");
@@ -273,79 +267,63 @@ Map<String, dynamic> decryptMessageEndToEnd(
 
   final content = result["content"];
 
-  // Check if content is in E2E format (Map with userId keys)
   if (content is Map) {
     if (content.containsKey(userIdMy)) {
       final encrypted = content[userIdMy];
 
       if (encrypted is String) {
         result["content"] = encrypted;
-        print('Extracted E2E content for user $userIdMy');
       }
     } else {
       print('E2E content does not contain key for user $userIdMy');
     }
   } else if (content is String) {
-    // Content is already a string (encrypted), no need to extract
     print('Content is already in string format (likely already encrypted)');
   }
 
   return result;
 }
 
-
-
-
-
-
-Future<Map<String, dynamic>> decryptMessageEndToEndFull(Map<String, dynamic> data, String chatId) async {
+Future<Map<String, dynamic>> decryptMessageEndToEndFull(
+  Map<String, dynamic> data,
+  String chatId,
+) async {
   try {
     final info = await ChatKeysDB.getChatInfo(chatId);
     final privateKeys = info?["privateKeys"];
-    
-    // Якщо немає приватних ключів або content, повертаємо дані без змін
+
     if (privateKeys == null || privateKeys.isEmpty) {
       print('No private keys available for decryption');
       return data;
     }
-    
+
     final String? encryptedContent = data['content'];
-    
+
     if (encryptedContent == null || encryptedContent.isEmpty) {
       return data;
     }
-    
-    // Створюємо копію даних для модифікації
+
     final Map<String, dynamic> decryptedData = Map<String, dynamic>.from(data);
-    
-    // Перебираємо всі доступні приватні ключі
+
     for (var privateKey in privateKeys) {
       try {
-        // Спроба розшифрувати повідомлення
-        final decryptedContent = RSACrypto.decrypt(encryptedContent, privateKey);
-        
-        // Якщо розшифрування успішне, оновлюємо content
+        final decryptedContent = RSACrypto.decrypt(
+          encryptedContent,
+          privateKey,
+        );
+
         decryptedData['content'] = decryptedContent;
-        
+
         print('Message ${data['_id']} decrypted successfully');
         return decryptedData;
       } catch (e) {
-        // Якщо не вдалося розшифрувати цим ключем, пробуємо наступний
         continue;
       }
     }
-    
-    // Якщо жоден ключ не підійшов
-    print('Warning: Could not decrypt message ${data['_id']} with any available key');
-    return data; // Повертаємо оригінальні дані
+
+    return data;
   } catch (e, stackTrace) {
     print('Error in decryptSingleMessage: $e');
-    print('Stack trace: $stackTrace');
-    return data; // У разі будь-якої помилки повертаємо оригінальні дані
+    return data;
   }
 }
-
-
-
-
-// jsonDecode

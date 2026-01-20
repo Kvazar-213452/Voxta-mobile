@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'dart:async';
 import '../../../../../../../services/chat/socket_service.dart';
 import '../../utils/crypto/make_key_chat.dart';
-import 'dart:math';
 
 Future<Map<String, dynamic>> decrypted_auto(Map<String, dynamic> data) async {
   final keyPair = await getOrCreateKeyPair();
@@ -70,34 +69,22 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
     idChat: chatId,
     onSuccess: (keys) {
       try {
-        print('Received keys: $keys');
-        
-        // Отримуємо оригінальний content
         final originalContent = data['message']['content'] as String;
         
-        // Створюємо Map для зашифрованих даних
         final encryptedContents = <String, String>{};
         
-        // Шифруємо content для кожного користувача
         keys.forEach((userId, pubKey) {
           try {
-            // Очищуємо ключ від можливих пробілів та переносів рядків
             final cleanedKey = pubKey.toString().trim();
-            
-            print('Attempting to encrypt for user $userId');
-            print('Key length: ${cleanedKey.length}');
-            print('Key starts with: ${cleanedKey.substring(0, min(50, cleanedKey.length))}');
             
             final encryptedContent = RSACrypto.encrypt(
               originalContent,
               cleanedKey,
             );
             encryptedContents[userId.toString()] = encryptedContent;
-            print('Successfully encrypted for user $userId');
           } catch (e, stackTrace) {
             print('Failed to encrypt for user $userId: $e');
             print('Stack trace: $stackTrace');
-            // Не робимо rethrow, щоб спробувати зашифрувати для інших користувачів
           }
         });
         
@@ -105,7 +92,6 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
           throw Exception('Failed to encrypt for any user');
         }
         
-        // Створюємо нову копію data з зашифрованим content
         final encryptedData = Map<String, dynamic>.from(data);
         encryptedData['message'] = Map<String, dynamic>.from(data['message']);
         encryptedData['message']['content'] = encryptedContents;

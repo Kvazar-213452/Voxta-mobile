@@ -47,7 +47,6 @@ void connectSocket(
       try {
         Map<String, dynamic>? messageData;
 
-        // Parse the incoming data
         if (data is Map && data.containsKey('data')) {
           final innerData = data['data'];
 
@@ -65,7 +64,6 @@ void connectSocket(
           return;
         }
 
-        // Extract chatId before decryption
         final chatId = CAHT_ID;
 
         if (chatId == null) {
@@ -73,17 +71,9 @@ void connectSocket(
           return;
         }
 
-        // First check if content is in E2E format (Map with userId keys)
         messageData = decryptMessageEndToEnd(messageData, user.id);
-
-        print('After decryptMessageEndToEnd: $messageData');
-
-        // Then decrypt with RSA using chat's private keys
         messageData = await decryptMessageEndToEndFull(messageData, chatId);
 
-        print('After decryptMessageEndToEndFull: $messageData');
-
-        // Finally decrypt the message (if there's additional encryption)
         final msgFull = await decryptMessage(messageData, CAHT_ID);
 
         if (msgFull != null) {
