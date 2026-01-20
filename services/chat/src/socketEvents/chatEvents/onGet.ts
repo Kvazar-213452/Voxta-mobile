@@ -6,6 +6,45 @@ import { safeParseJSON } from "../../utils/utils";
 import Helpers from "../helpers";
 
 export default class chatEvents {
+  public static onGetPubKeysChat(socket: Socket): void {
+    socket.on("get_pub_keys_chat", async (data: { chatId: string }) => {
+      const auth = Helpers.getAuthOrFail(socket);
+      if (!auth) return Helpers.fail(socket, "get_pub_keys_chat_return", "unauthorized");
+
+      try {
+        const db = (await getMongoClient()).db("chats");
+        const chat: any = await db.collection(data.chatId).findOne({ _id: "config" as any });
+
+        if (!chat) return Helpers.fail(socket, "get_pub_keys_chat_return", "config_not_found");
+
+        delete chat._id;
+
+        let cryptoRaw = chat["crypto"];
+
+        let cryptoFiltered: Record<string, string> = {};
+
+        for (const userId in cryptoRaw) {
+          if (cryptoRaw[userId]?.keyPub) {
+            cryptoFiltered[userId] = cryptoRaw[userId].keyPub;
+          }
+        }
+
+        if (!chat["isE2EEnabled"]) {
+          cryptoFiltered = {"":""};
+        }
+
+        socket.emit("get_pub_keys_chat_return", {
+          code: 1,
+          keys: cryptoFiltered
+        });
+
+      } catch (err) {
+        console.error("get_pub_keys_chat_return error:", err);
+        Helpers.fail(socket, "get_pub_keys_chat_return", "server_error");
+      }
+    });
+  }
+
   public static onGetInfoChat(socket: Socket): void {
     socket.on("get_info_chat", async (data: { chatId: string, type: string, typeChat: string }) => {
       const auth = Helpers.getAuthOrFail(socket);
@@ -132,7 +171,8 @@ export default class chatEvents {
           participants: participantsData,
           messages,
           type: data.type,
-          crypto: config.crypto
+          crypto: config.crypto,
+          isE2EEnabled: config.isE2EEnabled,
         };
 
         const encrypted = await CryptoFunc.encryptionMsg(data.key, JSON.stringify(response));
@@ -146,3 +186,5 @@ export default class chatEvents {
     });
   }
 }
+
+// load_chat_content_return

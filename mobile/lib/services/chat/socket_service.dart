@@ -83,7 +83,11 @@ void connectSocket(
     socket!.on('make_key_pub_chat', (data) async {
       final keys = await ChatKeysDB.generateAndSaveRSAKeys(CAHT_ID);
 
-      socket!.emit('set_pub_key_for_user', {'id': data['chatId'], 'userId': data['userId'], 'key': keys["public"]});
+      socket!.emit('set_pub_key_for_user', {
+        'id': data['chatId'],
+        'userId': data['userId'],
+        'key': keys["public"],
+      });
     });
 
     socket!.on('authenticated', (data) async {
@@ -107,7 +111,7 @@ void connectSocket(
     socket!.on('load_chat_content_return', (data) async {
       data = await decrypted_auto(data);
 
-      print(data);
+      if (data["isE2EEnabled"]) {}
 
       data = await decryptMessages(data);
 
@@ -195,10 +199,10 @@ void sendMessage(
   String type,
   String typeMsg,
 ) async {
-  String keyChat = await ChatKeysDB.getKey(chatId);
+  String? keyChat = await ChatKeysDB.getKeyAES(chatId);
 
   if (keyChat != "" && typeMsg != "file") {
-    text = encryptText(text.toString(), keyChat);
+    text = encryptText(text.toString(), keyChat!);
   }
 
   if (keyChat != "" && typeMsg == "file") {
@@ -206,7 +210,7 @@ void sendMessage(
 
     final base64Data1 = map["base64Data"] as String?;
 
-    String base64Data = encryptText(base64Data1.toString(), keyChat);
+    String base64Data = encryptText(base64Data1.toString(), keyChat!);
     final fileName = map["fileName"] as String?;
     final fileSize = map["fileSize"] as int?;
 
@@ -250,7 +254,9 @@ void sendMessage(
       'typeChat': type,
     };
 
-    socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+    final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
+
+    socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
   } else if (typeMsg == "file") {
     final map = text as Map<String, dynamic>;
 

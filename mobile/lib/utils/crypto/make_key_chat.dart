@@ -143,19 +143,117 @@ class RSACrypto {
   }
 
   static RSAPublicKey _parsePublicKeyFromBase64(String base64Key) {
-    final bytes = base64.decode(base64Key);
+    try {
+      String cleanedKey = base64Key.trim();
+      final bytes = base64.decode(cleanedKey);
 
-    var asn1Parser = ASN1Parser(Uint8List.fromList(bytes));
-    var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
-    var publicKeyBitString = topLevelSeq.elements![1] as ASN1BitString;
+      // Ручний парсинг DER-encoded public key
+      int offset = 0;
 
-    var publicKeyAsn = ASN1Parser(publicKeyBitString.valueBytes());
-    var publicKeySeq = publicKeyAsn.nextObject() as ASN1Sequence;
+      // Пропускаємо SEQUENCE tag та length
+      if (bytes[offset] != 0x30) {
+        throw FormatException('Invalid SEQUENCE tag');
+      }
+      offset++;
 
-    var modulus = (publicKeySeq.elements![0] as ASN1Integer).valueAsBigInteger;
-    var exponent = (publicKeySeq.elements![1] as ASN1Integer).valueAsBigInteger;
+      // Читаємо довжину
+      int seqLength = _readLength(bytes, offset);
+      offset += _getLengthSize(bytes, offset);
 
-    return RSAPublicKey(modulus, exponent);
+      // Пропускаємо AlgorithmIdentifier SEQUENCE
+      if (bytes[offset] == 0x30) {
+        offset++;
+        int algIdLength = _readLength(bytes, offset);
+        offset += _getLengthSize(bytes, offset) + algIdLength;
+      }
+
+      // Читаємо BIT STRING
+      if (bytes[offset] != 0x03) {
+        throw FormatException('Invalid BIT STRING tag');
+      }
+      offset++;
+
+      int bitStringLength = _readLength(bytes, offset);
+      offset += _getLengthSize(bytes, offset);
+      offset++; // Пропускаємо unused bits byte
+
+      // Тепер парсимо RSAPublicKey SEQUENCE
+      if (bytes[offset] != 0x30) {
+        throw FormatException('Invalid RSAPublicKey SEQUENCE tag');
+      }
+      offset++;
+
+      int rsaSeqLength = _readLength(bytes, offset);
+      offset += _getLengthSize(bytes, offset);
+
+      // Читаємо modulus (INTEGER)
+      if (bytes[offset] != 0x02) {
+        throw FormatException('Invalid modulus INTEGER tag');
+      }
+      offset++;
+
+      int modulusLength = _readLength(bytes, offset);
+      offset += _getLengthSize(bytes, offset);
+
+      final modulusBytes = bytes.sublist(offset, offset + modulusLength);
+      final modulus = _bytesToBigInt(modulusBytes);
+      offset += modulusLength;
+
+      // Читаємо exponent (INTEGER)
+      if (bytes[offset] != 0x02) {
+        throw FormatException('Invalid exponent INTEGER tag');
+      }
+      offset++;
+
+      int exponentLength = _readLength(bytes, offset);
+      offset += _getLengthSize(bytes, offset);
+
+      final exponentBytes = bytes.sublist(offset, offset + exponentLength);
+      final exponent = _bytesToBigInt(exponentBytes);
+
+      return RSAPublicKey(modulus, exponent);
+    } catch (e, stackTrace) {
+      print('Error parsing public key manually: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
+  }
+
+  static int _readLength(Uint8List bytes, int offset) {
+    int firstByte = bytes[offset];
+
+    if (firstByte < 0x80) {
+      return firstByte;
+    }
+
+    int numBytes = firstByte & 0x7F;
+    int length = 0;
+
+    for (int i = 0; i < numBytes; i++) {
+      length = (length << 8) | bytes[offset + 1 + i];
+    }
+
+    return length;
+  }
+
+  static int _getLengthSize(Uint8List bytes, int offset) {
+    int firstByte = bytes[offset];
+
+    if (firstByte < 0x80) {
+      return 1;
+    }
+
+    return 1 + (firstByte & 0x7F);
+  }
+
+  static BigInt _bytesToBigInt(Uint8List bytes) {
+    BigInt result = BigInt.zero;
+
+    for (int i = 0; i < bytes.length; i++) {
+      result = (result << 8) | BigInt.from(bytes[i]);
+    }
+
+    return result;
   }
 
   static RSAPrivateKey _parsePrivateKeyFromBase64(String base64Key) {

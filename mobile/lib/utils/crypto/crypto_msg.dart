@@ -6,8 +6,8 @@ import '../../models/storage_chat_key.dart';
 
 String generateKey() {
   final random = Random.secure();
-  final values = List<int>.generate(32, (i) => random.nextInt(256));
-  return base64UrlEncode(values);
+  final values = List<int>.generate(32, (_) => random.nextInt(256));
+  return base64Encode(values); // НЕ Url
 }
 
 String encryptText(String plainText, String base64Key) {
@@ -71,9 +71,9 @@ Uint8List decryptBytes(Uint8List encryptedBytes, String base64Key) {
 }
 
 Future<Map<String, dynamic>> decryptMessages(Map<String, dynamic> data) async {
-  final keyChat = await ChatKeysDB.getKey(data["chatId"]);
+  final info = await ChatKeysDB.getChatInfo(data["chatId"]);
 
-  if (keyChat.isEmpty) {
+  if (!info?["isEncrypted"]) {
     return data;
   }
 
@@ -98,7 +98,7 @@ Future<Map<String, dynamic>> decryptMessages(Map<String, dynamic> data) async {
     if (!looksEncrypted) continue;
 
     try {
-      message["content"] = decryptText(content, keyChat);
+      message["content"] = decryptText(content, info?["keyAES"]);
     } catch (e) {
       print("Не вдалося розшифрувати повідомлення ${message["_id"]}: $e");
     }
@@ -112,14 +112,14 @@ Future<Map<String, dynamic>> decryptMessage(
   String chatId,
 ) async {
   try {
-    final keyChat = await ChatKeysDB.getKey(chatId);
+    final info = await ChatKeysDB.getChatInfo(chatId);
 
-    if (keyChat.isEmpty) {
+    if (!info?["isEncrypted"]) {
       return message;
     }
 
     final content = message["content"];
-    
+
     if (content is! String) {
       return message;
     }
@@ -130,8 +130,8 @@ Future<Map<String, dynamic>> decryptMessage(
 
     if (looksEncrypted) {
       try {
-        final decrypted = decryptText(content, keyChat);
-        
+        final decrypted = decryptText(content, info?["keyAES"]);
+
         message["content"] = decrypted;
       } catch (e, stackTrace) {
         print("Stack trace: $stackTrace");

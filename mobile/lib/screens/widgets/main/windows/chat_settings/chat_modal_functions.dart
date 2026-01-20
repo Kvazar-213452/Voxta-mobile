@@ -391,6 +391,7 @@ class ChatModalFunctions {
           users: data["participants"] ?? [],
           owner: data["owner"] ?? "",
           time: data["createdAt"] ?? "",
+          isE2EEnabled: data["isE2EEnabled"] ?? false, 
         );
       },
       onError: (String error) {
@@ -416,6 +417,7 @@ class ChatModalFunctions {
     required String id,
     required String type,
     required String time,
+    required bool isE2EEnabled,
     required String owner,
     required String? avatarUrl,
     required VoidCallback onBackPressed,
@@ -458,17 +460,20 @@ class ChatModalFunctions {
           typeChat: type,
           time: time,
           owner: owner,
+          isE2EEnabled: isE2EEnabled,
           chatId: id,
           currentInviteCode: keyChat,
           onSave: (
             String newName,
             String newDescription,
             String? avatarBase64,
+            bool isE2EEnabled,
           ) {
             saveSettingsChat(id, type, {
               "name": newName,
               "desc": newDescription,
               "avatar": avatarBase64,
+              "isE2EEnabled": isE2EEnabled,
             });
           },
         );

@@ -11,6 +11,7 @@ import KeyChat from './socketEvents/chatEvents/onKeyChat';
 import UserEvents from './socketEvents/userEvents';
 import ServerEvents from './socketEvents/serverEvents';
 import CryptoChat from './socketEvents/chatEvents/onCryptoChat';
+import chatEvents from './socketEvents/chatEvents/onGet';
 
 async function startServer() {
   await loadConfig("GLOBAL_URL");
@@ -39,6 +40,7 @@ async function startServer() {
   io.on('connection', (socket: Socket) => {
     console.log(`connect client: ${socket.id}`);
 
+    chatEvents.onGetPubKeysChat(socket);
     CryptoChat.onSetPubKeyForUser(socket);
     CryptoChat.onSetIntervalForUser(socket);
     CryptoChat.onGetInterval(socket);

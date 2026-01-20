@@ -184,6 +184,7 @@ export default class Create {
         const update: any = {
           name: data.dataChat.name,
           desc: data.dataChat.desc,
+          isE2EEnabled: data.dataChat.isE2EEnabled,
         };
 
         if (data.dataChat.avatar !== null) update.avatar = await uploadAvatar(data.dataChat.avatar);

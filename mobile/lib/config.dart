@@ -7,4 +7,3 @@ class Config {
 
   static const String DEF_ICON_USER =  "https://icon-library.com/images/none-icon/none-icon-13.jpg";
 }
-

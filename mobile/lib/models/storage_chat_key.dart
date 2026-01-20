@@ -39,86 +39,17 @@ class ChatKeysDB {
 
     _db = await openDatabase(
       path,
-      version: 4,
+      version: 1,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS chat_keys (
             chatId TEXT PRIMARY KEY,
             isEncrypted INTEGER NOT NULL DEFAULT 0,
             keys TEXT NOT NULL,
-            type TEXT,
             keyAES TEXT
           )
         ''');
         print('Chat keys table created');
-      },
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await db.execute('''
-            CREATE TABLE IF NOT EXISTS chat_keys_new (
-              chatId TEXT PRIMARY KEY,
-              isEncrypted INTEGER NOT NULL DEFAULT 0,
-              keys TEXT NOT NULL
-            )
-          ''');
-
-          final oldData = await db.query('chat_keys');
-          for (var row in oldData) {
-            final chatId = row['chatId'] as String;
-            final oldKey = row['key'] as String;
-            final keysData = jsonEncode({
-              'pub': '',
-              'priv': [oldKey]
-            });
-
-            await db.insert('chat_keys_new', {
-              'chatId': chatId,
-              'isEncrypted': 1,
-              'keys': keysData,
-            });
-          }
-
-          await db.execute('DROP TABLE chat_keys');
-          await db.execute('ALTER TABLE chat_keys_new RENAME TO chat_keys');
-
-          print('Database migrated to version 2');
-        }
-        
-        if (oldVersion < 3) {
-          final allData = await db.query('chat_keys');
-          for (var row in allData) {
-            final chatId = row['chatId'] as String;
-            final keysJson = row['keys'] as String;
-            
-            try {
-              final decoded = jsonDecode(keysJson);
-              
-              if (decoded is List) {
-                final keysData = jsonEncode({
-                  'pub': '',
-                  'priv': decoded
-                });
-                
-                await db.update(
-                  'chat_keys',
-                  {'keys': keysData},
-                  where: 'chatId = ?',
-                  whereArgs: [chatId],
-                );
-              }
-            } catch (e) {
-              print('Error migrating chatId $chatId: $e');
-            }
-          }
-          
-          print('Database migrated to version 3');
-        }
-
-        if (oldVersion < 4) {
-          await db.execute('ALTER TABLE chat_keys ADD COLUMN type TEXT');
-          await db.execute('ALTER TABLE chat_keys ADD COLUMN keyAES TEXT');
-          print('Database migrated to version 4');
-        }
       },
       onOpen: (db) async {
         print('Chat keys database opened successfully');
@@ -171,14 +102,12 @@ class ChatKeysDB {
 
       Map<String, dynamic> keysData;
       bool isEncrypted = true;
-      String? type;
       String? keyAES;
 
       if (result.isNotEmpty) {
         final existingKeysJson = result.first['keys'] as String;
         keysData = jsonDecode(existingKeysJson);
         isEncrypted = (result.first['isEncrypted'] as int) == 1;
-        type = result.first['type'] as String?;
         keyAES = result.first['keyAES'] as String?;
 
         // Оновлюємо публічний ключ
@@ -202,7 +131,6 @@ class ChatKeysDB {
         'chatId': chatId,
         'isEncrypted': isEncrypted ? 1 : 0,
         'keys': jsonEncode(keysData),
-        'type': type,
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
@@ -227,14 +155,12 @@ class ChatKeysDB {
 
       Map<String, dynamic> keysData;
       bool isEncrypted = true;
-      String? type;
       String? keyAES;
 
       if (result.isNotEmpty) {
         final existingKeysJson = result.first['keys'] as String;
         keysData = jsonDecode(existingKeysJson);
         isEncrypted = (result.first['isEncrypted'] as int) == 1;
-        type = result.first['type'] as String?;
         keyAES = result.first['keyAES'] as String?;
         keysData['pub'] = publicKey;
       } else {
@@ -248,7 +174,6 @@ class ChatKeysDB {
         'chatId': chatId,
         'isEncrypted': isEncrypted ? 1 : 0,
         'keys': jsonEncode(keysData),
-        'type': type,
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
@@ -357,14 +282,12 @@ class ChatKeysDB {
 
       Map<String, dynamic> keysData;
       bool isEncrypted = true;
-      String? type;
       String? keyAES;
 
       if (result.isNotEmpty) {
         final existingKeysJson = result.first['keys'] as String;
         keysData = jsonDecode(existingKeysJson);
         isEncrypted = (result.first['isEncrypted'] as int) == 1;
-        type = result.first['type'] as String?;
         keyAES = result.first['keyAES'] as String?;
 
         List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
@@ -383,7 +306,6 @@ class ChatKeysDB {
         'chatId': chatId,
         'isEncrypted': isEncrypted ? 1 : 0,
         'keys': jsonEncode(keysData),
-        'type': type,
         'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
@@ -432,66 +354,7 @@ class ChatKeysDB {
     }
   }
 
-  // ==================== TYPE AND AES KEY MANAGEMENT ====================
-
-  /// Встановлює тип шифрування для чату
-  static Future<void> setType(String chatId, String type) async {
-    try {
-      final db = await initDatabase();
-
-      final result = await db.query(
-        'chat_keys',
-        where: 'chatId = ?',
-        whereArgs: [chatId],
-        limit: 1,
-      );
-
-      if (result.isEmpty) {
-        await db.insert('chat_keys', {
-          'chatId': chatId,
-          'isEncrypted': 0,
-          'keys': jsonEncode({'pub': '', 'priv': []}),
-          'type': type,
-          'keyAES': null,
-        });
-      } else {
-        await db.update(
-          'chat_keys',
-          {'type': type},
-          where: 'chatId = ?',
-          whereArgs: [chatId],
-        );
-      }
-
-      print('Type set to "$type" for chatId: $chatId');
-    } catch (e) {
-      print('Failed to set type: $e');
-      rethrow;
-    }
-  }
-
-  /// Отримує тип шифрування для чату
-  static Future<String?> getType(String chatId) async {
-    try {
-      final db = await initDatabase();
-
-      final result = await db.query(
-        'chat_keys',
-        where: 'chatId = ?',
-        whereArgs: [chatId],
-        limit: 1,
-      );
-
-      if (result.isEmpty) {
-        return null;
-      }
-
-      return result.first['type'] as String?;
-    } catch (e) {
-      print('Failed to get type: $e');
-      return null;
-    }
-  }
+  // ==================== AES KEY MANAGEMENT ====================
 
   /// Встановлює AES ключ для чату
   static Future<void> setKeyAES(String chatId, String keyAES) async {
@@ -510,7 +373,6 @@ class ChatKeysDB {
           'chatId': chatId,
           'isEncrypted': 0,
           'keys': jsonEncode({'pub': '', 'priv': []}),
-          'type': null,
           'keyAES': keyAES,
         });
       } else {
@@ -552,44 +414,6 @@ class ChatKeysDB {
     }
   }
 
-  /// Видаляє AES ключ для чату
-  static Future<void> deleteKeyAES(String chatId) async {
-    try {
-      final db = await initDatabase();
-
-      await db.update(
-        'chat_keys',
-        {'keyAES': null},
-        where: 'chatId = ?',
-        whereArgs: [chatId],
-      );
-
-      print('AES key deleted for chatId: $chatId');
-    } catch (e) {
-      print('Failed to delete AES key: $e');
-      rethrow;
-    }
-  }
-
-  /// Видаляє тип шифрування для чату
-  static Future<void> deleteType(String chatId) async {
-    try {
-      final db = await initDatabase();
-
-      await db.update(
-        'chat_keys',
-        {'type': null},
-        where: 'chatId = ?',
-        whereArgs: [chatId],
-      );
-
-      print('Type deleted for chatId: $chatId');
-    } catch (e) {
-      print('Failed to delete type: $e');
-      rethrow;
-    }
-  }
-
   // ==================== LEGACY METHODS ====================
 
   static Future<void> addKey(String chatId, String key) async {
@@ -612,7 +436,6 @@ class ChatKeysDB {
           'chatId': chatId,
           'isEncrypted': isEncrypted ? 1 : 0,
           'keys': jsonEncode({'pub': '', 'priv': []}),
-          'type': null,
           'keyAES': null,
         });
       } else {
@@ -627,17 +450,6 @@ class ChatKeysDB {
       print('Encryption status updated for chatId: $chatId to $isEncrypted');
     } catch (e) {
       print('Failed to set encryption: $e');
-      rethrow;
-    }
-  }
-
-  static Future<void> deleteKey(String chatId) async {
-    try {
-      final db = await initDatabase();
-      await db.delete('chat_keys', where: 'chatId = ?', whereArgs: [chatId]);
-      print('All data deleted for chatId: $chatId');
-    } catch (e) {
-      print('Failed to delete key: $e');
       rethrow;
     }
   }
@@ -738,7 +550,6 @@ class ChatKeysDB {
       final keysJson = result.first['keys'] as String;
       final keysData = jsonDecode(keysJson);
       final isEncrypted = (result.first['isEncrypted'] as int) == 1;
-      final type = result.first['type'] as String?;
       final keyAES = result.first['keyAES'] as String?;
 
       return {
@@ -746,7 +557,6 @@ class ChatKeysDB {
         'isEncrypted': isEncrypted,
         'publicKey': keysData['pub'],
         'privateKeys': keysData['priv'],
-        'type': type,
         'keyAES': keyAES,
       };
     } catch (e) {

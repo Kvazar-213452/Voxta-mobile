@@ -14,7 +14,7 @@ Future<void> downloadFile(
   BuildContext context,
 ) async {
   try {
-    final keyChat = await ChatKeysDB.getKey(chatId);
+    final keyChat = await ChatKeysDB.getKeyAES(chatId);
 
     final response = await http.get(Uri.parse(url));
     if (response.statusCode != 200) {
@@ -39,8 +39,8 @@ Future<void> downloadFile(
 
     Uint8List fileBytes;
 
-    if (keyChat.isNotEmpty) {
-      final decryptedData = decryptBytes(response.bodyBytes, keyChat);
+    if (keyChat!.isNotEmpty) {
+      final decryptedData = decryptBytes(response.bodyBytes, keyChat!);
       final decryptedString = utf8.decode(decryptedData);
       fileBytes = decodeDataUri(decryptedString);
     } else {

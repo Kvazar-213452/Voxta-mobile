@@ -23,8 +23,9 @@ class ChatSettingsModal extends StatefulWidget {
   final Widget? chatAvatar;
   final List<dynamic> users;
   final String? currentInviteCode;
+  final bool isE2EEnabled;
   final VoidCallback onBackPressed;
-  final Function(String name, String description, String? avatar) onSave;
+  final Function(String name, String description, String? avatar, bool isE2EEnabled) onSave;
 
   const ChatSettingsModal({
     super.key,
@@ -37,6 +38,7 @@ class ChatSettingsModal extends StatefulWidget {
     this.chatAvatar,
     this.users = const [],
     this.currentInviteCode,
+    this.isE2EEnabled = false,
     required this.onSave,
     required this.chatId,
   });
@@ -51,6 +53,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   bool _isFormValid = false;
   bool _isLoadingUsers = true;
   bool _isGeneratingInviteCode = false;
+  bool _isE2EEnabled = false;
   String? _currentInviteCode;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
@@ -67,6 +70,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
     _nameController = TextEditingController(text: widget.currentName);
     _descriptionController = TextEditingController(text: widget.currentDescription);
     _currentInviteCode = widget.currentInviteCode;
+    _isE2EEnabled = widget.isE2EEnabled;
     
     _initializeUsers();
     _initializeAnimations();
@@ -265,6 +269,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
         _nameController.text.trim(),
         _descriptionController.text.trim(),
         avatarBase64,
+        _isE2EEnabled,
       );
       _closeModal();
     }
@@ -368,6 +373,8 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             typeChat: widget.typeChat,
           ),
           const SizedBox(height: 16),
+          _buildE2EEncryptionSection(),
+          const SizedBox(height: 16),
           ChatInviteCodesSection(
             currentInviteCode: _currentInviteCode,
             isGenerating: _isGeneratingInviteCode,
@@ -389,6 +396,65 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
           ),
           const SizedBox(height: 24),
           _buildDeleteChatSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildE2EEncryptionSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.brandGreen.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.brandGreen.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.lock_outline,
+                color: AppColors.brandGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'End-to-End шифрування',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.lightGray,
+                  ),
+                ),
+              ),
+              Switch(
+                value: _isE2EEnabled,
+                onChanged: (value) {
+                  setState(() {
+                    _isE2EEnabled = value;
+                  });
+                },
+                activeColor: AppColors.brandGreen,
+                activeTrackColor: AppColors.brandGreen.withOpacity(0.5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _isE2EEnabled
+                ? 'Ваші повідомлення захищені наскрізним шифруванням. Тільки учасники чату можуть їх прочитати.'
+                : 'Увімкніть для захисту повідомлень наскрізним шифруванням.',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.grayText,
+            ),
+          ),
         ],
       ),
     );

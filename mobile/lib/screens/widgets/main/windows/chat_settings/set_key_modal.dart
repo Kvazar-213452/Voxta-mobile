@@ -53,10 +53,10 @@ class _SetKeyModalState extends State<SetKeyModal>
   }
 
   Future<void> _loadKey() async {
-    final key = await ChatKeysDB.getKey(widget.chatId);
+    final key = await ChatKeysDB.getKeyAES(widget.chatId);
     if (mounted) {
       setState(() {
-        _keyController.text = key;
+        _keyController.text = key!;
       });
     }
   }
@@ -142,8 +142,8 @@ class _SetKeyModalState extends State<SetKeyModal>
       );
       return;
     }
-
-    ChatKeysDB.addKey(widget.chatId, _keyController.text);
+    print("object");
+    ChatKeysDB.setKeyAES(widget.chatId, _keyController.text);
     _closeModal();
   }
 
@@ -596,3 +596,5 @@ class _SetKeyModalState extends State<SetKeyModal>
     );
   }
 }
+
+// згенерувати
