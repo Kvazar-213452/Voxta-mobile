@@ -204,6 +204,7 @@ Future<Map<String, dynamic>> decryptMessagesEndToEndFull(
 ) async {
   final info = await ChatKeysDB.getChatInfo(chatId);
   final privateKeys = info?["privateKeys"];
+  print(privateKeys);
 
   if (privateKeys == null || privateKeys.isEmpty) {
     print('No private keys available for decryption');

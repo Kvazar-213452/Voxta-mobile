@@ -89,6 +89,8 @@ class ChatKeysDB {
     try {
       final db = await initDatabase();
 
+      print(privateKey);
+
       final result = await db.query(
         'chat_keys',
         where: 'chatId = ?',
