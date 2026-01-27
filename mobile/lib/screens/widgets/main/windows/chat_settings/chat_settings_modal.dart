@@ -425,7 +425,7 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'End-to-End шифрування',
+                  'End-to-End шифрування beta',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
