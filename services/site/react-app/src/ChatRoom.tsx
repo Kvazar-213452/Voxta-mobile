@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Send, Paperclip, Sun, Moon, Info, X, FileText, Image as ImageIcon, Lock, Eye, EyeOff } from 'lucide-react';
+import { Send, Paperclip, Sun, Moon, Info, X, FileText, Lock, Eye, EyeOff } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import Config from './config';
 
@@ -19,7 +19,7 @@ const ChatRoom: React.FC = () => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(60);
+  const [_, setTimeRemaining] = useState<number>(60);
   const [password, setPassword] = useState<string>('');
   const [isPasswordPromptOpen, setIsPasswordPromptOpen] = useState<boolean>(true);
   const [passwordInput, setPasswordInput] = useState<string>('');
