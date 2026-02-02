@@ -68,44 +68,60 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
   getPubKeys(
     idChat: chatId,
     onSuccess: (keys) {
+      if (keys.isEmpty) {
+        print('No public keys found, returning original data');
+        completer.complete(data);
+        return;
+      }
+
       try {
         final originalContent = data['message']['content'] as String;
-        
         final encryptedContents = <String, String>{};
-        
+
         keys.forEach((userId, pubKey) {
           try {
+            if (pubKey == null || pubKey.toString().trim().isEmpty) {
+              print('Empty public key for user $userId, skipping');
+              return;
+            }
+
             final cleanedKey = pubKey.toString().trim();
-            
+            print('Encrypting for user $userId with key length: ${cleanedKey.length}');
+
             final encryptedContent = RSACrypto.encrypt(
               originalContent,
               cleanedKey,
             );
             encryptedContents[userId.toString()] = encryptedContent;
+            print('Successfully encrypted for user $userId');
           } catch (e, stackTrace) {
             print('Failed to encrypt for user $userId: $e');
             print('Stack trace: $stackTrace');
           }
         });
-        
+
         if (encryptedContents.isEmpty) {
-          throw Exception('Failed to encrypt for any user');
+          print('Failed to encrypt for any user, returning original data');
+          completer.complete(data);
+          return;
         }
-        
+
         final encryptedData = Map<String, dynamic>.from(data);
         encryptedData['message'] = Map<String, dynamic>.from(data['message']);
         encryptedData['message']['content'] = encryptedContents;
-        
+
+        print('Encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
       } catch (e, stackTrace) {
         print('Encryption process failed: $e');
         print('Stack trace: $stackTrace');
-        completer.completeError('Encryption failed: $e');
+        completer.complete(data);
       }
     },
     onError: (error) {
       print('Failed to get public keys: $error');
-      completer.completeError(error);
+      print('Returning original data due to error');
+      completer.complete(data);
     },
   );
 
@@ -124,7 +140,11 @@ void getPubKeys({
 
     socket!.on('get_pub_keys_chat_return', (data) {
       try {
+        if (data["code"] == 0) {
+          onError('Помилка обробки даних чату');
+        } else {
           onSuccess(data['keys']);
+        }
       } catch (e) {
         onError('Помилка обробки даних чату');
         socket!.off('get_pub_keys_chat_return');

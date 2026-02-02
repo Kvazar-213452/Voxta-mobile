@@ -61,81 +61,102 @@ class ChatKeysDB {
 
   // ==================== RSA KEY MANAGEMENT ====================
 
-  static Future<Map<String, String>> generateAndSaveRSAKeys(
-    String chatId, {
-    int keySize = 2048,
-  }) async {
-    try {
-      final keyPair = await RSACrypto.generateKeyPair(keySize: keySize);
-
-      await saveRSAKeys(
-        chatId,
-        publicKey: keyPair['public']!,
-        privateKey: keyPair['private']!,
-      );
-
-      return keyPair;
-    } catch (e) {
-      print('Failed to generate and save RSA keys: $e');
-      rethrow;
+static Future<Map<String, String>> generateAndSaveRSAKeys(
+  String chatId, {
+  int keySize = 2048,
+}) async {
+  try {
+    print('Generating RSA key pair for chatId: $chatId with keySize: $keySize');
+    
+    // Генерація ключів
+    final keyPair = await RSACrypto.generateKeyPair(keySize: keySize);
+    
+    // Перевірка чи ключі згенерувалися
+    if (keyPair['public'] == null || keyPair['private'] == null) {
+      throw Exception('Generated keys are null');
     }
+    
+    print('Keys generated successfully');
+    print('Public key length: ${keyPair['public']!.length}');
+    print('Private key length: ${keyPair['private']!.length}');
+
+    // Збереження ключів
+    await saveRSAKeys(
+      chatId,
+      publicKey: keyPair['public']!,
+      privateKey: keyPair['private']!,
+    );
+
+    print('Keys saved successfully for chatId: $chatId');
+    
+    return keyPair;
+  } catch (e, stackTrace) {
+    print('Failed to generate and save RSA keys: $e');
+    print('Stack trace: $stackTrace');
+    rethrow;
   }
+}
 
   static Future<void> saveRSAKeys(
-    String chatId, {
-    required String publicKey,
-    required String privateKey,
-  }) async {
-    try {
-      final db = await initDatabase();
+  String chatId, {
+  required String publicKey,
+  required String privateKey,
+}) async {
+  try {
+    final db = await initDatabase();
 
-      print(privateKey);
+    print('Saving RSA keys for chatId: $chatId');
+    // Видаліть або закоментуйте це, якщо не потрібно виводити приватний ключ
+    // print(privateKey);
 
-      final result = await db.query(
-        'chat_keys',
-        where: 'chatId = ?',
-        whereArgs: [chatId],
-        limit: 1,
-      );
+    final result = await db.query(
+      'chat_keys',
+      where: 'chatId = ?',
+      whereArgs: [chatId],
+      limit: 1,
+    );
 
-      Map<String, dynamic> keysData;
-      bool isEncrypted = true;
-      String? keyAES;
+    Map<String, dynamic> keysData;
+    bool isEncrypted = true;
+    String? keyAES;
 
-      if (result.isNotEmpty) {
-        final existingKeysJson = result.first['keys'] as String;
-        keysData = jsonDecode(existingKeysJson);
-        isEncrypted = (result.first['isEncrypted'] as int) == 1;
-        keyAES = result.first['keyAES'] as String?;
+    if (result.isNotEmpty) {
+      final existingKeysJson = result.first['keys'] as String;
+      keysData = jsonDecode(existingKeysJson);
+      isEncrypted = (result.first['isEncrypted'] as int) == 1;
+      keyAES = result.first['keyAES'] as String?;
 
-        keysData['pub'] = publicKey;
+      keysData['pub'] = publicKey;
 
-        List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
+      List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
 
-        if (!privKeys.contains(privateKey)) {
-          privKeys.add(privateKey);
-        }
-
-        keysData['priv'] = privKeys;
-      } else {
-        keysData = {
-          'pub': publicKey,
-          'priv': [privateKey],
-        };
+      if (!privKeys.contains(privateKey)) {
+        privKeys.add(privateKey);
       }
 
-      await db.insert('chat_keys', {
-        'chatId': chatId,
-        'isEncrypted': isEncrypted ? 1 : 0,
-        'keys': jsonEncode(keysData),
-        'keyAES': keyAES,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
-
-    } catch (e) {
-      print('Failed to save RSA keys: $e');
-      rethrow;
+      keysData['priv'] = privKeys;
+    } else {
+      keysData = {
+        'pub': publicKey,
+        'priv': [privateKey],
+      };
     }
+
+    final rowsAffected = await db.insert('chat_keys', {
+      'chatId': chatId,
+      'isEncrypted': isEncrypted ? 1 : 0,
+      'keys': jsonEncode(keysData),
+      'keyAES': keyAES,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    print('Keys saved, rows affected: $rowsAffected');
+
+  } catch (e, stackTrace) {
+    print('Failed to save RSA keys: $e');
+    print('Stack trace: $stackTrace');
+    rethrow;
   }
+}
 
   static Future<void> updatePublicKey(String chatId, String publicKey) async {
     try {

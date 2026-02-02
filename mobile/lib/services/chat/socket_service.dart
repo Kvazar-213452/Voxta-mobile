@@ -92,7 +92,7 @@ void connectSocket(
     });
 
     socket!.on('make_key_pub_chat', (data) async {
-      final keys = await ChatKeysDB.generateAndSaveRSAKeys(CAHT_ID);
+      final keys = await ChatKeysDB.generateAndSaveRSAKeys(data["chatId"]);
 
       socket!.emit('set_pub_key_for_user', {
         'id': data['chatId'],
@@ -121,13 +121,18 @@ void connectSocket(
 
     socket!.on('load_chat_content_return', (data) async {
       data = await decrypted_auto(data);
-      data = await decryptMessagesEndToEnd(data, user.id);
-      data = await decryptMessagesEndToEndFull(data, data["chatId"]);
-      data = await decryptMessages(data);
+
+      final List messages = (data["messages"] as List?) ?? [];
+
+      if (messages.isNotEmpty) {
+        data = await decryptMessagesEndToEnd(data, user.id);
+        data = await decryptMessagesEndToEndFull(data, data["chatId"]);
+        data = await decryptMessages(data);
+      }
 
       CAHT_ID = data["chatId"];
 
-      _onChatContentReceived!(data as Map<String, dynamic>);
+      _onChatContentReceived?.call(data as Map<String, dynamic>);
     });
 
     socket!.on('create_new_chat', (data) async {
@@ -209,13 +214,19 @@ void sendMessage(
   String type,
   String typeMsg,
 ) async {
+  final info = await ChatKeysDB.getChatInfo(chatId);
   String? keyChat = await ChatKeysDB.getKeyAES(chatId);
 
-  if (keyChat != "" && typeMsg != "file") {
-    text = encryptText(text.toString(), keyChat!);
+
+  if (info!["isEncrypted"] == false) {
+    keyChat = null;
   }
 
-  if (keyChat != "" && typeMsg == "file") {
+  if (keyChat != null && keyChat!.isNotEmpty && typeMsg != "file") {
+    text = encryptText(text.toString(), keyChat);
+  }
+
+  if (keyChat != null && keyChat != "" && typeMsg == "file") {
     final map = text as Map<String, dynamic>;
 
     final base64Data1 = map["base64Data"] as String?;

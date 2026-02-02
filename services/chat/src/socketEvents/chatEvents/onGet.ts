@@ -29,12 +29,15 @@ export default class chatEvents {
           }
         }
 
+        let code1 = 1;
+
         if (!chat["isE2EEnabled"]) {
           cryptoFiltered = { "": "" };
+          code1 = 0;
         }
 
         socket.emit("get_pub_keys_chat_return", {
-          code: 1,
+          code: code1,
           keys: cryptoFiltered
         });
 
@@ -195,4 +198,4 @@ export default class chatEvents {
   }
 }
 
-// load_chat_content_return
+// make_key_pub_chat
