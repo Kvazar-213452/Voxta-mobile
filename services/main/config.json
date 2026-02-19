@@ -4,7 +4,7 @@
   "GLOBAL_URL": {
     "MICROSERVICES_DATA": "http://localhost:3004/",
     "MICROSERVICES_CHAT": "http://localhost:3010/",
-    "MICROSERVICES_CRYPTO": "http://localhost:3005/",
+    "MICROSERVICES_CRYPTO": "http://localhost:3015/",
     "MICROSERVICES_AUTHENTICATION": "http://localhost:3007/",
     "MICROSERVICES_SITE": "http://localhost:3011/",
     "API_LOCAL": "http://localhost:8000/"
@@ -26,7 +26,7 @@
     "API_GLOBAL": "http://localhost:3004"
   },
   "API_CRYPTO": {
-    "PORT": "3005",
+    "PORT": "3015",
     "API": "0.0.0.0"
   },
   "API_AUTHENTICATION": {
