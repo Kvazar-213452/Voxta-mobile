@@ -156,7 +156,6 @@ Future<Map<String, dynamic>> decryptMessagesEndToEnd(
   }
 
   final List messages = List.from(result["messages"]);
-
   final List newMessages = [];
 
   for (var msg in messages) {
@@ -167,19 +166,16 @@ Future<Map<String, dynamic>> decryptMessagesEndToEnd(
       if (content is Map) {
         if (content.containsKey(userIdMy)) {
           final encrypted = content[userIdMy];
-
           if (encrypted is String && isBase64(encrypted)) {
             message["content"] = encrypted;
           }
         }
-      }
 
-      else if (content is String) {
+      } else if (content is String) {
         if (!isBase64(content)) {
           newMessages.add(message);
           continue;
         }
-
       }
     } catch (e) {
       print("Decrypt error ${message['_id']}: $e");
@@ -189,13 +185,7 @@ Future<Map<String, dynamic>> decryptMessagesEndToEnd(
   }
 
   result["messages"] = newMessages;
-
   return result;
-}
-
-bool isBase64(String str) {
-  final regex = RegExp(r'^[A-Za-z0-9+/]+={0,2}$');
-  return regex.hasMatch(str) && str.length % 4 == 0;
 }
 
 Future<Map<String, dynamic>> decryptMessagesEndToEndFull(
@@ -220,9 +210,9 @@ Future<Map<String, dynamic>> decryptMessagesEndToEndFull(
 
   for (int i = 0; i < messages.length; i++) {
     final message = Map<String, dynamic>.from(messages[i]);
-    final String? encryptedContent = message['content'];
+    final content = message['content'];
 
-    if (encryptedContent == null || encryptedContent.isEmpty) {
+    if (content is! String || content.isEmpty) {
       continue;
     }
 
@@ -230,11 +220,7 @@ Future<Map<String, dynamic>> decryptMessagesEndToEndFull(
 
     for (var privateKey in privateKeys) {
       try {
-        final decryptedContent = RSACrypto.decrypt(
-          encryptedContent,
-          privateKey,
-        );
-
+        final decryptedContent = RSACrypto.decrypt(content, privateKey);
         message['content'] = decryptedContent;
         messages[i] = message;
         decrypted = true;
@@ -245,14 +231,11 @@ Future<Map<String, dynamic>> decryptMessagesEndToEndFull(
     }
 
     if (!decrypted) {
-      print(
-        'Warning: Could not decrypt message ${message['_id']} with any available key',
-      );
+      print('Warning: Could not decrypt message ${message['_id']} with any available key');
     }
   }
 
   decryptedData['messages'] = messages;
-
   return decryptedData;
 }
 
@@ -271,15 +254,14 @@ Map<String, dynamic> decryptMessageEndToEnd(
   if (content is Map) {
     if (content.containsKey(userIdMy)) {
       final encrypted = content[userIdMy];
-
       if (encrypted is String) {
         result["content"] = encrypted;
       }
     } else {
-      print('E2E content does not contain key for user $userIdMy');
+      print('Content is a non-e2e object (e.g. file), skipping decryption');
     }
   } else if (content is String) {
-    print('Content is already in string format (likely already encrypted)');
+    print('Content is already in string format (likely already decrypted)');
   }
 
   return result;
@@ -298,9 +280,9 @@ Future<Map<String, dynamic>> decryptMessageEndToEndFull(
       return data;
     }
 
-    final String? encryptedContent = data['content'];
+    final content = data['content'];
 
-    if (encryptedContent == null || encryptedContent.isEmpty) {
+    if (content is! String || content.isEmpty) {
       return data;
     }
 
@@ -308,13 +290,8 @@ Future<Map<String, dynamic>> decryptMessageEndToEndFull(
 
     for (var privateKey in privateKeys) {
       try {
-        final decryptedContent = RSACrypto.decrypt(
-          encryptedContent,
-          privateKey,
-        );
-
+        final decryptedContent = RSACrypto.decrypt(content, privateKey);
         decryptedData['content'] = decryptedContent;
-
         print('Message ${data['_id']} decrypted successfully');
         return decryptedData;
       } catch (e) {
@@ -327,4 +304,9 @@ Future<Map<String, dynamic>> decryptMessageEndToEndFull(
     print('Error in decryptSingleMessage: $e');
     return data;
   }
+}
+
+bool isBase64(String str) {
+  final regex = RegExp(r'^[A-Za-z0-9+/]+={0,2}$');
+  return regex.hasMatch(str) && str.length % 4 == 0;
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import '../../../../../app_colors.dart';
 import '../../../../../utils/getBase64.dart';
 
@@ -130,7 +131,6 @@ class FilePickerService {
     );
   }
 
-  // Функція для вибору зображення
   static Future<void> pickImage(
     ImageSource source, {
     required String chatId,
@@ -198,18 +198,19 @@ class FilePickerService {
       final List<int> fileBytes = await file.readAsBytes();
       final String base64String = getFileBase64(file);
 
-      final String fileName = file.path.split('\\').last;
+      final String fileName = p.basename(file.path);
       final int fileSize = fileBytes.length;
 
       final Map<String, dynamic> fileData = {
         'fileName': fileName,
         'fileSize': fileSize,
-        'base64Data': base64String
+        'base64Data': base64String,
       };
 
       onSuccess(fileData);
     } catch (e) {
       print('Помилка при обробці файлу: $e');
+      onError('Помилка при обробці файлу: $e');
     }
   }
 }

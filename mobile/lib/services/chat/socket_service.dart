@@ -217,7 +217,6 @@ void sendMessage(
   final info = await ChatKeysDB.getChatInfo(chatId);
   String? keyChat = await ChatKeysDB.getKeyAES(chatId);
 
-
   if (info!["isEncrypted"] == false) {
     keyChat = null;
   }
@@ -254,7 +253,9 @@ void sendMessage(
           'typeChat': type,
         };
 
-        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+        final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
+
+        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
       } else {
         print('Failed to upload file');
         return;
