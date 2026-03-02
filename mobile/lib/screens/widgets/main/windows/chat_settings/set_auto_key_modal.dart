@@ -64,7 +64,7 @@ class _SetAutoKeyModalState extends State<SetAutoKeyModal>
         if (!mounted) return;
 
         setState(() {
-          _selectedFrequency = interval;
+          _selectedFrequency = _frequencies.containsKey(interval) ? interval : '0';
         });
       },
       onError: (String error) {
@@ -80,7 +80,7 @@ class _SetAutoKeyModalState extends State<SetAutoKeyModal>
       },
     );
   }
-
+  
   @override
   void dispose() {
     _animationController.dispose();
@@ -337,3 +337,6 @@ class _SetAutoKeyModalState extends State<SetAutoKeyModal>
     );
   }
 }
+
+
+// load
