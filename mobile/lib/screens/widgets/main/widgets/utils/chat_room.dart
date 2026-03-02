@@ -3,8 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import '../../../../../models/storage_chat_key.dart';
-import '../../../../../utils/crypto/crypto_msg.dart';
 import 'dart:typed_data';
 
 Future<void> downloadFile(
@@ -14,8 +12,6 @@ Future<void> downloadFile(
   BuildContext context,
 ) async {
   try {
-    final keyChat = await ChatKeysDB.getKeyAES(chatId);
-
     final response = await http.get(Uri.parse(url));
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");
@@ -37,16 +33,9 @@ Future<void> downloadFile(
 
     final filePath = "${voxtaDir.path}/$fileName";
 
-    Uint8List fileBytes;
 
-    if (keyChat!.isNotEmpty) {
-      final decryptedData = decryptBytes(response.bodyBytes, keyChat!);
-      final decryptedString = utf8.decode(decryptedData);
-      fileBytes = decodeDataUri(decryptedString);
-    } else {
-      fileBytes = response.bodyBytes;
-    }
-
+    Uint8List fileBytes = response.bodyBytes;
+    
     final file = File(filePath);
     await file.writeAsBytes(fileBytes);
 
