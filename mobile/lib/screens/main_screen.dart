@@ -219,19 +219,15 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _processChatContent(Map<String, dynamic> chatContent) {
-    if (chatContent["code"] == 1 &&
-        chatContent.containsKey('messages') &&
-        chatContent.containsKey('participants')) {
+    if (chatContent["typeChat"] == "secret") {
       List<dynamic> messagesData = chatContent['messages'] ?? [];
-      Map<String, dynamic> participants = chatContent['participants'] ?? {};
 
-      currentChatParticipants = participants;
+      currentChatParticipants = {};
 
       List<Message> parsedMessages = [];
 
       for (var messageData in messagesData) {
         try {
-          String senderId = messageData['sender'].toString();
           String messageId = messageData['_id'] ?? '';
           Object content = messageData['content'] ?? '';
           String time = messageData['time'] ?? '';
@@ -239,25 +235,17 @@ class _MainScreenState extends State<MainScreen> {
 
           String displayTime = _formatMessageTime(time);
 
-          bool isOwnMessage = senderId == currentUserId;
 
           String? senderName;
           String? senderAvatar;
 
-          if (participants.containsKey(senderId)) {
-            var senderData = participants[senderId];
-            senderName = senderData['name'] ?? 'Невідомий';
-            senderAvatar = senderData['avatar'] ?? '';
-          }
-
           Message message = Message(
             id: messageId,
             text: content,
-            isOwn: isOwnMessage,
+            isOwn: false,
             time: displayTime,
             senderName: senderName,
             senderAvatar: senderAvatar,
-            senderId: senderId,
             type: type,
           );
 
@@ -303,7 +291,92 @@ class _MainScreenState extends State<MainScreen> {
         _scrollToBottom();
       });
     } else {
-      print('Не можу завантажити чат');
+      if (chatContent["code"] == 1 &&
+          chatContent.containsKey('messages') &&
+          chatContent.containsKey('participants')) {
+        List<dynamic> messagesData = chatContent['messages'] ?? [];
+        Map<String, dynamic> participants = chatContent['participants'] ?? {};
+
+        currentChatParticipants = participants;
+
+        List<Message> parsedMessages = [];
+
+        for (var messageData in messagesData) {
+          try {
+            String senderId = messageData['sender'].toString();
+            String messageId = messageData['_id'] ?? '';
+            Object content = messageData['content'] ?? '';
+            String time = messageData['time'] ?? '';
+            String type = messageData['type'] ?? 'text';
+
+            String displayTime = _formatMessageTime(time);
+
+            bool isOwnMessage = senderId == currentUserId;
+
+            String? senderName;
+            String? senderAvatar;
+
+            if (participants.containsKey(senderId)) {
+              var senderData = participants[senderId];
+              senderName = senderData['name'] ?? 'Невідомий';
+              senderAvatar = senderData['avatar'] ?? '';
+            }
+
+            Message message = Message(
+              id: messageId,
+              text: content,
+              isOwn: isOwnMessage,
+              time: displayTime,
+              senderName: senderName,
+              senderAvatar: senderAvatar,
+              senderId: senderId,
+              type: type,
+            );
+
+            parsedMessages.add(message);
+          } catch (e) {
+            print('Помилка парсингу повідомлення: $e');
+          }
+        }
+
+        parsedMessages.sort((a, b) {
+          try {
+            var aData = messagesData.firstWhere(
+              (msg) => msg['_id'] == a.id,
+              orElse: () => null,
+            );
+            var bData = messagesData.firstWhere(
+              (msg) => msg['_id'] == b.id,
+              orElse: () => null,
+            );
+
+            if (aData != null && bData != null) {
+              String aTime = aData['time'] ?? '';
+              String bTime = bData['time'] ?? '';
+
+              DateTime aDateTime = DateTime.parse(aTime);
+              DateTime bDateTime = DateTime.parse(bTime);
+
+              return aDateTime.compareTo(bDateTime);
+            }
+          } catch (e) {
+            print('Помилка сортування повідомлень: $e');
+          }
+
+          return 0;
+        });
+
+        setState(() {
+          messages = parsedMessages;
+        });
+
+        // Прокручуємо вниз після завантаження історії чату
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
+      } else {
+        print('Не можу завантажити чат');
+      }
     }
   }
 
@@ -385,3 +458,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 }
+
+
+// _onChatContentReceived
+// Не можу завантажити чат

@@ -44,7 +44,9 @@ class ChatKeysDB {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS chat_keys (
             chatId TEXT PRIMARY KEY,
-            keys TEXT NOT NULL
+            isEncrypted INTEGER NOT NULL DEFAULT 0,
+            keys TEXT NOT NULL,
+            keyAES TEXT
           )
         ''');
         print('Chat keys table created');
@@ -104,6 +106,8 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
     final db = await initDatabase();
 
     print('Saving RSA keys for chatId: $chatId');
+    // Видаліть або закоментуйте це, якщо не потрібно виводити приватний ключ
+    // print(privateKey);
 
     final result = await db.query(
       'chat_keys',
@@ -113,10 +117,14 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
     );
 
     Map<String, dynamic> keysData;
+    bool isEncrypted = true;
+    String? keyAES;
 
     if (result.isNotEmpty) {
       final existingKeysJson = result.first['keys'] as String;
       keysData = jsonDecode(existingKeysJson);
+      isEncrypted = (result.first['isEncrypted'] as int) == 1;
+      keyAES = result.first['keyAES'] as String?;
 
       keysData['pub'] = publicKey;
 
@@ -136,7 +144,9 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
 
     final rowsAffected = await db.insert('chat_keys', {
       'chatId': chatId,
+      'isEncrypted': isEncrypted ? 1 : 0,
       'keys': jsonEncode(keysData),
+      'keyAES': keyAES,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
 
     print('Keys saved, rows affected: $rowsAffected');
@@ -160,10 +170,14 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
       );
 
       Map<String, dynamic> keysData;
+      bool isEncrypted = true;
+      String? keyAES;
 
       if (result.isNotEmpty) {
         final existingKeysJson = result.first['keys'] as String;
         keysData = jsonDecode(existingKeysJson);
+        isEncrypted = (result.first['isEncrypted'] as int) == 1;
+        keyAES = result.first['keyAES'] as String?;
         keysData['pub'] = publicKey;
       } else {
         keysData = {'pub': publicKey, 'priv': []};
@@ -171,7 +185,9 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
 
       await db.insert('chat_keys', {
         'chatId': chatId,
+        'isEncrypted': isEncrypted ? 1 : 0,
         'keys': jsonEncode(keysData),
+        'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       print('Failed to update public key: $e');
@@ -272,10 +288,14 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
       );
 
       Map<String, dynamic> keysData;
+      bool isEncrypted = true;
+      String? keyAES;
 
       if (result.isNotEmpty) {
         final existingKeysJson = result.first['keys'] as String;
         keysData = jsonDecode(existingKeysJson);
+        isEncrypted = (result.first['isEncrypted'] as int) == 1;
+        keyAES = result.first['keyAES'] as String?;
 
         List<String> privKeys = List<String>.from(keysData['priv'] ?? []);
         if (!privKeys.contains(privateKey)) {
@@ -291,7 +311,9 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
 
       await db.insert('chat_keys', {
         'chatId': chatId,
+        'isEncrypted': isEncrypted ? 1 : 0,
         'keys': jsonEncode(keysData),
+        'keyAES': keyAES,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
 
       print('Private key added for chatId: $chatId');
@@ -338,16 +360,113 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
     }
   }
 
+  // ==================== AES KEY MANAGEMENT ====================
+
+  static Future<void> setKeyAES(String chatId, String keyAES) async {
+    try {
+      final db = await initDatabase();
+
+      final result = await db.query(
+        'chat_keys',
+        where: 'chatId = ?',
+        whereArgs: [chatId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        await db.insert('chat_keys', {
+          'chatId': chatId,
+          'isEncrypted': 0,
+          'keys': jsonEncode({'pub': '', 'priv': []}),
+          'keyAES': keyAES,
+        });
+      } else {
+        await db.update(
+          'chat_keys',
+          {'keyAES': keyAES},
+          where: 'chatId = ?',
+          whereArgs: [chatId],
+        );
+      }
+
+      print('AES key set for chatId: $chatId');
+    } catch (e) {
+      print('Failed to set AES key: $e');
+      rethrow;
+    }
+  }
+
+  static Future<String?> getKeyAES(String chatId) async {
+    try {
+      final db = await initDatabase();
+
+      final result = await db.query(
+        'chat_keys',
+        where: 'chatId = ?',
+        whereArgs: [chatId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        return null;
+      }
+
+      return result.first['keyAES'] as String?;
+    } catch (e) {
+      print('Failed to get AES key: $e');
+      return null;
+    }
+  }
+
   // ==================== LEGACY METHODS ====================
 
   static Future<void> addKey(String chatId, String key) async {
     await addPrivateKey(chatId, key);
   }
 
+  static Future<void> setEncryption(String chatId, bool isEncrypted) async {
+    try {
+      final db = await initDatabase();
+
+      final result = await db.query(
+        'chat_keys',
+        where: 'chatId = ?',
+        whereArgs: [chatId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        await db.insert('chat_keys', {
+          'chatId': chatId,
+          'isEncrypted': isEncrypted ? 1 : 0,
+          'keys': jsonEncode({'pub': '', 'priv': []}),
+          'keyAES': null,
+        });
+      } else {
+        await db.update(
+          'chat_keys',
+          {'isEncrypted': isEncrypted ? 1 : 0},
+          where: 'chatId = ?',
+          whereArgs: [chatId],
+        );
+      }
+    } catch (e) {
+      print('Failed to set encryption: $e');
+      rethrow;
+    }
+  }
+
   static Future<String> getKey(String chatId) async {
     try {
-      final privateKey = await getPrivateKey(chatId);
-      return privateKey ?? "";
+      final infoChat = await getChatInfo(chatId);
+      final bool isEncrypted = infoChat?["isEncrypted"] == true;
+
+      if (isEncrypted) {
+        final privateKey = await getPrivateKey(chatId);
+        return privateKey ?? "";
+      } else {
+        return "";
+      }
     } catch (e) {
       print('Failed to get key: $e');
       return "";
@@ -391,6 +510,28 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
     }
   }
 
+  static Future<bool> isEncrypted(String chatId) async {
+    try {
+      final db = await initDatabase();
+
+      final result = await db.query(
+        'chat_keys',
+        where: 'chatId = ?',
+        whereArgs: [chatId],
+        limit: 1,
+      );
+
+      if (result.isEmpty) {
+        return false;
+      }
+
+      return (result.first['isEncrypted'] as int) == 1;
+    } catch (e) {
+      print('Failed to check encryption status: $e');
+      return false;
+    }
+  }
+
   static Future<Map<String, dynamic>?> getChatInfo(String chatId) async {
     try {
       final db = await initDatabase();
@@ -408,11 +549,15 @@ static Future<Map<String, String>> generateAndSaveRSAKeys(
 
       final keysJson = result.first['keys'] as String;
       final keysData = jsonDecode(keysJson);
+      final isEncrypted = (result.first['isEncrypted'] as int) == 1;
+      final keyAES = result.first['keyAES'] as String?;
 
       return {
         'chatId': chatId,
+        'isEncrypted': isEncrypted,
         'publicKey': keysData['pub'],
         'privateKeys': keysData['priv'],
+        'keyAES': keyAES,
       };
     } catch (e) {
       print('Failed to get chat info: $e');

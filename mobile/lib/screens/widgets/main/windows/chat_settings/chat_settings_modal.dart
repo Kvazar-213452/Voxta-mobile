@@ -334,6 +334,8 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
   }
 
   Widget _buildBody() {
+    final bool isSecretChat = widget.typeChat.toLowerCase() == 'secret';
+    
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -372,8 +374,11 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             time: widget.time,
             typeChat: widget.typeChat,
           ),
-          const SizedBox(height: 16),
-          _buildE2EEncryptionSection(),
+          // Приховуємо E2E шифрування для секретних чатів
+          if (!isSecretChat) ...[
+            const SizedBox(height: 16),
+            _buildE2EEncryptionSection(),
+          ],
           const SizedBox(height: 16),
           ChatInviteCodesSection(
             currentInviteCode: _currentInviteCode,
@@ -381,19 +386,25 @@ class _ChatSettingsModalState extends State<ChatSettingsModal> with TickerProvid
             onGenerateCode: _generateInviteCode,
             onDeleteCode: _deleteInviteCode,
           ),
-          const SizedBox(height: 16),
-          ChatOwnerSection(
-            owner: widget.owner,
-            usersData: _usersData,
-            isLoadingUsers: _isLoadingUsers,
-          ),
-          const SizedBox(height: 24),
-          ChatUsersSection(
-            usersData: _usersData,
-            isLoadingUsers: _isLoadingUsers,
-            owner: widget.owner,
-            onRemoveUser: _removeUser,
-          ),
+          // Приховуємо власника для секретних чатів
+          if (!isSecretChat) ...[
+            const SizedBox(height: 16),
+            ChatOwnerSection(
+              owner: widget.owner,
+              usersData: _usersData,
+              isLoadingUsers: _isLoadingUsers,
+            ),
+          ],
+          // Приховуємо учасників для секретних чатів
+          if (!isSecretChat) ...[
+            const SizedBox(height: 24),
+            ChatUsersSection(
+              usersData: _usersData,
+              isLoadingUsers: _isLoadingUsers,
+              owner: widget.owner,
+              onRemoveUser: _removeUser,
+            ),
+          ],
           const SizedBox(height: 24),
           _buildDeleteChatSection(),
         ],

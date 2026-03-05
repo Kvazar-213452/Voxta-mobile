@@ -57,15 +57,30 @@ export default class Create {
 
         const chatCollection: Collection = db.collection(chatId);
 
-        const dataConfig = {
-          _id: "config" as any,
-          type: dataDec.chat.privacy,
-          avatar: dataDec.chat.avatar,
-          participants: [socket.data.userId],
-          name: dataDec.chat.name,
-          createdAt: new Date().toISOString(),
-          desc: dataDec.chat.description,
-          owner: socket.data.userId
+        let dataConfig = {};
+
+        if (dataDec.chat.privacy === "secret") {
+          dataConfig = {
+            _id: "config" as any,
+            type: dataDec.chat.privacy,
+            avatar: dataDec.chat.avatar,
+            name: dataDec.chat.name,
+            createdAt: new Date().toISOString(),
+            desc: dataDec.chat.description,
+            owner: socket.data.userId,
+            key: ""
+          }
+        } else {
+          dataConfig = {
+            _id: "config" as any,
+            type: dataDec.chat.privacy,
+            avatar: dataDec.chat.avatar,
+            participants: [socket.data.userId],
+            name: dataDec.chat.name,
+            createdAt: new Date().toISOString(),
+            desc: dataDec.chat.description,
+            owner: socket.data.userId
+          }
         }
 
         await chatCollection.insertOne(dataConfig);

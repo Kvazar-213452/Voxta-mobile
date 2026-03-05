@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../app_colors.dart';
 import 'chat_settings_modal.dart';
+import 'set_key_modal.dart';
 import 'set_auto_key_modal.dart';
 import 'utils.dart';
 import '../../../../../services/chat/socket_service.dart';
@@ -63,6 +64,7 @@ class ChatModalFunctions {
     if (!context.mounted) return;
 
     final parentContext = context;
+    final bool isSecretChat = type.toLowerCase() == 'secret';
 
     showModalBottomSheet(
       context: context,
@@ -164,7 +166,8 @@ class ChatModalFunctions {
                       },
                     ),
 
-                  if (user != null && owner == user.id)
+                  // Приховуємо автоматичне шифрування для секретних чатів
+                  if (user != null && owner == user.id && !isSecretChat)
                     _buildModalOption(
                       icon: Icons.auto_awesome,
                       title: 'Автоматичне шифрування',
@@ -181,6 +184,23 @@ class ChatModalFunctions {
                       },
                       isDestructive: false,
                     ),
+
+                  _buildModalOption(
+                    icon: Icons.key,
+                    title: 'Встановити ключ',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        if (!parentContext.mounted) return;
+                        _showSetKeyModal(
+                          parentContext,
+                          chatId: id,
+                          chatName: chatName,
+                        );
+                      });
+                    },
+                    isDestructive: false,
+                  ),
 
                   _buildModalOption(
                     icon: Icons.exit_to_app,
@@ -251,6 +271,23 @@ class ChatModalFunctions {
           ),
         ),
       ),
+    );
+  }
+
+  static void _showSetKeyModal(
+    BuildContext context, {
+    required String chatId,
+    required String chatName,
+  }) {
+    if (!context.mounted) return;
+
+    showDialog(
+      context: context,
+      barrierColor: AppColors.overlayBackground,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return SetKeyModal(chatId: chatId, chatName: chatName, onClose: () {});
+      },
     );
   }
 

@@ -145,46 +145,66 @@ export default class chatEvents {
         const config = await collection.findOne({ _id: "config" as any });
         if (!config) return Helpers.fail(socket, "load_chat_content_return", "config_not_found");
 
-        const participantsData = {};
-        for (const userId of config.participants || []) {
-          const userCfg = await usersDb.collection(userId).findOne({ _id: "config" as any });
-          participantsData[userId] = {
-            avatar: userCfg?.avatar || "",
-            name: userCfg?.name || ""
-          };
-        }
+        let response = {};
 
-        let messages: any = [];
-        if (decrypted.type === "online") {
+        if (config.type === "online") {
+          const participantsData = {};
+          for (const userId of config.participants || []) {
+            const userCfg = await usersDb.collection(userId).findOne({ _id: "config" as any });
+            participantsData[userId] = {
+              avatar: userCfg?.avatar || "",
+              name: userCfg?.name || ""
+            };
+          }
+
+          let messages: any = [];
+
           messages = await collection
             .find({ _id: { $ne: "config" as any } })
             .sort({ _id: -1 })
             .limit(100)
             .toArray();
           messages.reverse();
-        }
 
-        if (
-          !config.crypto ||
-          !config.crypto[decrypted.userId] ||
-          !config.crypto[decrypted.userId].keyPub
-        ) {
-          socket.emit("make_key_pub_chat", {
+          if (
+            !config.crypto ||
+            !config.crypto[decrypted.userId] ||
+            !config.crypto[decrypted.userId].keyPub
+          ) {
+            socket.emit("make_key_pub_chat", {
+              code: 1,
+              chatId: decrypted.chatId,
+              userId: decrypted.userId
+            });
+          }
+
+          response = {
             code: 1,
             chatId: decrypted.chatId,
-            userId: decrypted.userId
-          });
-        }
+            participants: participantsData,
+            messages,
+            type: data.type,
+            crypto: config.crypto,
+            isE2EEnabled: config.isE2EEnabled,
+          };
+        } else {
+          let messages: any = [];
 
-        const response = {
-          code: 1,
-          chatId: decrypted.chatId,
-          participants: participantsData,
-          messages,
-          type: data.type,
-          crypto: config.crypto,
-          isE2EEnabled: config.isE2EEnabled,
-        };
+          messages = await collection
+            .find({ _id: { $ne: "config" as any } })
+            .sort({ _id: -1 })
+            .limit(100)
+            .toArray();
+          messages.reverse();
+
+          response = {
+            code: 1,
+            chatId: decrypted.chatId,
+            messages,
+            type: data.type,
+            typeChat: config.type
+          };
+        }
 
         const encrypted = await CryptoFunc.encryptionMsg(data.key, JSON.stringify(response));
 
@@ -197,5 +217,3 @@ export default class chatEvents {
     });
   }
 }
-
-// make_key_pub_chat

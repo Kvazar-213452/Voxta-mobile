@@ -74,9 +74,10 @@ void connectSocket(
         messageData = decryptMessageEndToEnd(messageData, user.id);
         messageData = await decryptMessageEndToEndFull(messageData, chatId);
 
+        final msgFull = await decryptMessage(messageData, CAHT_ID);
 
-        if (messageData != null) {
-          _onMessageReceived!(messageData);
+        if (msgFull != null) {
+          _onMessageReceived!(msgFull);
         } else {
           print('decryptMessage повернула null');
         }
@@ -124,8 +125,13 @@ void connectSocket(
       final List messages = (data["messages"] as List?) ?? [];
 
       if (messages.isNotEmpty) {
-        data = await decryptMessagesEndToEnd(data, user.id);
-        data = await decryptMessagesEndToEndFull(data, data["chatId"]);
+        if (data["typeChat"] == "secret") {
+          data = await decryptMessages(data);
+        } else {
+          data = await decryptMessagesEndToEnd(data, user.id);
+          data = await decryptMessagesEndToEndFull(data, data["chatId"]);
+          data = await decryptMessages(data);
+        }
       }
 
       CAHT_ID = data["chatId"];
@@ -212,92 +218,214 @@ void sendMessage(
   String type,
   String typeMsg,
 ) async {
-  if (typeMsg == "file") {
-    final map = text as Map<String, dynamic>;
-    
-    final fileName = map["fileName"] as String?;
-    final fileSize = map["fileSize"] as int?;
+  if (type == "secret") {
+    final info = await ChatKeysDB.getChatInfo(chatId);
+    String? keyChat = await ChatKeysDB.getKeyAES(chatId);
 
-    if (fileName != null) {
-      final uploadedUrl = await uploadLargeFileBase64(map["base64Data"], fileName);
-
-      if (uploadedUrl != null) {
-        final dataToEncrypt = {
-          'message': {
-            'content': {
-              "fileName": fileName,
-              "fileSize": fileSize,
-              "urlFile": uploadedUrl,
-            },
-            'sender': userId,
-            'type': "longFile",
-            'time': DateTime.now().toIso8601String(),
-          },
-          'chatId': chatId,
-          'typeChat': type,
-        };
-
-        final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
-
-        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
-      } else {
-        print('Failed to upload file');
-        return;
-      }
-    } else {
-      print('base64Data or fileName is missing');
-      return;
+    if (info!["isEncrypted"] == false) {
+      keyChat = null;
     }
-  } else if (typeMsg != "file") {
-    final dataToEncrypt = {
-      'message': {
-        'content': text,
-        'sender': userId,
-        'type': typeMsg,
-        'time': DateTime.now().toIso8601String(),
-      },
-      'chatId': chatId,
-      'typeChat': type,
-    };
 
-    final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
+    if (keyChat != null && keyChat!.isNotEmpty && typeMsg != "file") {
+      text = encryptText(text.toString(), keyChat);
+    }
 
-    socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
-  } else if (typeMsg == "file") {
-    final map = text as Map<String, dynamic>;
+    if (keyChat != null && keyChat != "" && typeMsg == "file") {
+      final map = text as Map<String, dynamic>;
 
-    String base64Data = map["base64Data"] as String;
+      final base64Data1 = map["base64Data"] as String?;
 
-    final fileName = map["fileName"] as String?;
-    final fileSize = map["fileSize"] as int?;
+      String base64Data = encryptText(base64Data1.toString(), keyChat!);
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
 
-    if (fileName != null) {
-      final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+      if (fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
 
-      if (uploadedUrl != null) {
-        final dataToEncrypt = {
-          'message': {
-            'content': {
-              "fileName": fileName,
-              "fileSize": fileSize,
-              "urlFile": uploadedUrl,
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
             },
-            'sender': userId,
-            'type': "longFile",
-            'time': DateTime.now().toIso8601String(),
-          },
-          'chatId': chatId,
-          'typeChat': type,
-        };
+            'chatId': chatId,
+            'typeChat': type,
+          };
 
-        socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+          final dataToEncrypt1 = await encryptAutoToUsers(
+            dataToEncrypt,
+            chatId,
+          );
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
       } else {
-        print('Failed to upload file');
+        print('base64Data or fileName is missing');
         return;
       }
-    } else {
-      print('base64Data or fileName is missing');
-      return;
+    } else if (typeMsg != "file") {
+      final dataToEncrypt = {
+        'message': {
+          'content': text,
+          'type': typeMsg,
+          'time': DateTime.now().toIso8601String(),
+        },
+        'chatId': chatId,
+        'typeChat': type,
+      };
+
+      final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
+
+      socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
+    } else if (typeMsg == "file") {
+      final map = text as Map<String, dynamic>;
+
+      String base64Data = map["base64Data"] as String;
+
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
+
+      if (fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
+            },
+            'chatId': chatId,
+            'typeChat': type,
+          };
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
+      } else {
+        print('base64Data or fileName is missing');
+        return;
+      }
+    }
+  } else {
+    final info = await ChatKeysDB.getChatInfo(chatId);
+    String? keyChat = await ChatKeysDB.getKeyAES(chatId);
+
+    if (info!["isEncrypted"] == false) {
+      keyChat = null;
+    }
+
+    if (keyChat != null && keyChat!.isNotEmpty && typeMsg != "file") {
+      text = encryptText(text.toString(), keyChat);
+    }
+
+    if (keyChat != null && keyChat != "" && typeMsg == "file") {
+      final map = text as Map<String, dynamic>;
+
+      final base64Data1 = map["base64Data"] as String?;
+
+      String base64Data = encryptText(base64Data1.toString(), keyChat!);
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
+
+      if (fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
+              'sender': userId,
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
+            },
+            'chatId': chatId,
+            'typeChat': type,
+          };
+
+          final dataToEncrypt1 = await encryptAutoToUsers(
+            dataToEncrypt,
+            chatId,
+          );
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
+      } else {
+        print('base64Data or fileName is missing');
+        return;
+      }
+    } else if (typeMsg != "file") {
+      final dataToEncrypt = {
+        'message': {
+          'content': text,
+          'sender': userId,
+          'type': typeMsg,
+          'time': DateTime.now().toIso8601String(),
+        },
+        'chatId': chatId,
+        'typeChat': type,
+      };
+
+      final dataToEncrypt1 = await encryptAutoToUsers(dataToEncrypt, chatId);
+
+      socket!.emit('send_message', await encryptAutoServer(dataToEncrypt1));
+    } else if (typeMsg == "file") {
+      final map = text as Map<String, dynamic>;
+
+      String base64Data = map["base64Data"] as String;
+
+      final fileName = map["fileName"] as String?;
+      final fileSize = map["fileSize"] as int?;
+
+      if (fileName != null) {
+        final uploadedUrl = await uploadLargeFileBase64(base64Data, fileName);
+
+        if (uploadedUrl != null) {
+          final dataToEncrypt = {
+            'message': {
+              'content': {
+                "fileName": fileName,
+                "fileSize": fileSize,
+                "urlFile": uploadedUrl,
+              },
+              'sender': userId,
+              'type': "longFile",
+              'time': DateTime.now().toIso8601String(),
+            },
+            'chatId': chatId,
+            'typeChat': type,
+          };
+
+          socket!.emit('send_message', await encryptAutoServer(dataToEncrypt));
+        } else {
+          print('Failed to upload file');
+          return;
+        }
+      } else {
+        print('base64Data or fileName is missing');
+        return;
+      }
     }
   }
 }
@@ -313,26 +441,6 @@ void loadChatContent(String chatId, String type) async {
       'userId': infoUser?.id,
     }),
   );
-}
-
-void createChatServer(
-  String name,
-  String type,
-  String avatar,
-  String desc,
-  String idServer,
-  String codeServer,
-) {
-  socket!.emit('create_chat_server', {
-    'chat': {
-      'name': name,
-      'description': desc,
-      'privacy': type,
-      'avatar': avatar,
-      'createdAt': DateTime.now().toIso8601String(),
-      'idServer': idServer,
-    },
-  });
 }
 
 void createChat(String name, String type, String avatar, String desc) async {
@@ -382,3 +490,5 @@ void createTemporaryChat(
 }
 
 bool get isSocketConnected => socket?.connected ?? false;
+
+// ddd

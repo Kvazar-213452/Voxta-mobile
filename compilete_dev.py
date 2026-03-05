@@ -29,7 +29,6 @@ if type == 1:
         (r"services\authentication", "npm run dev"),
         (r"services\data", "mvn compile exec:java"),
         (r"services\crypto", "npm run dev"),
-        (r"services\chat", "npm run dev"),
         (r"services\site\react-app", "npm run dev"),
         (r"services\site", "npm run dev"),
     ]

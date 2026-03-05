@@ -431,6 +431,13 @@ class _AddChatScreenState extends State<AddChatScreen>
               'Тимчасовий',
               'Чат з обмеженим часом існування',
             ),
+            const SizedBox(height: 12),
+            _buildPrivacyOption(
+              'secret',
+              '🔒',
+              'Секретний',
+              'Приватний чат тільки для запрошених',
+            ),
           ],
         ),
       ],
