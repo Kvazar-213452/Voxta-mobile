@@ -49,3 +49,30 @@ void getServerIoPublicKey({
     print('Помилка відправлення запиту: $e');
   }
 }
+
+void getPubKeys({
+  required String idChat,
+  required Function(Map<String, dynamic>) onSuccess,
+  required Function(String error) onError,
+}) {
+  try {
+    socket!.emit('get_pub_keys_chat', {'chatId': idChat});
+
+    socket!.off('get_pub_keys_chat_return');
+
+    socket!.on('get_pub_keys_chat_return', (data) {
+      try {
+        if (data["code"] == 0) {
+          onError('Помилка обробки даних чату');
+        } else {
+          onSuccess(data['keys']);
+        }
+      } catch (e) {
+        onError('Помилка обробки даних чату');
+        socket!.off('get_pub_keys_chat_return');
+      }
+    });
+  } catch (e) {
+    print('Помилка відправлення запиту: $e');
+  }
+}

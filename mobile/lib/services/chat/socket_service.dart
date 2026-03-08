@@ -290,9 +290,11 @@ class SocketService {
       'typeChat': type,
     };
 
-    final encrypted = type == "secret"
-        ? await encryptAutoToUsers(messageData, chatId)
+    final encrypted = type == "online"
+        ? await encryptAutoToUsers(messageData, chatId, encryptionType: settings?.encryptionLevel)
         : messageData;
+
+    print(encrypted);
 
     _socket?.emit('send_message', await encryptAutoServer(encrypted));
   }

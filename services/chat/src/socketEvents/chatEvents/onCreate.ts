@@ -240,7 +240,8 @@ export default class Create {
             sender: dataDec.message.sender,
             content: { name: dataDec.message.content["fileName"], size: dataDec.message.content["fileSize"], url },
             time: dataDec.message.time,
-            type: dataDec.message.type
+            type: dataDec.message.type,
+            encrypted: dataDec.message.encrypted
           };
         } else if (dataDec.message.type == "longFile") {
           messageToInsert = {
@@ -256,7 +257,8 @@ export default class Create {
             sender: dataDec.message.sender,
             content: dataDec.message.content,
             time: dataDec.message.time,
-            type: dataDec.message.type
+            type: dataDec.message.type,
+            encrypted: dataDec.message.encrypted
           };
         }
 

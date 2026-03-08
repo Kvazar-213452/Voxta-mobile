@@ -3,8 +3,9 @@ import 'utils.dart';
 import '../../models/storage_key.dart';
 import 'dart:convert';
 import 'dart:async';
-import '../../../../../../../services/chat/socket_service.dart';
 import '../../utils/crypto/make_key_chat.dart';
+import 'crypto_alise.dart';
+import 'crypto_chacha20.dart';
 
 Future<Map<String, dynamic>> decrypted_auto(Map<String, dynamic> data) async {
   final keyPair = await getOrCreateKeyPair();
@@ -61,10 +62,23 @@ Future<Map<String, dynamic>> encryptAutoServer(
 
 Future<Map<String, dynamic>> encryptAutoToUsers(
   Map<String, dynamic> data,
-  String chatId,
-) async {
+  String chatId, {
+  String? encryptionType,
+}) async {
   final completer = Completer<Map<String, dynamic>>();
+  final type = encryptionType ?? data['typeChat'] ?? '';
 
+  // Для квантового шифрування
+  if (type == 'hyper') {
+    return await encryptWithQuantum(data, chatId);
+  }
+
+  // Для посиленого шифрування ChaCha20
+  if (type == 'strong') {
+    return await encryptWithChaCha20(data, chatId);
+  }
+
+  // Стандартне RSA шифрування
   getPubKeys(
     idChat: chatId,
     onSuccess: (keys) {
@@ -109,6 +123,7 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
         final encryptedData = Map<String, dynamic>.from(data);
         encryptedData['message'] = Map<String, dynamic>.from(data['message']);
         encryptedData['message']['content'] = encryptedContents;
+        encryptedData['message']['encrypted'] = 'RSA-2048';
 
         print('Encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
@@ -126,31 +141,4 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
   );
 
   return completer.future;
-}
-
-void getPubKeys({
-  required String idChat,
-  required Function(Map<String, dynamic>) onSuccess,
-  required Function(String error) onError,
-}) {
-  try {
-    socket!.emit('get_pub_keys_chat', {'chatId': idChat});
-
-    socket!.off('get_pub_keys_chat_return');
-
-    socket!.on('get_pub_keys_chat_return', (data) {
-      try {
-        if (data["code"] == 0) {
-          onError('Помилка обробки даних чату');
-        } else {
-          onSuccess(data['keys']);
-        }
-      } catch (e) {
-        onError('Помилка обробки даних чату');
-        socket!.off('get_pub_keys_chat_return');
-      }
-    });
-  } catch (e) {
-    print('Помилка відправлення запиту: $e');
-  }
 }
