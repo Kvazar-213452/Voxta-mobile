@@ -43,7 +43,7 @@ class SettingsDB {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE IF NOT EXISTS settings (
@@ -54,6 +54,7 @@ class SettingsDB {
             language TEXT DEFAULT 'uk',
             readReceipts INTEGER DEFAULT 1,
             onlineStatus INTEGER DEFAULT 1,
+            encryptionLevel TEXT DEFAULT 'medium',
             pasw INTEGER DEFAULT 0
           )
         ''');
@@ -70,11 +71,20 @@ class SettingsDB {
             language: 'uk',
             readReceipts: true,
             onlineStatus: true,
+            encryptionLevel: 'medium',
             pasw: 0,
           );
           
           await db.insert('settings', defaultSettings.toMap());
           print('Default settings inserted');
+        }
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('''
+            ALTER TABLE settings ADD COLUMN encryptionLevel TEXT DEFAULT 'medium'
+          ''');
+          print('Database upgraded to version 2');
         }
       },
       onOpen: (db) async {

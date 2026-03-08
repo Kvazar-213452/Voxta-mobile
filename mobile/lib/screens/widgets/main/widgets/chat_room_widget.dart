@@ -7,6 +7,8 @@ import 'component/file_picker_service.dart';
 import 'component/file_message_builder.dart';
 import '../../../../config.dart';
 
+// MessageWidget
+
 class ChatRoomWidget extends StatefulWidget {
   final String chatName;
   final List<Message> messages;
@@ -288,6 +290,7 @@ class _ChatRoomWidgetState extends State<ChatRoomWidget> {
                             return MessageWidget(
                               message: message,
                               chatId: widget.id,
+                              chatType: widget.type,
                             );
                           }
                         },

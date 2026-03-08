@@ -9,11 +9,13 @@ class MessageWidget extends StatelessWidget {
   
   final Message message;
   final String? chatId;
+  final String? chatType;
 
   const MessageWidget({
     super.key,
     required this.message,
     this.chatId,
+    this.chatType,
   });
 
   String _getFullUrl(String url) {
@@ -38,8 +40,12 @@ class MessageWidget extends StatelessWidget {
     }
   }
 
+  bool _isSecretChat() {
+    return chatType?.toLowerCase() == 'secret';
+  }
+
   Widget _buildAvatar() {
-    if (message.isOwn) {
+    if (message.isOwn || _isSecretChat()) {
       return const SizedBox.shrink();
     }
 
@@ -109,7 +115,7 @@ class MessageWidget extends StatelessWidget {
                     message.isOwn ? MainAxisAlignment.end : MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!message.isOwn) ...[
+                  if (!message.isOwn && !_isSecretChat()) ...[
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       child: _buildAvatar(),
@@ -122,7 +128,7 @@ class MessageWidget extends StatelessWidget {
                           ? CrossAxisAlignment.end
                           : CrossAxisAlignment.start,
                       children: [
-                        if (!message.isOwn && message.senderName != null) ...[
+                        if (!message.isOwn && message.senderName != null && !_isSecretChat()) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: 4, bottom: 4),
                             child: AnimatedDefaultTextStyle(

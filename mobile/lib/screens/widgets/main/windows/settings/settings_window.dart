@@ -27,6 +27,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   bool _readReceipts = true;
   bool _onlineStatus = true;
   String _selectedLanguage = 'uk';
+  String _encryptionLevel = 'medium'; // medium, strong, hyper
   int _pasw = 0;
 
   final TextEditingController _passwordController = TextEditingController();
@@ -68,6 +69,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
           _readReceipts = settings.readReceipts;
           _onlineStatus = settings.onlineStatus;
           _selectedLanguage = settings.language;
+          _encryptionLevel = settings.encryptionLevel;
           _pasw = settings.pasw;
           _passwordController.text =
               _pasw == 0 ? '' : _pasw.toString().padLeft(6, '0');
@@ -95,6 +97,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
         language: _selectedLanguage,
         readReceipts: _readReceipts,
         onlineStatus: _onlineStatus,
+        encryptionLevel: _encryptionLevel,
         pasw: _pasw,
       );
 
@@ -188,6 +191,7 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
       _readReceipts = true;
       _onlineStatus = true;
       _selectedLanguage = 'uk';
+      _encryptionLevel = 'medium';
       _pasw = 0;
       _passwordController.clear();
     });
@@ -218,6 +222,32 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   void _logout() {
     deleteJWTStorage();
     Navigator.of(context).pop();
+  }
+
+  String _getEncryptionLevelLabel(String level) {
+    switch (level) {
+      case 'medium':
+        return 'Середнє';
+      case 'strong':
+        return 'Сильне';
+      case 'hyper':
+        return 'Гіпер сильне';
+      default:
+        return 'Середнє';
+    }
+  }
+
+  String _getEncryptionLevelDescription(String level) {
+    switch (level) {
+      case 'medium':
+        return 'Базове шифрування для повсякденного використання';
+      case 'strong':
+        return 'Посилене шифрування для важливих даних';
+      case 'hyper':
+        return 'Максимальний рівень захисту';
+      default:
+        return '';
+    }
   }
 
   @override
@@ -294,7 +324,113 @@ class _SettingsScreenWidgetState extends State<SettingsScreenWidget>
   Widget _buildSecuritySection() {
     return _buildSection(
       title: '🔒 Безпека',
-      children: [_buildPasswordInputItem()],
+      children: [
+        _buildEncryptionLevelItem(),
+        _buildPasswordInputItem(),
+      ],
+    );
+  }
+
+  Widget _buildEncryptionLevelItem() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: AppColors.whiteTransparent05,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.whiteTransparent10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Рівень шифрування',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.whiteText,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Оберіть рівень захисту ваших повідомлень',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.whiteTransparent60,
+            ),
+          ),
+          const SizedBox(height: 15),
+          _buildEncryptionOption('medium', '🔒'),
+          const SizedBox(height: 8),
+          _buildEncryptionOption('strong', '🔐'),
+          const SizedBox(height: 8),
+          _buildEncryptionOption('hyper', '🛡️'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEncryptionOption(String level, String icon) {
+    final isSelected = _encryptionLevel == level;
+    
+    return GestureDetector(
+      onTap: () => setState(() => _encryptionLevel = level),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.brandGreen.withOpacity(0.2)
+              : AppColors.whiteTransparent10,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.brandGreen
+                : AppColors.whiteTransparent20,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              icon,
+              style: const TextStyle(fontSize: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _getEncryptionLevelLabel(level),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? AppColors.brandGreen
+                          : AppColors.whiteText,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _getEncryptionLevelDescription(level),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.whiteTransparent60,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: AppColors.brandGreen,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -6,6 +6,7 @@ class Settings {
   final int pasw;
   final bool readReceipts;
   final bool onlineStatus;
+  final String encryptionLevel;
 
   Settings({
     required this.darkMode,
@@ -15,6 +16,7 @@ class Settings {
     required this.readReceipts,
     required this.onlineStatus,
     required this.pasw,
+    required this.encryptionLevel,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class Settings {
       'readReceipts': readReceipts ? 1 : 0,
       'onlineStatus': onlineStatus ? 1 : 0,
       'pasw': pasw,
+      'encryptionLevel': encryptionLevel
     };
   }
 
@@ -38,6 +41,7 @@ class Settings {
       readReceipts: map['readReceipts'] == 1,
       onlineStatus: map['onlineStatus'] == 1,
       pasw: map['pasw'] ?? 0,
+      encryptionLevel: map['encryptionLevel'],
     );
   }
 }
