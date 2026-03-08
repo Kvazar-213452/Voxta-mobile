@@ -73,7 +73,7 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
         final encryptedData = Map<String, dynamic>.from(data);
         encryptedData['message'] = Map<String, dynamic>.from(data['message']);
         encryptedData['message']['content'] = encryptedContents;
-        encryptedData['message']['encrypted'] = 'CHACHA20-POLY1305';
+        encryptedData['message']['encrypted'] = 'ChaCha20-Poly1305';
 
         print('ChaCha20 encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
