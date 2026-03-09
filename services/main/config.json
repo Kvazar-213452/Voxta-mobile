@@ -7,23 +7,13 @@
     "MICROSERVICES_CRYPTO": "http://localhost:3015/",
     "MICROSERVICES_AUTHENTICATION": "http://localhost:3007/",
     "MICROSERVICES_SITE": "http://localhost:3011/",
-    "API_LOCAL": "http://localhost:8000/",
-    "MICROSERVICES_MESSAGE": "http://localhost:3009/",
-    "MICROSERVICES_USER": "http://localhost:3008/"
+    "API_LOCAL": "http://localhost:8000/"
   },
   "GLOBAL_DB": {
     "DB_MONGODB_URI": "mongodb://localhost:27017/messenger"
   },
   "GLOBAL_KEY": {
     "SECRET_KEY": "your_secret_key"
-  },
-  "API_USER": {
-    "PORT": "3008",
-    "API": "0.0.0.0"
-  },
-  "API_MESSAGE": {
-    "PORT": "3009",
-    "API": "0.0.0.0"
   },
   "API_CHAT": {
     "PORT": "3010",
