@@ -68,22 +68,18 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
   final completer = Completer<Map<String, dynamic>>();
   final type = encryptionType ?? data['typeChat'] ?? '';
 
-  // Для квантового шифрування
   if (type == 'hyper') {
     return await encryptWithQuantum(data, chatId);
   }
 
-  // Для посиленого шифрування ChaCha20
   if (type == 'strong') {
     return await encryptWithChaCha20(data, chatId);
   }
 
-  // Стандартне RSA шифрування
   getPubKeys(
     idChat: chatId,
     onSuccess: (keys) {
       if (keys.isEmpty) {
-        print('No public keys found, returning original data');
         completer.complete(data);
         return;
       }
@@ -95,19 +91,16 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
         keys.forEach((userId, pubKey) {
           try {
             if (pubKey == null || pubKey.toString().trim().isEmpty) {
-              print('Empty public key for user $userId, skipping');
               return;
             }
 
             final cleanedKey = pubKey.toString().trim();
-            print('Encrypting for user $userId with key length: ${cleanedKey.length}');
 
             final encryptedContent = RSACrypto.encrypt(
               originalContent,
               cleanedKey,
             );
             encryptedContents[userId.toString()] = encryptedContent;
-            print('Successfully encrypted for user $userId');
           } catch (e, stackTrace) {
             print('Failed to encrypt for user $userId: $e');
             print('Stack trace: $stackTrace');
@@ -115,7 +108,6 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
         });
 
         if (encryptedContents.isEmpty) {
-          print('Failed to encrypt for any user, returning original data');
           completer.complete(data);
           return;
         }
@@ -125,7 +117,6 @@ Future<Map<String, dynamic>> encryptAutoToUsers(
         encryptedData['message']['content'] = encryptedContents;
         encryptedData['message']['encrypted'] = 'RSA-2048';
 
-        print('Encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
       } catch (e, stackTrace) {
         print('Encryption process failed: $e');

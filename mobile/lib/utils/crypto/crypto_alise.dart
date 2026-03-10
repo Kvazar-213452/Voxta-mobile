@@ -17,7 +17,6 @@ Future<Map<String, dynamic>> encryptWithQuantum(
     idChat: chatId,
     onSuccess: (keys) async {
       if (keys.isEmpty) {
-        print('No public keys found for quantum encryption');
         completer.complete(data);
         return;
       }
@@ -36,16 +35,13 @@ Future<Map<String, dynamic>> encryptWithQuantum(
 
           try {
             if (pubKey == null || pubKey.toString().trim().isEmpty) {
-              print('Empty public key for user $userId, skipping');
               continue;
             }
 
             final cleanedKey = pubKey.toString().trim();
-            
-            // Квантове шифрування контенту
+
             final quantumEncrypted = await quantumEncrypt(contentString);
             
-            // Шифрування квантового ключа за допомогою RSA
             final encryptedKey = RSACrypto.encrypt(
               quantumEncrypted['key']!,
               cleanedKey,
@@ -56,7 +52,6 @@ Future<Map<String, dynamic>> encryptWithQuantum(
               'data': quantumEncrypted['data']!,
             };
 
-            print('Successfully quantum encrypted for user $userId');
           } catch (e, stackTrace) {
             print('Failed to quantum encrypt for user $userId: $e');
             print('Stack trace: $stackTrace');
@@ -64,7 +59,6 @@ Future<Map<String, dynamic>> encryptWithQuantum(
         }
 
         if (encryptedContents.isEmpty) {
-          print('Failed to quantum encrypt for any user');
           completer.complete(data);
           return;
         }
@@ -74,7 +68,6 @@ Future<Map<String, dynamic>> encryptWithQuantum(
         encryptedData['message']['content'] = encryptedContents;
         encryptedData['message']['encrypted'] = 'QUANTUM-AES-256';
 
-        print('Quantum encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
       } catch (e, stackTrace) {
         print('Quantum encryption process failed: $e');
@@ -93,10 +86,8 @@ Future<Map<String, dynamic>> encryptWithQuantum(
 
 Future<Map<String, String>> quantumEncrypt(String data) async {
   try {
-    // Генерація квантового ключа (256-біт)
-    final quantumKey = _generateQuantumKey(32); // 32 bytes = 256 bits
-    
-    // Шифрування даних квантовим алгоритмом (AES-256-GCM)
+    final quantumKey = _generateQuantumKey(32);
+
     final encryptedData = await _encryptWithAES256GCM(data, quantumKey);
     
     return {
@@ -109,17 +100,15 @@ Future<Map<String, String>> quantumEncrypt(String data) async {
   }
 }
 
-/// Generate quantum-safe encryption key
 List<int> _generateQuantumKey(int length) {
   final random = Random.secure();
   return List<int>.generate(length, (_) => random.nextInt(256));
 }
 
-/// Encrypt data using AES-256-GCM (quantum-resistant)
 Future<String> _encryptWithAES256GCM(String data, List<int> key) async {
   try {
     final keyBytes = Uint8List.fromList(key);
-    final iv = _generateQuantumKey(16); // 16 bytes IV for AES
+    final iv = _generateQuantumKey(16);
     
     final encrypter = Encrypter(AES(
       Key(keyBytes),
@@ -131,7 +120,6 @@ Future<String> _encryptWithAES256GCM(String data, List<int> key) async {
       iv: IV(Uint8List.fromList(iv)),
     );
     
-    // Комбінуємо IV та зашифровані дані
     final combined = {
       'iv': base64Encode(iv),
       'data': encrypted.base64,
@@ -144,19 +132,15 @@ Future<String> _encryptWithAES256GCM(String data, List<int> key) async {
   }
 }
 
-/// Decrypt quantum encrypted data
 Future<String> _quantumDecrypt(String encryptedData, String encryptedKey, String privateKey) async {
   try {
-    // Розшифрування квантового ключа за допомогою RSA
     final quantumKey = RSACrypto.decrypt(encryptedKey, privateKey);
     final keyBytes = base64Decode(quantumKey);
     
-    // Парсинг зашифрованих даних
     final combined = jsonDecode(encryptedData) as Map<String, dynamic>;
     final iv = base64Decode(combined['iv'] as String);
     final data = combined['data'] as String;
-    
-    // Розшифрування даних
+
     final encrypter = Encrypter(AES(
       Key(Uint8List.fromList(keyBytes)),
       mode: AESMode.gcm,
@@ -174,7 +158,6 @@ Future<String> _quantumDecrypt(String encryptedData, String encryptedKey, String
   }
 }
 
-/// Decrypt quantum encrypted message for specific user
 Future<Map<String, dynamic>> decryptQuantumMessage(
   Map<String, dynamic> messageData,
   String userId,
@@ -196,15 +179,12 @@ Future<Map<String, dynamic>> decryptQuantumMessage(
     final encryptedKey = userContent['key'] as String;
     final encryptedData = userContent['data'] as String;
     
-    // Отримання приватного ключа користувача
     final privateKey = await ChatKeysDB.getPrivateKey(messageData['chatId']);
     
     if (privateKey == null || privateKey.isEmpty) {
-      print('Private key not found for quantum decryption');
       return messageData;
     }
 
-    // Розшифрування
     final decryptedContent = await _quantumDecrypt(
       encryptedData,
       encryptedKey,

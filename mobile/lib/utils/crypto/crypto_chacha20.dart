@@ -7,7 +7,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:pointycastle/export.dart';
 
-/// Шифрування з ChaCha20 для типу 'strong'
 Future<Map<String, dynamic>> encryptWithChaCha20(
   Map<String, dynamic> data,
   String chatId,
@@ -18,7 +17,6 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
     idChat: chatId,
     onSuccess: (keys) async {
       if (keys.isEmpty) {
-        print('No public keys found for ChaCha20 encryption');
         completer.complete(data);
         return;
       }
@@ -37,16 +35,12 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
 
           try {
             if (pubKey == null || pubKey.toString().trim().isEmpty) {
-              print('Empty public key for user $userId, skipping');
               continue;
             }
 
             final cleanedKey = pubKey.toString().trim();
-            
-            // ChaCha20 шифрування контенту
             final chachaEncrypted = await chaCha20Encrypt(contentString);
             
-            // Шифрування ключа ChaCha20 за допомогою RSA
             final encryptedKey = RSACrypto.encrypt(
               chachaEncrypted['key']!,
               cleanedKey,
@@ -57,7 +51,6 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
               'data': chachaEncrypted['data']!,
             };
 
-            print('Successfully ChaCha20 encrypted for user $userId');
           } catch (e, stackTrace) {
             print('Failed to ChaCha20 encrypt for user $userId: $e');
             print('Stack trace: $stackTrace');
@@ -65,7 +58,6 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
         }
 
         if (encryptedContents.isEmpty) {
-          print('Failed to ChaCha20 encrypt for any user');
           completer.complete(data);
           return;
         }
@@ -75,7 +67,6 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
         encryptedData['message']['content'] = encryptedContents;
         encryptedData['message']['encrypted'] = 'ChaCha20-Poly1305';
 
-        print('ChaCha20 encryption successful for ${encryptedContents.length} users');
         completer.complete(encryptedData);
       } catch (e, stackTrace) {
         print('ChaCha20 encryption process failed: $e');
@@ -92,13 +83,9 @@ Future<Map<String, dynamic>> encryptWithChaCha20(
   return completer.future;
 }
 
-/// Шифрування даних за допомогою ChaCha20
 Future<Map<String, String>> chaCha20Encrypt(String data) async {
   try {
-    // Генерація випадкового ключа (256-біт)
-    final key = _generateSecureKey(32); // 32 bytes = 256 bits
-    
-    // Шифрування даних алгоритмом ChaCha20-Poly1305
+    final key = _generateSecureKey(32);
     final encryptedData = await _encryptWithChaCha20Poly1305(data, key);
     
     return {
@@ -111,34 +98,27 @@ Future<Map<String, String>> chaCha20Encrypt(String data) async {
   }
 }
 
-/// Генерація безпечного криптографічного ключа
 List<int> _generateSecureKey(int length) {
   final random = Random.secure();
   return List<int>.generate(length, (_) => random.nextInt(256));
 }
 
-/// Шифрування даних за допомогою ChaCha20
 Future<String> _encryptWithChaCha20Poly1305(String data, List<int> key) async {
   try {
     final keyBytes = Uint8List.fromList(key);
-    // Nonce для ChaCha20 (8 bytes - вимога pointycastle)
     final nonce = Uint8List.fromList(_generateSecureKey(8));
     
-    // Ініціалізація ChaCha20
     final cipher = ChaCha20Engine();
     final params = ParametersWithIV(KeyParameter(keyBytes), nonce);
-    cipher.init(true, params); // true для шифрування
-    
-    // Конвертуємо текст в байти
+    cipher.init(true, params);
+
     final dataBytes = Uint8List.fromList(utf8.encode(data));
-    
-    // Шифруємо
+
     final encrypted = Uint8List(dataBytes.length);
     for (var i = 0; i < dataBytes.length; i++) {
       encrypted[i] = cipher.returnByte(dataBytes[i]);
     }
     
-    // Комбінуємо nonce та зашифровані дані
     final combined = {
       'nonce': base64Encode(nonce),
       'data': base64Encode(encrypted),
@@ -151,28 +131,23 @@ Future<String> _encryptWithChaCha20Poly1305(String data, List<int> key) async {
   }
 }
 
-/// Розшифрування ChaCha20 даних
 Future<String> _chaCha20Decrypt(
   String encryptedData, 
   String encryptedKey, 
   String privateKey,
 ) async {
   try {
-    // Розшифрування ключа ChaCha20 за допомогою RSA
     final chachaKey = RSACrypto.decrypt(encryptedKey, privateKey);
     final keyBytes = Uint8List.fromList(base64Decode(chachaKey));
     
-    // Парсинг зашифрованих даних
     final combined = jsonDecode(encryptedData) as Map<String, dynamic>;
     final nonce = Uint8List.fromList(base64Decode(combined['nonce'] as String));
     final encryptedBytes = Uint8List.fromList(base64Decode(combined['data'] as String));
-    
-    // Ініціалізація ChaCha20 для розшифрування
+
     final cipher = ChaCha20Engine();
     final params = ParametersWithIV(KeyParameter(keyBytes), nonce);
-    cipher.init(false, params); // false для розшифрування
+    cipher.init(false, params);
     
-    // Розшифровуємо
     final decrypted = Uint8List(encryptedBytes.length);
     for (var i = 0; i < encryptedBytes.length; i++) {
       decrypted[i] = cipher.returnByte(encryptedBytes[i]);
@@ -184,7 +159,7 @@ Future<String> _chaCha20Decrypt(
     rethrow;
   }
 }
-/// Розшифрування ChaCha20 повідомлення для конкретного користувача
+
 Future<Map<String, dynamic>> decryptChaCha20Message(
   Map<String, dynamic> messageData,
   String userId,
@@ -206,7 +181,6 @@ Future<Map<String, dynamic>> decryptChaCha20Message(
     final encryptedKey = userContent['key'] as String;
     final encryptedData = userContent['data'] as String;
     
-    // Отримання приватного ключа користувача
     final privateKey = await ChatKeysDB.getPrivateKey(messageData['chatId']);
     
     if (privateKey == null || privateKey.isEmpty) {
@@ -214,7 +188,6 @@ Future<Map<String, dynamic>> decryptChaCha20Message(
       return messageData;
     }
 
-    // Розшифрування
     final decryptedContent = await _chaCha20Decrypt(
       encryptedData,
       encryptedKey,
