@@ -459,6 +459,4 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-
-// _onChatContentReceived
-// Не можу завантажити чат
+// join_chat

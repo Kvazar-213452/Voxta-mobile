@@ -294,8 +294,6 @@ class SocketService {
         ? await encryptAutoToUsers(messageData, chatId, encryptionType: settings?.encryptionLevel)
         : messageData;
 
-    print(encrypted);
-
     _socket?.emit('send_message', await encryptAutoServer(encrypted));
   }
 

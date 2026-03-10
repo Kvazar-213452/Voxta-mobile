@@ -419,5 +419,3 @@ class ChatFooter extends StatelessWidget {
     );
   }
 }
-
-// Приє

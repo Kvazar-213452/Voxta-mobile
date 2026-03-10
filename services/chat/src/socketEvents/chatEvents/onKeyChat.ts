@@ -13,7 +13,7 @@ export default class keyChat {
       try {
         const client = await getMongoClient();
         const db: Db = client.db("chats");
-        const collection = db.collection<{ _id: string; [key: string]: any }>(data.id);
+        const collection = db.collection<{ _id: string;[key: string]: any }>(data.id);
 
         const result = await collection.updateOne(
           { _id: "config" },
@@ -39,7 +39,7 @@ export default class keyChat {
       try {
         const client = await getMongoClient();
         const db: Db = client.db("chats");
-        const collection = db.collection<{ _id: string; [key: string]: any }>(data.id);
+        const collection = db.collection<{ _id: string;[key: string]: any }>(data.id);
 
         const newKey = generateId(9);
         const result = await collection.updateOne(
@@ -66,7 +66,7 @@ export default class keyChat {
       try {
         const client = await getMongoClient();
         const db: Db = client.db("chats");
-        const collection = db.collection<{ _id: string; [key: string]: any }>(data.id);
+        const collection = db.collection<{ _id: string;[key: string]: any }>(data.id);
         const chatConfig = await collection.findOne({ _id: "config" });
 
         if (chatConfig) {
@@ -97,12 +97,14 @@ export default class keyChat {
           const chatConfig = await collection.findOne({ _id: "config" });
 
           if (chatConfig && chatConfig.key === data.key) {
-            await collection.updateOne(
-              { _id: "config" },
-              { $addToSet: { participants: String(socket.data.userId) } }
-            );
             matchedChatName = collInfo.name;
-            break;
+            if (chatConfig["type"] === "online") {
+              await collection.updateOne(
+                { _id: "config" },
+                { $addToSet: { participants: String(socket.data.userId) } }
+              );
+              break;
+            }
           }
         }
 
