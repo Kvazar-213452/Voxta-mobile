@@ -76,7 +76,7 @@ Uint8List decryptBytes(Uint8List encryptedBytes, String base64Key) {
 Future<Map<String, dynamic>> decryptMessages(Map<String, dynamic> data) async {
   final info = await ChatKeysDB.getChatInfo(data["chatId"]);
 
-  if (!info?["isEncrypted"]) {
+  if (!(info?["isEncrypted"] ?? false)) {
     return data;
   }
 

@@ -44,10 +44,7 @@ class LoginStart extends StatelessWidget {
     return MaterialApp(
       title: 'Voxta',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const LoginScreen(),
     );
   }
@@ -61,10 +58,7 @@ class PaswStart extends StatelessWidget {
     return MaterialApp(
       title: 'Voxta',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const PawsScreen(),
     );
   }
@@ -78,10 +72,7 @@ class MainStart extends StatelessWidget {
     return MaterialApp(
       title: 'Voxta',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
       home: const MainScreen(),
     );
   }
